@@ -774,28 +774,27 @@ function chPeriod(){
   Object.keys(SMAP).forEach(sk=>{const sn=SMAP[sk];DATA[sn]=JSON.parse(JSON.stringify(RAW[sn]))});
   // Merge: add any rows from current month that don't exist in RAW
   Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];var existing=DATA[sn].map(function(r){return r.sec+'||'+r.name});(curStructure[sn]||[]).forEach(function(r){if(existing.indexOf(r.sec+'||'+r.name)<0){DATA[sn].push({sec:r.sec,name:r.name,daily:{},monthly:0})}})});
-  // Try load from Firestore for new period
+  // Render tables FIRST with local data
+  ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
+  // Then try load from Firestore in background
   if(db){
     const key=`${YEAR}-${String(MONTH).padStart(2,'0')}`;
-    setSyncSt('sync','切換中…');
+    setSyncSt('sync','雲端載入中…');
+    var timeout=setTimeout(function(){setSyncSt('warn','雲端逾時，使用本機')},8000);
     db.collection('finance').doc(key).collection('stores').get().then(snap=>{
+      clearTimeout(timeout);
       if(!snap.empty){
         snap.forEach(doc=>{const sn=doc.id;if(DATA[sn]&&doc.data().rows)DATA[sn]=doc.data().rows});
         setSyncSt('ok','☁️ 已載入');
       } else {
-        // No cloud data: clear daily values but keep row structure
         Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];DATA[sn].forEach(function(r){r.daily={};r.monthly=0})});
-        setSyncSt('ok','☁️ 無此月資料（空白）');
+        setSyncSt('ok','新月份（空白）');
       }
       ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
     }).catch(()=>{
-      setSyncSt('err','⚠️ 載入失敗');
-      ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
+      clearTimeout(timeout);
+      setSyncSt('err','⚠️ 雲端失敗');
     });
-  } else {
-    // Offline: clear daily values but keep structure
-    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];DATA[sn].forEach(function(r){r.daily={};r.monthly=0})});
-    ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
   }
 }
 
@@ -938,46 +937,45 @@ try{
   db=undefined;
 }
 
-// ═══ DATA INIT — 雲端優先，本機備份 ═══
+// ═══ DATA INIT — 先顯示，再同步雲端 ═══
 async function initData(){
-  let loaded=false;
-  // 嘗試從 Firestore 載入
-  if(db){
-    try{
-      setSyncSt('sync','載入中…');
-      const key=`${YEAR}-${String(MONTH).padStart(2,'0')}`;
-      const snap=await db.collection('finance').doc(key).collection('stores').get();
-      if(!snap.empty){
-        snap.forEach(doc=>{
-          const sn=doc.id;
-          if(DATA[sn]&&doc.data().rows){
-            DATA[sn]=doc.data().rows;
-          }
-        });
-        loaded=true;
-        setSyncSt('ok','☁️ 雲端已連線');
-        console.log('✅ Loaded from Firestore:',key);
-      } else {
-        setSyncSt('ok','☁️ 已連線（無雲端資料）');
-      }
-    }catch(e){
-      console.warn('Firestore load failed:',e);
-      setSyncSt('err','⚠️ 雲端載入失敗');
-    }
-  }
-  // Fallback: localStorage
-  if(!loaded){
-    try{
-      const s=localStorage.getItem('fin_v3');
-      if(s){Object.assign(DATA,JSON.parse(s));console.log('📦 Loaded from localStorage')}
-    }catch(e){}
-    if(!db) setSyncSt('off','離線模式');
-  }
-  // 建表 + 計算
+  // Step 1: 嘗試從 localStorage 載入（即時）
+  try{
+    const s=localStorage.getItem('fin_v3');
+    if(s){Object.assign(DATA,JSON.parse(s));console.log('📦 Loaded from localStorage')}
+  }catch(e){}
+  // Step 2: 立即建表（不等雲端）
   ['jd','ts','hq'].forEach(k=>buildTable(k));
   recalc('jd');recalc('ts');recalc('hq');
   document.getElementById('hdr-ver').textContent=VER.full();
   document.getElementById('nb-cl').textContent=VER.str();
+  // Step 3: 背景嘗試 Firestore 同步
+  if(db){
+    setSyncSt('sync','雲端連線中…');
+    var timeout=setTimeout(function(){setSyncSt('warn','雲端逾時，使用本機')},8000);
+    try{
+      const key=`${YEAR}-${String(MONTH).padStart(2,'0')}`;
+      const snap=await db.collection('finance').doc(key).collection('stores').get();
+      clearTimeout(timeout);
+      if(!snap.empty){
+        snap.forEach(doc=>{
+          const sn=doc.id;
+          if(DATA[sn]&&doc.data().rows){DATA[sn]=doc.data().rows}
+        });
+        setSyncSt('ok','☁️ 雲端已連線');
+        ['jd','ts','hq'].forEach(k=>buildTable(k));
+        recalc('jd');recalc('ts');recalc('hq');
+      } else {
+        setSyncSt('ok','☁️ 已連線（無雲端資料）');
+      }
+    }catch(e){
+      clearTimeout(timeout);
+      console.warn('Firestore load failed:',e);
+      setSyncSt('err','⚠️ 雲端失敗，使用本機');
+    }
+  } else {
+    setSyncSt('off','離線模式');
+  }
 }
 initData();
 </script>
