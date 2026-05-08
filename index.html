@@ -495,7 +495,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div class="hdr">
   <div class="hdr-brand">
     <span class="hdr-logo">📋 好洺財會系統</span>
-    <span class="hdr-ver" id="hdr-ver">v1.1.0 Build#4</span>
+    <span class="hdr-ver" id="hdr-ver">v2.2.0</span>
     <div class="hdr-period">
       <select class="hdr-sel" id="yr" onchange="chPeriod()"><option value="2026" selected>民國115年</option><option value="2025">民國114年</option></select>
       <select class="hdr-sel" id="mo" onchange="chPeriod()"><option value="1">1月</option><option value="2">2月</option><option value="3" selected>3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select>
@@ -522,7 +522,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
   <div class="nav-tab ledger" onclick="sw('hq',this)"><span class="nav-icon">🏭</span>總公司 <span class="nav-badge" id="nb-hq">—</span></div>
   <div class="nav-sep"></div>
   <div class="nav-tab" onclick="sw('bp',this)"><span>🏗️</span> 系統藍圖</div>
-  <div class="nav-tab changelog" onclick="sw('cl',this)"><span>📜</span> 版本紀錄 <span class="nav-badge" id="nb-cl" style="background:rgba(245,158,11,.15);color:#f59e0b">v1.1.0</span></div>
+  <div class="nav-tab changelog" onclick="sw('cl',this)"><span>📜</span> 版本紀錄 <span class="nav-badge" id="nb-cl" style="background:rgba(245,158,11,.15);color:#f59e0b">v2.2.0</span></div>
 </div>
 
 <!-- ═══ CONTENT ═══ -->
@@ -727,6 +727,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <script>
 // ═══ VERSION ═══
 const VER={major:2,minor:2,patch:0,build:9,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'}};
 const CHANGELOG=[
