@@ -7,8 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-firestore-compat.min.js"></script>
 <style>
 /* ══════════════════════════════════════════════════════
    🎨 好洺 Executive Theme — 專為財務報表設計
@@ -766,8 +766,13 @@ function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.disp
 function chPeriod(){
   YEAR=+$('yr').value;MONTH=+$('mo').value;DAYS=mkDays(YEAR,MONTH);
   $('chip').textContent=`${YEAR-1911}年 ${MONTH}月`;
-  // Reset DATA to RAW defaults then reload
+  // Save current row structure (sec+name) before reset
+  var curStructure={};
+  Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];curStructure[sn]=DATA[sn].map(function(r){return{sec:r.sec,name:r.name}})});
+  // Reset DATA to RAW defaults
   Object.keys(SMAP).forEach(sk=>{const sn=SMAP[sk];DATA[sn]=JSON.parse(JSON.stringify(RAW[sn]))});
+  // Merge: add any rows from current month that don't exist in RAW
+  Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];var existing=DATA[sn].map(function(r){return r.sec+'||'+r.name});(curStructure[sn]||[]).forEach(function(r){if(existing.indexOf(r.sec+'||'+r.name)<0){DATA[sn].push({sec:r.sec,name:r.name,daily:{},monthly:0})}})});
   // Try load from Firestore for new period
   if(db){
     const key=`${YEAR}-${String(MONTH).padStart(2,'0')}`;
@@ -777,7 +782,9 @@ function chPeriod(){
         snap.forEach(doc=>{const sn=doc.id;if(DATA[sn]&&doc.data().rows)DATA[sn]=doc.data().rows});
         setSyncSt('ok','☁️ 已載入');
       } else {
-        setSyncSt('ok','☁️ 無此月資料');
+        // No cloud data: clear daily values but keep row structure
+        Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];DATA[sn].forEach(function(r){r.daily={};r.monthly=0})});
+        setSyncSt('ok','☁️ 無此月資料（空白）');
       }
       ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
     }).catch(()=>{
@@ -785,12 +792,14 @@ function chPeriod(){
       ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
     });
   } else {
+    // Offline: clear daily values but keep structure
+    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];DATA[sn].forEach(function(r){r.daily={};r.monthly=0})});
     ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
   }
 }
 
 // ═══ BUILD TABLE ═══
-function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let h=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS)h+=`<col style="width:${d.w>=5?46:54}px">`;h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS)h+=`<th${d.w>=5?' class="wk"':''}>${WD[d.w]}</th>`;h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS)h+=`<th${d.w>=5?' class="wk"':''}>${d.d}</th>`;h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${bg};position:sticky;left:6px;z-index:7" title="${row.name}"><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-right:22px">${row.name}</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',wk=d.w>=5?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${d.w>=5?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="openQF(this,event)" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let h=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS)h+=`<col style="width:${d.w>=5?46:54}px">`;h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS)h+=`<th${d.w>=5?' class="wk"':''}>${WD[d.w]}</th>`;h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS)h+=`<th${d.w>=5?' class="wk"':''}>${d.d}</th>`;h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-right:22px">${row.name}</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',wk=d.w>=5?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${d.w>=5?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="openQF(this,event)" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 let actInp=null;
