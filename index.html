@@ -292,6 +292,15 @@ td.lnm .del-btn{display:none;position:absolute;right:4px;top:50%;transform:trans
 td.lnm .del-btn:hover{background:#dc2626;color:#fff}
 td.lnm{position:sticky;left:6px;z-index:7;cursor:default;background:inherit;overflow:visible}
 tr:hover td.lnm .del-btn{display:block}
+/* Tax badges */
+.tax-badge{display:inline-block;width:18px;height:18px;border-radius:4px;font-size:10px;font-weight:900;
+  text-align:center;line-height:18px;cursor:pointer;position:absolute;left:4px;top:50%;transform:translateY(-50%);
+  border:1.5px solid transparent;transition:all .15s;user-select:none}
+.tax-badge:hover{transform:translateY(-50%) scale(1.15)}
+.tax-badge.tax-T{background:#fee2e2;color:#dc2626;border-color:#fca5a5}
+.tax-badge.tax-F{background:#dcfce7;color:#16a34a;border-color:#86efac}
+.tax-badge.tax-I{background:#dbeafe;color:#2563eb;border-color:#93c5fd}
+.tax-badge.tax-N{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;font-size:9px}
 .t-undo{background:var(--surf-alt);border:1.5px solid var(--bdr-dk);color:var(--txt-2);
   padding:4px 10px;border-radius:var(--r-sm);font-size:var(--fs-sm);font-weight:700;
   cursor:pointer;font-family:var(--f-body);transition:all .15s}
@@ -797,41 +806,66 @@ const FIN_PANES=['pl','bs','cf','bp','cl'];
 function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}closeQF()}
 function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.display='none');const e=$('st-'+k);if(e)e.style.display='block'}
 function chPeriod(){
+  // Step 1: SAVE current month BEFORE switching (prevent data loss)
+  var oldMk=YEAR+'-'+String(MONTH).padStart(2,'0');
+  try{localStorage.setItem('fin_v3_'+oldMk,JSON.stringify(DATA))}catch(e){}
+  // Also save to Firestore in background
+  if(db){try{
+    var batch=db.batch();
+    Object.entries(SMAP).forEach(function(e){var sk=e[0],sn=e[1];
+      var ref=db.collection('finance').doc(oldMk).collection('stores').doc(sn);
+      batch.set(ref,{rows:DATA[sn],updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    });batch.commit().catch(function(){})
+  }catch(e){}}
+
+  // Step 2: Switch to new month
   YEAR=+$('yr').value;MONTH=+$('mo').value;DAYS=mkDays(YEAR,MONTH);
   $('chip').textContent=`${YEAR-1911}年 ${MONTH}月`;
-  // Save current row structure (sec+name) before reset
-  var curStructure={};
-  Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];curStructure[sn]=DATA[sn].map(function(r){return{sec:r.sec,name:r.name}})});
-  // Reset DATA to RAW defaults
-  Object.keys(SMAP).forEach(sk=>{const sn=SMAP[sk];DATA[sn]=JSON.parse(JSON.stringify(RAW[sn]))});
-  // Merge: add any rows from current month that don't exist in RAW
-  Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];var existing=DATA[sn].map(function(r){return r.sec+'||'+r.name});(curStructure[sn]||[]).forEach(function(r){if(existing.indexOf(r.sec+'||'+r.name)<0){DATA[sn].push({sec:r.sec,name:r.name,daily:{},monthly:0})}})});
-  // Render tables FIRST with local data
-  ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
-  // Then try load from Firestore in background
+  var newMk=YEAR+'-'+String(MONTH).padStart(2,'0');
+
+  // Step 3: Try load from month-specific localStorage FIRST (instant)
+  var localLoaded=false;
+  try{
+    var lsData=localStorage.getItem('fin_v3_'+newMk);
+    if(lsData){Object.assign(DATA,JSON.parse(lsData));localLoaded=true}
+  }catch(e){}
+
+  // If no local data, reset to RAW defaults with structure merge
+  if(!localLoaded){
+    var curStructure={};
+    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];curStructure[sn]=DATA[sn].map(function(r){return{sec:r.sec,name:r.name,tax:r.tax||''}})});
+    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];DATA[sn]=JSON.parse(JSON.stringify(RAW[sn]))});
+    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];var existing=DATA[sn].map(function(r){return r.sec+'||'+r.name});(curStructure[sn]||[]).forEach(function(r){if(existing.indexOf(r.sec+'||'+r.name)<0){DATA[sn].push({sec:r.sec,name:r.name,daily:{},monthly:0,tax:r.tax})}})});
+    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];DATA[sn].forEach(function(r){r.daily={};r.monthly=0})});
+  }
+
+  // Step 4: Render tables immediately
+  ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);
+
+  // Step 5: Try Firestore in background (overrides local if found)
   if(db){
-    const key=`${YEAR}-${String(MONTH).padStart(2,'0')}`;
     setSyncSt('sync','雲端載入中…');
-    var timeout=setTimeout(function(){setSyncSt('warn','雲端逾時，使用本機')},8000);
-    db.collection('finance').doc(key).collection('stores').get().then(snap=>{
+    var timeout=setTimeout(function(){setSyncSt(localLoaded?'ok':'warn',localLoaded?'使用本機資料':'雲端逾時')},8000);
+    db.collection('finance').doc(newMk).collection('stores').get().then(function(snap){
       clearTimeout(timeout);
       if(!snap.empty){
-        snap.forEach(doc=>{const sn=doc.id;if(DATA[sn]&&doc.data().rows)DATA[sn]=doc.data().rows});
+        snap.forEach(function(doc){var sn=doc.id;if(DATA[sn]&&doc.data().rows)DATA[sn]=doc.data().rows});
         setSyncSt('ok','☁️ 已載入');
+        ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);
       } else {
-        Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];DATA[sn].forEach(function(r){r.daily={};r.monthly=0})});
-        setSyncSt('ok','新月份（空白）');
+        setSyncSt('ok',localLoaded?'本機資料':'新月份');
       }
-      ['jd','ts','hq'].forEach(k=>buildTable(k));showSt(CUR);recalc(CUR);
-    }).catch(()=>{
+    }).catch(function(){
       clearTimeout(timeout);
-      setSyncSt('err','⚠️ 雲端失敗');
+      setSyncSt(localLoaded?'ok':'err',localLoaded?'使用本機資料':'⚠️ 雲端失敗');
     });
+  } else {
+    setSyncSt(localLoaded?'ok':'off',localLoaded?'本機資料':'離線');
   }
 }
 
 // ═══ BUILD TABLE ═══
-function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let h=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-right:22px">${row.name}</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${isH?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let h=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="點擊切換稅別">${row.tax==='T'?'稅':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:22px">${row.name}</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${isH?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 let actInp=null;
@@ -890,6 +924,7 @@ function batchAdd(){const lines=$('batch-inp').value.split('\n').map(s=>s.trim()
 function toggleAddPan(){const p=$('add-pan');p.classList.toggle('show');if(p.classList.contains('show'))$('batch-inp').focus()}
 function clearStoreData(){const sn=SMAP[CUR];if(!confirm('⚠ 確定要清除「'+sn+'」所有數據？\n\n此操作會清空所有日期金額（廠商/科目名稱保留）。\n建議先按 💾 儲存備份。'))return;if(!confirm('🔴 二次確認：「'+sn+'」全部金額將歸零\n\n按「確定」執行清除'))return;pushHistory();for(const row of DATA[sn]){row.daily={};row.monthly=0}buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已清除，請儲存')}
 function delRow(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.filter(r=>r.sec===sec);if(ri>=match.length)return;const target=match[ri];if(!confirm('確定刪除「'+target.name+'」？'))return;pushHistory();const idx=rows.indexOf(target);if(idx>=0)rows.splice(idx,1);buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已刪除，請儲存')}
+function toggleTax(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.filter(r=>r.sec===sec);if(ri>=match.length)return;const target=match[ri];const cycle=['N','T','F','I'];const cur=target.tax||'N';const next=cycle[(cycle.indexOf(cur)+1)%cycle.length];pushHistory();target.tax=next==='N'?'':next;buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave()}
 
 /* ─── Undo / Redo ─────────────────────────────────── */
 var _hUndo=[],_hRedo=[],_H_MAX=30;
@@ -951,8 +986,9 @@ function schedAutoSave(){
 
 function updVendor(sk){const dl=$('vend-dl');if(!dl)return;dl.innerHTML=[...new Set(DATA[SMAP[sk]].map(r=>r.name))].map(n=>`<option value="${n}"></option>`).join('')}
 function doSave(){
-  // 1. 本機儲存（備份）
-  try{localStorage.setItem('fin_v3',JSON.stringify(DATA))}catch(e){}
+  // 1. 本機儲存（月份專用 + 通用備份）
+  var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
+  try{localStorage.setItem('fin_v3_'+mk,JSON.stringify(DATA));localStorage.setItem('fin_v3',JSON.stringify(DATA));localStorage.setItem('fin_v3_last',mk)}catch(e){}
   // 2. 雲端儲存
   if(typeof db!=='undefined'){
     const key=`${YEAR}-${String(MONTH).padStart(2,'0')}`;
@@ -1007,10 +1043,12 @@ try{
 
 // ═══ DATA INIT — 先顯示，再同步雲端 ═══
 async function initData(){
-  // Step 1: 嘗試從 localStorage 載入（即時）
+  // Step 1: Try month-specific localStorage first, fallback to generic
+  var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
   try{
-    const s=localStorage.getItem('fin_v3');
-    if(s){Object.assign(DATA,JSON.parse(s));console.log('📦 Loaded from localStorage')}
+    var s=localStorage.getItem('fin_v3_'+mk);
+    if(!s)s=localStorage.getItem('fin_v3');
+    if(s){Object.assign(DATA,JSON.parse(s));console.log('📦 Loaded from localStorage:',mk)}
   }catch(e){}
   // Step 2: 立即建表（不等雲端）
   ['jd','ts','hq'].forEach(k=>buildTable(k));
