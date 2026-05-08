@@ -301,6 +301,12 @@ tr:hover td.lnm .del-btn{display:block}
 .tax-badge.tax-F{background:#dcfce7;color:#16a34a;border-color:#86efac}
 .tax-badge.tax-I{background:#dbeafe;color:#2563eb;border-color:#93c5fd}
 .tax-badge.tax-N{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;font-size:9px}
+/* Drag handle */
+.drag-h{position:absolute;right:24px;top:50%;transform:translateY(-50%);cursor:grab;
+  color:#cbd5e1;font-size:12px;display:none;user-select:none;padding:0 2px}
+.drag-h:active{cursor:grabbing}
+tr:hover .drag-h{display:block}
+tr[draggable=true]{transition:opacity .15s}
 .t-undo{background:var(--surf-alt);border:1.5px solid var(--bdr-dk);color:var(--txt-2);
   padding:4px 10px;border-radius:var(--r-sm);font-size:var(--fs-sm);font-weight:700;
   cursor:pointer;font-family:var(--f-body);transition:all .15s}
@@ -327,6 +333,12 @@ table.lt tbody tr:hover>td.lbar{opacity:.7}
 table.lt tbody tr:hover>td.lnm{background:#eef2ff!important}
 table.lt tbody tr.lsec:hover>td,table.lt tbody tr.lsub:hover>td,
 table.lt tbody tr.lday:hover>td,table.lt tbody tr.lni:hover>td{background:inherit!important}
+/* Active row highlight (on cell focus) */
+table.lt tbody tr.row-active>td{background:#e8f0fe!important}
+table.lt tbody tr.row-active>td.lbar{opacity:1}
+table.lt tbody tr.row-active>td.lnm{background:#dbe6fd!important}
+table.lt tbody tr.row-active>td.lc input{background:transparent}
+table.lt tbody tr.row-active>td.lc.wk{background:#dde5f9!important}
 /* Column highlight */
 td.lc.col-hl{background:rgba(59,130,246,.05)!important}
 th.col-hl{background:var(--navy-600)!important}
@@ -865,17 +877,60 @@ function chPeriod(){
 }
 
 // ═══ BUILD TABLE ═══
-function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let h=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="點擊切換稅別">${row.tax==='T'?'稅':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:22px">${row.name}</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${isH?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let h=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="點擊切換稅別">${row.tax==='T'?'稅':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:46px">${row.name}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${isH?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 let actInp=null;
 function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)delete DATA[sn][idx].daily[day];else DATA[sn][idx].daily[day]=v;inp.parentElement.classList.toggle('hv',v!==0);recalc(s);schedAutoSave()}
 function kd(e,inp){if(e.key==='Enter'){e.preventDefault();onCell(inp);inp.select();return}if(e.key==='Tab'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+(e.shiftKey?-1:1)];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowRight'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowLeft'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i-1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowDown'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ntr=tr.nextElementSibling;if(ntr){const ntd=ntr.children[ci];if(ntd){const ni=ntd.querySelector('input[type="number"]');if(ni){ni.focus();ni.select()}}}return}if(e.key==='ArrowUp'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ptr=tr.previousElementSibling;if(ptr){const ptd=ptr.children[ci];if(ptd){const pi=ptd.querySelector('input[type="number"]');if(pi){pi.focus();pi.select()}}}return}if(e.key==='Escape')closeQF()}
 
+/* ─── Prevent scroll wheel changing number inputs ─── */
+document.addEventListener('wheel',function(e){if(e.target&&e.target.tagName==='INPUT'&&e.target.type==='number'){e.target.blur()}},{passive:true});
+
+/* ─── Drag & Drop 排序（科目列）─── */
+var _dragRow=null,_dragSec='',_dragRi=-1,_dragSk='';
+function startDrag(e,sec,ri){
+  _dragSk=CUR;_dragSec=sec;_dragRi=ri;_dragRow=e.target.closest('tr');
+  if(_dragRow)_dragRow.style.opacity='0.4';
+  e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',sec+'|'+ri);
+}
+function overDrag(e,sec,ri){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  var tr=e.target.closest('tr');
+  if(tr&&_dragRow&&tr!==_dragRow){tr.style.borderTop='3px solid #2563eb'}
+}
+function leaveDrag(e){var tr=e.target.closest('tr');if(tr)tr.style.borderTop=''}
+function dropDrag(e,sec,ri){
+  e.preventDefault();
+  var tr=e.target.closest('tr');if(tr)tr.style.borderTop='';
+  if(_dragRow)_dragRow.style.opacity='1';
+  if(_dragSec!==sec){_dragRow=null;return}
+  var sn=SMAP[_dragSk],rows=DATA[sn];
+  var fromMatch=rows.filter(function(r){return r.sec===sec});
+  var toMatch=fromMatch.slice();
+  if(_dragRi<0||_dragRi>=fromMatch.length||ri<0||ri>=fromMatch.length){_dragRow=null;return}
+  if(_dragRi===ri){_dragRow=null;return}
+  pushHistory();
+  var fromIdx=rows.indexOf(fromMatch[_dragRi]);
+  var toIdx=rows.indexOf(fromMatch[ri]);
+  var item=rows.splice(fromIdx,1)[0];
+  var newToIdx=rows.indexOf(fromMatch[ri>_dragRi?ri-1:ri]);
+  if(ri>_dragRi)rows.splice(newToIdx+1,0,item);
+  else rows.splice(newToIdx,0,item);
+  buildTable(_dragSk);showSt(CUR);recalc(_dragSk);schedAutoSave();
+  _dragRow=null;
+}
+function endDrag(e){if(_dragRow)_dragRow.style.opacity='1';_dragRow=null}
+
 /* ─── Column Highlight + Position Indicator ─── */
-var _hlCol=-1,_posTimer=null;
+var _hlCol=-1,_posTimer=null,_activeRow=null;
 document.addEventListener('focusin',function(e){
   var inp=e.target;if(!inp||inp.tagName!=='INPUT'||!inp.dataset.s)return;
+  // Clear previous active row
+  if(_activeRow)_activeRow.classList.remove('row-active');
+  // Set new active row
+  var tr=inp.closest('tr');
+  if(tr){tr.classList.add('row-active');_activeRow=tr}
   // Clear previous column highlight
   clearColHL();
   // Find column index
@@ -904,7 +959,16 @@ document.addEventListener('focusin',function(e){
 document.addEventListener('focusout',function(e){
   var inp=e.target;if(!inp||inp.tagName!=='INPUT'||!inp.dataset.s)return;
   clearColHL();
-  _posTimer=setTimeout(function(){var pb=document.getElementById('pos-bar');if(pb)pb.classList.remove('on')},1500);
+  _posTimer=setTimeout(function(){
+    var pb=document.getElementById('pos-bar');if(pb)pb.classList.remove('on');
+    // Remove active row only if no input is focused
+    setTimeout(function(){
+      var active=document.activeElement;
+      if(!active||active.tagName!=='INPUT'||!active.dataset||!active.dataset.s){
+        if(_activeRow){_activeRow.classList.remove('row-active');_activeRow=null}
+      }
+    },50);
+  },1500);
 });
 function clearColHL(){document.querySelectorAll('.col-hl').forEach(function(el){el.classList.remove('col-hl')});_hlCol=-1}
 function gIdx(sn,sec,ri){let c=0;for(let i=0;i<DATA[sn].length;i++){if(DATA[sn][i].sec===sec){if(c===ri)return i;c++}}return -1}
