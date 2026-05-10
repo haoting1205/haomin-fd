@@ -1443,6 +1443,36 @@ function doGDriveUpload(){
 // Init GDrive after page load + auto backup after 5s
 setTimeout(function(){initGDrive()},2000);
 setTimeout(function(){autoGDriveBackup()},5000);
+
+// Restore saved nav tab order
+try{
+  var savedOrder=JSON.parse(localStorage.getItem('fin_v3_navorder'));
+  if(savedOrder&&savedOrder.length>0){
+    var nav=document.querySelector('.nav');
+    if(nav){
+      var tabs={},seps=[];
+      nav.querySelectorAll('.nav-tab').forEach(function(t){
+        var m=(t.getAttribute('onclick')||'').match(/sw\('(\w+)'/);
+        if(m)tabs[m[1]]=t;
+      });
+      nav.querySelectorAll('.nav-sep').forEach(function(s){seps.push(s)});
+      // Clear nav
+      while(nav.firstChild)nav.removeChild(nav.firstChild);
+      // Rebuild in saved order
+      var sepIdx=0;
+      savedOrder.forEach(function(id){
+        if(id==='|'){
+          if(seps[sepIdx]){nav.appendChild(seps[sepIdx]);sepIdx++}
+          else{var s=document.createElement('div');s.className='nav-sep';nav.appendChild(s)}
+        }else if(tabs[id]){
+          nav.appendChild(tabs[id]);delete tabs[id];
+        }
+      });
+      // Append any remaining tabs not in saved order
+      Object.values(tabs).forEach(function(t){nav.appendChild(t)});
+    }
+  }
+}catch(e){}
 </script>
 </body>
 </html>
