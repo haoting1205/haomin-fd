@@ -717,7 +717,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <!-- Ledger -->
 <div class="pane" id="pane-ledger" style="display:none">
   <div class="l-sum"><div class="l-sc"><div class="ll">銷貨收入</div><div class="lv" style="color:var(--pos)" id="lv-rev">—</div><div class="lk">100%</div></div><div class="l-sc"><div class="ll">成本合計</div><div class="lv" style="color:var(--neg)" id="lv-cogs">—</div><div class="lk" id="lk-cogs">—</div></div><div class="l-sc"><div class="ll">銷貨毛利</div><div class="lv" id="lv-gp">—</div><div class="lk" id="lk-gp">—</div></div><div class="l-sc"><div class="ll">營業費用</div><div class="lv" style="color:var(--neg)" id="lv-opex">—</div><div class="lk" id="lk-opex">—</div></div><div class="l-sc"><div class="ll">稅前淨利</div><div class="lv" id="lv-ni">—</div><div class="lk" id="lk-ni">—</div></div></div>
-  <div class="l-toolbar"><button class="t-undo" id="btn-undo" onclick="undo()" disabled title="Ctrl+Z 上一步">⟲ 上一步</button><button class="t-undo" id="btn-redo" onclick="redo()" disabled title="Ctrl+Y 下一步">⟳ 下一步</button><span style="width:1px;height:20px;background:var(--bdr-dk);margin:0 4px"></span><span class="t-lbl">新增：</span><select class="t-sel" id="add-sec"><option value="收入">收入</option><option value="支出食材(月結)">食材成本（月結）</option><option value="支出食/包材(日結)">食材/包材（日結）</option><option value="租金">租金</option><option value="水電瓦斯">水電瓦斯</option><option value="其他費用">其他費用</option><option value="人事費用">人事費用</option></select><input type="text" class="t-inp" id="add-nm" placeholder="廠商 / 項目名稱" list="vend-dl" autocomplete="off" onkeydown="if(event.key==='Enter')addRow()"><datalist id="vend-dl"></datalist><button class="t-btn blue" onclick="addRow()">＋ 新增</button><button class="t-btn teal" onclick="toggleAddPan()">✏️ 批次</button><button class="t-btn ghost" onclick="copyLastMonth()" style="color:#7c3aed;border-color:#c4b5fd">📋 複製上月</button><button class="t-btn ghost" onclick="clearStoreData()" style="color:#dc2626;border-color:#fca5a5">🗑 清除</button><span class="t-hint">方向鍵移動 │ Enter 確認</span></div>
+  <div class="l-toolbar"><button class="t-undo" id="btn-undo" onclick="undo()" disabled title="Ctrl+Z 上一步">⟲ 上一步</button><button class="t-undo" id="btn-redo" onclick="redo()" disabled title="Ctrl+Y 下一步">⟳ 下一步</button><span style="width:1px;height:20px;background:var(--bdr-dk);margin:0 4px"></span><span class="t-lbl">新增：</span><select class="t-sel" id="add-sec"><option value="收入">收入</option><option value="支出食材(月結)">食材成本（月結）</option><option value="支出食/包材(日結)">食材/包材（日結）</option><option value="租金">租金</option><option value="水電瓦斯">水電瓦斯</option><option value="其他費用">其他費用</option><option value="人事費用">人事費用</option></select><input type="text" class="t-inp" id="add-nm" placeholder="廠商 / 項目名稱" list="vend-dl" autocomplete="off" onkeydown="if(event.key==='Enter')addRow()"><datalist id="vend-dl"></datalist><button class="t-btn blue" onclick="addRow()">＋ 新增</button><button class="t-btn teal" onclick="toggleAddPan()">✏️ 批次</button><button class="t-btn ghost" onclick="copyFromMonth()" style="color:#7c3aed;border-color:#c4b5fd">📋 複製月份</button><button class="t-btn ghost" onclick="clearStoreData()" style="color:#dc2626;border-color:#fca5a5">🗑 清除</button><span class="t-hint">方向鍵移動 │ Enter 確認</span></div>
   <div class="add-pan" id="add-pan"><label>批次新增：</label><textarea id="batch-inp" style="flex:1;min-width:260px;padding:6px 10px;border:1.5px solid #bfdbfe;border-radius:var(--r-sm);font-size:var(--fs-sm);font-family:var(--f-body);resize:none;height:38px" placeholder="每行一個名稱"></textarea><select class="t-sel" id="batch-sec"><option value="支出食材(月結)">食材成本（月結）</option><option value="支出食/包材(日結)">食材/包材（日結）</option><option value="其他費用">其他費用</option><option value="人事費用">人事費用</option></select><button class="t-btn blue" onclick="batchAdd()">確認</button><button class="t-btn ghost" onclick="toggleAddPan()">取消</button></div>
   <div class="l-body" id="l-body"><div id="st-jd" class="l-inner"></div><div id="st-ts" class="l-inner" style="display:none"></div><div id="st-hq" class="l-inner" style="display:none"></div></div>
   <div class="l-foot"><span>⌨ 方向鍵移動　│　Enter 確認　│　Tab 跳格　│　Esc 關閉</span><span id="l-foot-r" style="font-family:var(--f-num);font-weight:700"></span></div>
@@ -988,48 +988,60 @@ function batchAdd(){const lines=$('batch-inp').value.split('\n').map(s=>s.trim()
 function toggleAddPan(){const p=$('add-pan');p.classList.toggle('show');if(p.classList.contains('show'))$('batch-inp').focus()}
 function clearStoreData(){const sn=SMAP[CUR];if(!confirm('⚠ 確定要清除「'+sn+'」所有數據？\n\n此操作會清空所有日期金額（廠商/科目名稱保留）。\n建議先按 💾 儲存備份。'))return;if(!confirm('🔴 二次確認：「'+sn+'」全部金額將歸零\n\n按「確定」執行清除'))return;pushHistory();for(const row of DATA[sn]){row.daily={};row.monthly=0}buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已清除，請儲存')}
 
-function copyLastMonth(){
-  var prevM=MONTH-1,prevY=YEAR;
-  if(prevM<1){prevM=12;prevY--}
-  var prevMk=prevY+'-'+String(prevM).padStart(2,'0');
-  var curMk=YEAR+'-'+String(MONTH).padStart(2,'0');
-  var prevLabel=(prevY-1911)+'年'+prevM+'月';
+function copyFromMonth(){
   var curLabel=(YEAR-1911)+'年'+MONTH+'月';
-
-  // Try localStorage first
-  var prevData=null;
-  try{var s=localStorage.getItem('fin_v3_'+prevMk);if(s)prevData=JSON.parse(s)}catch(e){}
-
-  if(!prevData){
-    // Check if prev month is the RAW default month (115年3月 = 2026-03)
-    if(prevY===2026&&prevM===3){prevData=JSON.parse(JSON.stringify(RAW))}
+  var sn=SMAP[CUR];
+  // Build month options from localStorage + RAW
+  var available=[];
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k&&k.indexOf('fin_v3_20')===0){
+      var mk=k.replace('fin_v3_','');
+      var parts=mk.split('-');
+      if(parts.length===2)available.push(mk);
+    }
   }
+  if(available.indexOf('2026-03')<0)available.push('2026-03');
+  available.sort().reverse();
+  // Remove current month
+  var curMk=YEAR+'-'+String(MONTH).padStart(2,'0');
+  available=available.filter(function(m){return m!==curMk});
 
-  if(!prevData){
+  if(available.length===0){alert('沒有可複製的月份資料。\n請先在其他月份輸入資料。');return}
+
+  var list=available.map(function(mk,i){
+    var parts=mk.split('-');var y=+parts[0];var m=+parts[1];
+    return(i+1)+'. '+(y-1911)+'年'+m+'月';
+  }).join('\n');
+
+  var pick=prompt('📋 複製月份資料到「'+curLabel+' '+sn+'」\n\n可複製的月份：\n'+list+'\n\n請輸入編號（1~'+available.length+'）：');
+  if(!pick)return;
+  var idx=parseInt(pick)-1;
+  if(isNaN(idx)||idx<0||idx>=available.length){alert('無效的編號');return}
+
+  var srcMk=available[idx];
+  var srcParts=srcMk.split('-');
+  var srcLabel=(+srcParts[0]-1911)+'年'+(+srcParts[1])+'月';
+
+  // Load source data
+  var srcData=null;
+  if(srcMk==='2026-03'){srcData=JSON.parse(JSON.stringify(RAW))}
+  else{try{var s=localStorage.getItem('fin_v3_'+srcMk);if(s)srcData=JSON.parse(s)}catch(e){}}
+
+  if(!srcData){
     // Try Firestore
     if(db){
-      setSyncSt('sync','載入上月資料…');
-      db.collection('finance').doc(prevMk).collection('stores').get().then(function(snap){
-        if(snap.empty){
-          setSyncSt('warn','無上月資料');
-          alert('找不到「'+prevLabel+'」的資料。\n\n請先切換到該月份輸入資料後再使用此功能。');
-          return;
-        }
-        var pd={};
-        snap.forEach(function(doc){pd[doc.id]=doc.data().rows});
-        doApplyCopy(pd,prevLabel,curLabel);
-        setSyncSt('ok','已載入');
-      }).catch(function(){
-        setSyncSt('err','載入失敗');
-        alert('雲端載入失敗，請確認網路連線。');
-      });
+      setSyncSt('sync','載入'+srcLabel+'…');
+      db.collection('finance').doc(srcMk).collection('stores').get().then(function(snap){
+        if(snap.empty){setSyncSt('warn','無資料');alert('「'+srcLabel+'」雲端無資料');return}
+        var pd={};snap.forEach(function(doc){pd[doc.id]=doc.data().rows});
+        doApplyCopy(pd,srcLabel,curLabel);setSyncSt('ok','已載入');
+      }).catch(function(){setSyncSt('err','載入失敗');alert('雲端載入失敗');});
       return;
     }
-    alert('找不到「'+prevLabel+'」的本機資料。\n\n請先切換到該月份輸入資料後再使用此功能。');
-    return;
+    alert('找不到「'+srcLabel+'」的資料');return;
   }
-
-  doApplyCopy(prevData,prevLabel,curLabel);
+  doApplyCopy(srcData,srcLabel,curLabel);
 }
 
 function doApplyCopy(prevData,prevLabel,curLabel){
