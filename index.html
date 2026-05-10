@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-firestore-compat.min.js"></script>
 <style>
@@ -140,6 +141,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
 .nav-tab.active{color:#fff;border-bottom-color:#3b82f6;background:rgba(59,130,246,.08)}
 .nav-tab.ledger.active{border-bottom-color:#34d399;background:rgba(52,211,153,.06)}
 .nav-tab.changelog.active{border-bottom-color:#f59e0b;background:rgba(245,158,11,.06)}
+.nav-tab.nav-dragging{opacity:.4;border:2px dashed #3b82f6!important}
+.nav-tab.nav-dragover{border-left:3px solid #3b82f6!important}
 .nav-badge{
   background:rgba(255,255,255,.08);color:var(--slate-400);font-size:9px;font-weight:800;
   padding:2px 8px;border-radius:10px;font-family:var(--f-num);letter-spacing:.3px
@@ -544,6 +547,9 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
     <button class="hdr-btn print" onclick="doPrint()">🖨️ 列印</button>
     <button class="hdr-btn" onclick="doExport()">⬇ CSV</button>
     <button class="hdr-btn save" onclick="doSave()">💾 儲存</button>
+    <button class="hdr-btn" id="gdrive-btn" onclick="manualGDriveBackup()" title="Google Drive 雲端備份" style="font-size:12px">📥 雲端備份</button>
+    <button class="hdr-btn" onclick="exportBackup()" title="下載 JSON 備份檔" style="font-size:12px">⬇ 本機備份</button>
+    <button class="hdr-btn" onclick="importBackup()" title="匯入 JSON 備份檔" style="font-size:12px">📤 還原</button>
     <span id="save-st"><span class="sync-dot off" id="sync-dot"></span>未連線</span>
   </div>
 </div>
@@ -815,7 +821,7 @@ function $(id){return document.getElementById(id)}function setTxt(id,v,c){const 
 
 // ═══ NAV ═══
 const FIN_PANES=['pl','bs','cf','bp','cl'];
-function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}closeQF()}
+function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}closeQF();try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
 function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.display='none');const e=$('st-'+k);if(e)e.style.display='block'}
 function chPeriod(){
   // Step 1: SAVE current month BEFORE switching (prevent data loss)
@@ -877,7 +883,10 @@ function chPeriod(){
 }
 
 // ═══ BUILD TABLE ═══
-function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let h=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="點擊切換稅別">${row.tax==='T'?'稅':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:46px">${row.name}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${isH?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}
+var monthLabel=(YEAR-1911)+'年'+MONTH+'月';
+let h=`<div style="padding:8px 16px;background:linear-gradient(90deg,var(--navy-700),var(--navy-800));color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px;border-radius:8px 8px 0 0;margin-bottom:-1px"><span style="font-size:18px">📅</span><span>${sn}</span><span style="background:rgba(255,255,255,.15);padding:2px 12px;border-radius:12px;font-family:var(--f-num)">${monthLabel}</span><span style="font-size:11px;color:rgba(255,255,255,.5);margin-left:auto">共 ${rows.length} 項</span></div>`;
+h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="點擊切換稅別">${row.tax==='T'?'稅':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:46px">${row.name}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${isH?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 let actInp=null;
@@ -921,6 +930,48 @@ function dropDrag(e,sec,ri){
   _dragRow=null;
 }
 function endDrag(e){if(_dragRow)_dragRow.style.opacity='1';_dragRow=null}
+
+/* ─── Nav Tab Long-Press Drag ─── */
+var _navLPTimer=null,_navDragEl=null;
+document.querySelectorAll('.nav-tab').forEach(function(tab){
+  tab.addEventListener('mousedown',function(e){
+    _navLPTimer=setTimeout(function(){
+      tab.setAttribute('draggable','true');
+      tab.classList.add('nav-dragging');
+      _navDragEl=tab;
+    },600);
+  });
+  tab.addEventListener('mouseup',function(){clearTimeout(_navLPTimer)});
+  tab.addEventListener('mouseleave',function(){clearTimeout(_navLPTimer)});
+  tab.addEventListener('dragstart',function(e){
+    if(!_navDragEl)e.preventDefault();
+    e.dataTransfer.effectAllowed='move';
+  });
+  tab.addEventListener('dragover',function(e){
+    e.preventDefault();
+    if(_navDragEl&&_navDragEl!==tab)tab.classList.add('nav-dragover');
+  });
+  tab.addEventListener('dragleave',function(){tab.classList.remove('nav-dragover')});
+  tab.addEventListener('drop',function(e){
+    e.preventDefault();tab.classList.remove('nav-dragover');
+    if(!_navDragEl||_navDragEl===tab)return;
+    var nav=tab.parentElement;
+    var rect=tab.getBoundingClientRect();
+    var mid=rect.left+rect.width/2;
+    if(e.clientX<mid)nav.insertBefore(_navDragEl,tab);
+    else{var next=tab.nextSibling;if(next)nav.insertBefore(_navDragEl,next);else nav.appendChild(_navDragEl)}
+  });
+  tab.addEventListener('dragend',function(){
+    if(_navDragEl){_navDragEl.classList.remove('nav-dragging');_navDragEl.removeAttribute('draggable');_navDragEl=null}
+    document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('nav-dragover')});
+    // Save nav order
+    var order=[];document.querySelectorAll('.nav-tab,.nav-sep').forEach(function(el){
+      if(el.classList.contains('nav-sep'))order.push('|');
+      else{var m=(el.getAttribute('onclick')||'').match(/sw\('(\w+)'/);if(m)order.push(m[1])}
+    });
+    try{localStorage.setItem('fin_v3_navorder',JSON.stringify(order))}catch(e){}
+  });
+});
 
 /* ─── Column Highlight + Position Indicator ─── */
 var _hlCol=-1,_posTimer=null,_activeRow=null;
@@ -1191,6 +1242,16 @@ async function initData(){
   recalc('jd');recalc('ts');recalc('hq');
   document.getElementById('hdr-ver').textContent=VER.full();
   document.getElementById('nb-cl').textContent=VER.str();
+  // Restore last working position
+  try{
+    var pos=JSON.parse(localStorage.getItem('fin_v3_pos'));
+    if(pos&&pos.year&&pos.month){
+      YEAR=pos.year;MONTH=pos.month;
+      $('yr').value=YEAR;$('mo').value=MONTH;
+      DAYS=mkDays(YEAR,MONTH);
+      $('chip').textContent=(YEAR-1911)+'年 '+MONTH+'月';
+    }
+  }catch(e){}
   // Step 3: 背景嘗試 Firestore 同步
   if(db){
     setSyncSt('sync','雲端連線中…');
@@ -1220,6 +1281,168 @@ async function initData(){
   }
 }
 initData();
+// Restore last month/year but always start at P&L (損益表)
+// Active pane always = P&L on restart
+
+/* ─── Auto-save on close ─── */
+window.addEventListener('beforeunload',function(){
+  var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
+  try{
+    localStorage.setItem('fin_v3_'+mk,JSON.stringify(DATA));
+    localStorage.setItem('fin_v3',JSON.stringify(DATA));
+    localStorage.setItem('fin_v3_last',mk);
+    localStorage.setItem('fin_v3_pos',JSON.stringify({pane:'pl',year:YEAR,month:MONTH}));
+  }catch(e){}
+  // Try Firestore save (best effort, may not complete)
+  if(db){try{
+    var batch=db.batch();
+    Object.entries(SMAP).forEach(function(e){var sk=e[0],sn=e[1];
+      var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);
+      batch.set(ref,{rows:DATA[sn],updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    });batch.commit().catch(function(){})
+  }catch(e){}}
+});
+
+/* ─── Backup Export (JSON) ─── */
+function exportBackup(){
+  var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
+  var backup={version:'2.2.0',exportDate:new Date().toISOString(),year:YEAR,month:MONTH,stores:{}};
+  Object.entries(SMAP).forEach(function(e){backup.stores[e[1]]=DATA[e[1]]});
+  // Also include all months from localStorage
+  backup.allMonths={};
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k&&k.indexOf('fin_v3_20')===0){
+      try{backup.allMonths[k.replace('fin_v3_','')]=JSON.parse(localStorage.getItem(k))}catch(e){}
+    }
+  }
+  var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='好洺財會備份_'+mk+'_'+new Date().toISOString().substring(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);
+}
+
+function importBackup(){
+  var input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=function(e){
+    var file=e.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var backup=JSON.parse(ev.target.result);
+        if(!backup.stores){alert('無效的備份檔案');return}
+        if(!confirm('確定匯入備份？\n\n'+
+          '備份日期：'+backup.exportDate+'\n'+
+          '月份：'+(backup.year-1911)+'年'+backup.month+'月\n\n'+
+          '⚠ 將覆蓋目前「'+(YEAR-1911)+'年'+MONTH+'月」的資料'))return;
+        pushHistory();
+        Object.entries(backup.stores).forEach(function(e){if(DATA[e[0]])DATA[e[0]]=e[1]});
+        // Also restore all months if available
+        if(backup.allMonths){
+          Object.entries(backup.allMonths).forEach(function(e){
+            try{localStorage.setItem('fin_v3_'+e[0],JSON.stringify(e[1]))}catch(ex){}
+          });
+        }
+        ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);
+        doSave();
+        alert('✅ 備份已匯入');
+      }catch(ex){alert('匯入失敗：'+ex.message)}
+    };reader.readAsText(file);
+  };input.click();
+}
+
+/* ═══ Google Drive Auto Backup ═══ */
+var _GD_CLIENT_ID='48292281688-gr3cu08uu4ib7i9ebdl62pl40ej0ojt7.apps.googleusercontent.com';
+var _GD_SCOPE='https://www.googleapis.com/auth/drive.file';
+var _gdToken=null,_gdTokenClient=null;
+var _GD_LS_KEY='fin_gdrive_last_backup';
+
+function initGDrive(){
+  if(typeof google==='undefined'||!google.accounts)return;
+  _gdTokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:_GD_CLIENT_ID,
+    scope:_GD_SCOPE,
+    callback:function(resp){
+      if(resp.error){alert('⚠ Google 授權失敗：'+resp.error);return}
+      _gdToken=resp.access_token;
+      doGDriveUpload();
+    }
+  });
+  updateGDriveBtn();
+}
+
+function updateGDriveBtn(){
+  var btn=document.getElementById('gdrive-btn');if(!btn)return;
+  var last=localStorage.getItem(_GD_LS_KEY);
+  var today=new Date().toISOString().substring(0,10);
+  if(last===today){
+    btn.textContent='✅ 已備份';btn.title='今日已備份 ('+today+')';
+  }else if(last){
+    btn.textContent='📥 備份('+last.substring(5)+')';btn.title='上次備份：'+last;
+  }else{
+    btn.textContent='📥 雲端備份';btn.title='從未備份';
+  }
+}
+
+function manualGDriveBackup(){
+  if(!_gdTokenClient){
+    if(typeof google==='undefined'||!google.accounts){alert('⚠ Google SDK 尚未載入，請稍後再試');return}
+    initGDrive();
+  }
+  _gdTokenClient.requestAccessToken();
+}
+
+function autoGDriveBackup(){
+  var today=new Date().toISOString().substring(0,10);
+  var last=localStorage.getItem(_GD_LS_KEY);
+  if(last===today)return;
+  if(!_gdTokenClient){
+    if(typeof google==='undefined'||!google.accounts)return;
+    initGDrive();
+  }
+  try{_gdTokenClient.requestAccessToken({prompt:''})}catch(e){}
+}
+
+function doGDriveUpload(){
+  if(!_gdToken)return;
+  var today=new Date().toISOString().substring(0,10);
+  var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
+  // Build backup data
+  var backup={version:'2.2.0',exportDate:new Date().toISOString(),year:YEAR,month:MONTH,stores:{}};
+  Object.entries(SMAP).forEach(function(e){backup.stores[e[1]]=DATA[e[1]]});
+  backup.allMonths={};
+  for(var i=0;i<localStorage.length;i++){
+    var k=localStorage.key(i);
+    if(k&&k.indexOf('fin_v3_20')===0){
+      try{backup.allMonths[k.replace('fin_v3_','')]=JSON.parse(localStorage.getItem(k))}catch(e){}
+    }
+  }
+  var jsonContent=JSON.stringify(backup,null,2);
+  var fileName='好洺財會系統_備份_'+today.replace(/-/g,'')+'.json';
+  var metadata={name:fileName,mimeType:'application/json'};
+  var form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify(metadata)],{type:'application/json'}));
+  form.append('file',new Blob([jsonContent],{type:'application/json'}));
+  fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+    method:'POST',
+    headers:{'Authorization':'Bearer '+_gdToken},
+    body:form
+  }).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.json();
+  }).then(function(data){
+    localStorage.setItem(_GD_LS_KEY,today);
+    updateGDriveBtn();
+    console.log('✅ Google Drive backup:',data.name);
+  }).catch(function(err){
+    alert('⚠ Google Drive 備份失敗：'+err.message);
+  });
+}
+
+// Init GDrive after page load + auto backup after 5s
+setTimeout(function(){initGDrive()},2000);
+setTimeout(function(){autoGDriveBackup()},5000);
 </script>
 </body>
 </html>
