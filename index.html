@@ -1377,104 +1377,74 @@ function importBackup(){
 }
 
 /* ═══ Tax Center — 稅務中心 ═══ */
+function getVatConfig(){try{return JSON.parse(localStorage.getItem('fin_vat_config'))||{}}catch(e){return{}}}
+function saveVatConfig(cfg){try{localStorage.setItem('fin_vat_config',JSON.stringify(cfg))}catch(e){}}
+
+function toggleVat(storeKey,sec,ri,type){
+  var cfg=getVatConfig();
+  var key=storeKey+'__'+sec+'__'+ri;
+  if(!cfg[key])cfg[key]={};
+  cfg[key][type]=!cfg[key][type];
+  saveVatConfig(cfg);
+  renderTaxCenter();
+}
+
 function renderTaxCenter(){
   var el=$('tax-center-content');if(!el)return;
-  var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
   var rocY=YEAR-1911;
+  var cfg=getVatConfig();
 
-  // 1. Collect all stores data for current month
-  var allInc=0,allExp=0,allNI=0;
-  var salesTaxOut=0,salesTaxIn=0;
-  var storeDetail=[];
+  // Collect items - Sales: ONLY 台積電 revenue, Purchase: ALL stores expenses
+  var salesItems=[],purchaseItems=[];
+  var totalSales=0,totalPurchase=0;
 
   Object.entries(SMAP).forEach(function(e){
     var sk=e[0],sn=e[1],rows=DATA[sn];
-    var inc=0,exp=0,tMonthly=0,tIncluded=0,tExempt=0;
-    rows.forEach(function(r){
+    rows.forEach(function(r,ri){
       var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);
-      var isExp=r.sec!=='收入';
-      if(isExp){exp+=sum;if(r.tax==='T')tMonthly+=sum;else if(r.tax==='I')tIncluded+=sum;else if(r.tax==='F')tExempt+=sum}
-      else{inc+=sum}
+      if(sum===0)return;
+      var key=sk+'__'+r.sec+'__'+ri;
+      var cfgItem=cfg[key]||{};
+      if(r.sec==='收入'&&sk==='ts'){
+        // 銷項：只有台積電收入
+        var isSales=cfgItem.sales!==false;// default checked for 台積電
+        salesItems.push({key:key,store:sn,storeKey:sk,name:r.name,sec:r.sec,amount:sum,ri:ri,isSales:isSales});
+        if(isSales)totalSales+=sum;
+      }else if(r.sec!=='收入'){
+        // 進項：所有門市支出
+        var isPurchase=cfgItem.purchase||false;
+        purchaseItems.push({key:key,store:sn,storeKey:sk,name:r.name,sec:r.sec,amount:sum,tax:r.tax||'',ri:ri,isPurchase:isPurchase});
+        if(isPurchase)totalPurchase+=sum;
+      }
     });
-    var ni=inc-exp;
-    allInc+=inc;allExp+=exp;allNI+=ni;
-    // 銷項稅額 = 收入 × 5% (simplified: all revenue is taxable)
-    salesTaxOut+=Math.round(inc*0.05);
-    // 進項稅額 = 月結加稅 × 5% + 含稅中的稅額
-    salesTaxIn+=Math.round(tMonthly*0.05)+Math.round(tIncluded-tIncluded/1.05);
-    storeDetail.push({name:sn,inc:inc,exp:exp,ni:ni,taxM:tMonthly,taxI:tIncluded,taxF:tExempt});
   });
 
-  var vatDue=salesTaxOut-salesTaxIn;
+  var salesTax=Math.round(totalSales*0.05);
+  var purchaseTax=Math.round(totalPurchase*0.05);
+  var vatDue=salesTax-purchaseTax;
 
-  // 2. 營業稅期別判斷
-  var biMonth=MONTH%2===0?MONTH-1+'-'+MONTH:MONTH+'-'+(MONTH+1>12?1:MONTH+1);
-  var filingMonth=MONTH%2===0?MONTH+1:MONTH+2;
-  if(filingMonth>12)filingMonth-=12;
-  var filingDeadline=filingMonth+'月15日';
-
-  // 3. 營所稅年度預估 (load all months from localStorage)
+  // Annual CIT
   var annualNI=0,monthsLoaded=0;
   for(var m=1;m<=12;m++){
     var amk=YEAR+'-'+String(m).padStart(2,'0');
-    var mData=null;
     if(m===MONTH){
-      // Current month
-      Object.entries(SMAP).forEach(function(e){
-        var rows=DATA[e[1]];
-        var inc2=0,exp2=0;
-        rows.forEach(function(r){
-          var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);
-          if(r.sec==='收入')inc2+=sum;else exp2+=sum;
-        });
-        annualNI+=inc2-exp2;
-      });
+      Object.values(SMAP).forEach(function(sn){var rows=DATA[sn];var inc2=0,exp2=0;rows.forEach(function(r){var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc2+=sum;else exp2+=sum});annualNI+=inc2-exp2});
       monthsLoaded++;
     }else{
-      try{var s=localStorage.getItem('fin_v3_'+amk);if(s)mData=JSON.parse(s)}catch(e){}
-      if(mData){
-        Object.values(SMAP).forEach(function(sn){
-          if(!mData[sn])return;
-          var inc2=0,exp2=0;
-          mData[sn].forEach(function(r){
-            var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);
-            if(r.sec==='收入')inc2+=sum;else exp2+=sum;
-          });
-          annualNI+=inc2-exp2;
-        });
-        monthsLoaded++;
-      }
+      try{var s=localStorage.getItem('fin_v3_'+amk);if(s){var md=JSON.parse(s);Object.values(SMAP).forEach(function(sn){if(!md[sn])return;var inc2=0,exp2=0;md[sn].forEach(function(r){var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc2+=sum;else exp2+=sum});annualNI+=inc2-exp2});monthsLoaded++}}catch(e){}
     }
   }
-  var citExempt=120000;
-  var citTaxable=Math.max(0,annualNI-citExempt);
-  var citDue=Math.round(citTaxable*0.20);
   var citProjected=monthsLoaded>0?Math.round((annualNI/monthsLoaded)*12):0;
-  var citProjectedTax=Math.round(Math.max(0,citProjected-citExempt)*0.20);
+  var citTax=Math.round(Math.max(0,citProjected-120000)*0.20);
 
-  // 4. Filing deadlines
+  // Filing deadlines
   var now=new Date();
-  var deadlines=[
-    {name:'營業稅(1-2月)',month:3,day:15},
-    {name:'營業稅(3-4月)',month:5,day:15},
-    {name:'營業稅(5-6月)',month:7,day:15},
-    {name:'營業稅(7-8月)',month:9,day:15},
-    {name:'營業稅(9-10月)',month:11,day:15},
-    {name:'營業稅(11-12月)',month:1,day:15,nextYear:true},
-    {name:'營利事業所得稅',month:5,day:31},
-    {name:'各類所得扣繳(年度)',month:1,day:31,nextYear:true},
-  ];
+  var deadlines=[{name:'營業稅(1-2月)',month:3,day:15},{name:'營業稅(3-4月)',month:5,day:15},{name:'營業稅(5-6月)',month:7,day:15},{name:'營業稅(7-8月)',month:9,day:15},{name:'營業稅(9-10月)',month:11,day:15},{name:'營業稅(11-12月)',month:1,day:15,ny:1},{name:'營利事業所得稅',month:5,day:31},{name:'各類所得扣繳',month:1,day:31,ny:1}];
   var upcoming=[];
-  deadlines.forEach(function(dl){
-    var dlY=dl.nextYear?YEAR+1:YEAR;
-    var dlDate=new Date(dlY,dl.month-1,dl.day);
-    var diff=Math.round((dlDate-now)/(1000*60*60*24));
-    if(diff>=-7&&diff<=60)upcoming.push({name:dl.name,date:rocY+'年'+dl.month+'/'+dl.day,diff:diff,urgent:diff<=14});
-  });
+  deadlines.forEach(function(dl){var dy=dl.ny?YEAR+1:YEAR;var dd=new Date(dy,dl.month-1,dl.day);var diff=Math.round((dd-now)/(86400000));if(diff>=-7&&diff<=60)upcoming.push({name:dl.name,date:rocY+'年'+dl.month+'/'+dl.day,diff:diff})});
 
-  // 5. Build HTML
-  var h='';
-  h+='<div style="max-width:900px;margin:0 auto">';
+  // Build HTML
+  var h='<div style="max-width:960px;margin:0 auto">';
   h+='<div style="font-size:22px;font-weight:800;color:var(--navy-700);margin-bottom:4px">🧾 稅務中心</div>';
   h+='<div style="font-size:13px;color:#666;margin-bottom:20px">'+rocY+'年'+MONTH+'月 — 好洺餐飲事業有限公司</div>';
 
@@ -1482,73 +1452,59 @@ function renderTaxCenter(){
   if(upcoming.length>0){
     h+='<div style="background:linear-gradient(135deg,#fef3c7,#fffbeb);border:2px solid #f59e0b;border-radius:12px;padding:16px;margin-bottom:16px">';
     h+='<div style="font-size:15px;font-weight:800;color:#92400e;margin-bottom:8px">⏰ 申報提醒</div>';
-    upcoming.forEach(function(u){
-      var urgStyle=u.urgent?'background:#dc2626;color:#fff':'background:#fef3c7;color:#92400e';
-      var label=u.diff<0?'已逾期 '+Math.abs(u.diff)+'天':u.diff===0?'今天截止':'剩 '+u.diff+' 天';
-      h+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px">';
-      h+='<span style="'+urgStyle+';padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700">'+label+'</span>';
-      h+='<span style="font-weight:700">'+u.name+'</span>';
-      h+='<span style="color:#92400e">截止 '+u.date+'</span>';
-      h+='</div>';
-    });
+    upcoming.forEach(function(u){var urg=u.diff<=14;var label=u.diff<0?'已逾期'+Math.abs(u.diff)+'天':u.diff===0?'今天截止':'剩 '+u.diff+' 天';h+='<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-size:13px"><span style="background:'+(urg?'#dc2626':'#fef3c7')+';color:'+(urg?'#fff':'#92400e')+';padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700">'+label+'</span><b>'+u.name+'</b><span style="color:#92400e">截止 '+u.date+'</span></div>'});
     h+='</div>';
   }
 
-  // VAT Section
+  // VAT Summary Cards
   h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
-  h+='<div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:12px">📋 營業稅試算（'+biMonth+'月）</div>';
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">';
-  h+='<div style="background:#fee2e2;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#991b1b">銷項稅額</div><div style="font-size:22px;font-weight:800;color:#dc2626;font-family:var(--f-num)">$'+NF(salesTaxOut)+'</div><div style="font-size:10px;color:#999">營收 $'+NFL(allInc)+' × 5%</div></div>';
-  h+='<div style="background:#dcfce7;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#166534">進項稅額</div><div style="font-size:22px;font-weight:800;color:#16a34a;font-family:var(--f-num)">$'+NF(salesTaxIn)+'</div><div style="font-size:10px;color:#999">可扣抵進項</div></div>';
-  h+='<div style="background:'+(vatDue>0?'#fef3c7':'#dbeafe')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(vatDue>0?'#92400e':'#1e40af')+'">'+(vatDue>0?'應繳營業稅':'留抵稅額')+'</div><div style="font-size:22px;font-weight:800;color:'+(vatDue>0?'#dc2626':'#2563eb')+';font-family:var(--f-num)">$'+NF(Math.abs(vatDue))+'</div><div style="font-size:10px;color:#999">銷項 - 進項</div></div>';
+  h+='<div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:14px">📋 營業稅試算（'+MONTH+'月）</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">';
+  h+='<div style="background:#fee2e2;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#991b1b">銷項稅額</div><div style="font-size:24px;font-weight:800;color:#dc2626;font-family:var(--f-num)">$'+NF(salesTax)+'</div><div style="font-size:10px;color:#999">勾選銷項 $'+NFL(totalSales)+' × 5%</div></div>';
+  h+='<div style="background:#dcfce7;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#166534">進項稅額</div><div style="font-size:24px;font-weight:800;color:#16a34a;font-family:var(--f-num)">$'+NF(purchaseTax)+'</div><div style="font-size:10px;color:#999">勾選進項 $'+NFL(totalPurchase)+' × 5%</div></div>';
+  h+='<div style="background:'+(vatDue>0?'#fef3c7':'#dbeafe')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(vatDue>0?'#92400e':'#1e40af')+'">'+(vatDue>0?'應繳營業稅':'留抵稅額')+'</div><div style="font-size:24px;font-weight:800;color:'+(vatDue>0?'#dc2626':'#2563eb')+';font-family:var(--f-num)">$'+NF(Math.abs(vatDue))+'</div><div style="font-size:10px;color:#999">銷項 - 進項</div></div>';
   h+='</div>';
 
-  // Store breakdown
-  h+='<div style="font-size:13px;font-weight:700;color:#666;margin-bottom:6px">各店明細</div>';
-  h+='<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:var(--f-num)">';
-  h+='<tr style="background:#f1f5f9"><th style="padding:6px;text-align:left">門市</th><th style="padding:6px;text-align:right">營收</th><th style="padding:6px;text-align:right">銷項稅</th><th style="padding:6px;text-align:right">月結加稅</th><th style="padding:6px;text-align:right">含稅稅額</th><th style="padding:6px;text-align:right">進項合計</th></tr>';
-  storeDetail.forEach(function(s){
-    var inTax=Math.round(s.taxM*0.05)+Math.round(s.taxI-s.taxI/1.05);
-    h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:6px;font-weight:600">'+s.name+'</td>';
-    h+='<td style="padding:6px;text-align:right;color:var(--pos)">'+NFL(s.inc)+'</td>';
-    h+='<td style="padding:6px;text-align:right;color:#dc2626">'+NF(Math.round(s.inc*0.05))+'</td>';
-    h+='<td style="padding:6px;text-align:right">'+NF(Math.round(s.taxM*0.05))+'</td>';
-    h+='<td style="padding:6px;text-align:right">'+NF(Math.round(s.taxI-s.taxI/1.05))+'</td>';
-    h+='<td style="padding:6px;text-align:right;color:#16a34a">'+NF(inTax)+'</td></tr>';
+  // Sales items checkboxes
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+
+  h+='<div>';
+  h+='<div style="font-size:14px;font-weight:800;color:#dc2626;margin-bottom:4px;padding-bottom:6px;border-bottom:2px solid #fee2e2">📤 銷項（台積電收入）</div>';
+  h+='<div style="font-size:11px;color:#999;margin-bottom:8px">僅台積電門市有開立發票，預設全勾</div>';
+  salesItems.forEach(function(it){
+    var chk=it.isSales?'checked':'';
+    h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;transition:background .1s'+(it.isSales?';background:#fee2e2':'')+'" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\''+(it.isSales?'#fee2e2':'')+'\'"><input type="checkbox" '+chk+' onchange="toggleVat(\''+it.storeKey+'\',\''+it.sec+'\','+it.ri+',\'sales\')" style="width:16px;height:16px;accent-color:#dc2626"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.name+'</span><span style="font-family:var(--f-num);font-weight:700;color:'+(it.isSales?'#dc2626':'#999')+'">'+NFL(it.amount)+'</span></label>';
   });
-  h+='</table></div>';
+  if(salesItems.length===0)h+='<div style="padding:12px;color:#999;font-size:12px;text-align:center">台積電本月無收入資料</div>';
+  h+='</div>';
+
+  h+='<div>';
+  h+='<div style="font-size:14px;font-weight:800;color:#16a34a;margin-bottom:4px;padding-bottom:6px;border-bottom:2px solid #dcfce7">📥 進項（全部門市支出）</div>';
+  h+='<div style="font-size:11px;color:#999;margin-bottom:8px">勾選有取得進項發票的項目，用於扣抵台積電銷項</div>';
+  lastStore='';
+  purchaseItems.forEach(function(it){
+    if(it.store!==lastStore){lastStore=it.store;h+='<div style="font-size:11px;font-weight:700;color:#666;margin:8px 0 4px;padding:4px 8px;background:#f8fafc;border-radius:4px">'+it.store+'</div>'}
+    var chk=it.isPurchase?'checked':'';
+    h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;transition:background .1s'+(it.isPurchase?';background:#dcfce7':'')+'" onmouseover="this.style.background=\'#f0fdf4\'" onmouseout="this.style.background=\''+(it.isPurchase?'#dcfce7':'')+'\'"><input type="checkbox" '+chk+' onchange="toggleVat(\''+it.storeKey+'\',\''+it.sec+'\','+it.ri+',\'purchase\')" style="width:16px;height:16px;accent-color:#16a34a"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.name+'</span><span style="font-family:var(--f-num);font-weight:700;color:'+(it.isPurchase?'#16a34a':'#999')+'">'+NFL(it.amount)+'</span></label>';
+  });
+  h+='</div></div></div>';
 
   // CIT Section
-  h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+  h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
   h+='<div style="font-size:16px;font-weight:800;color:#7c3aed;margin-bottom:12px">📊 營利事業所得稅（年度預估）</div>';
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px">';
-  h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">已累計淨利</div><div style="font-size:20px;font-weight:800;color:'+(annualNI>=0?'var(--pos)':'var(--neg)')+';font-family:var(--f-num)">$'+NFL(annualNI)+'</div><div style="font-size:10px;color:#999">'+monthsLoaded+' 個月資料</div></div>';
-  h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">全年推估</div><div style="font-size:20px;font-weight:800;color:var(--navy-700);font-family:var(--f-num)">$'+NFL(citProjected)+'</div><div style="font-size:10px;color:#999">÷'+monthsLoaded+'月 ×12</div></div>';
-  h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">免稅額</div><div style="font-size:20px;font-weight:800;color:#16a34a;font-family:var(--f-num)">$120,000</div><div style="font-size:10px;color:#999">淨利≤12萬免稅</div></div>';
-  h+='<div style="background:'+(citProjectedTax>0?'#fee2e2':'#dcfce7')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(citProjectedTax>0?'#991b1b':'#166534')+'">預估稅額(20%)</div><div style="font-size:20px;font-weight:800;color:'+(citProjectedTax>0?'#dc2626':'#16a34a')+';font-family:var(--f-num)">$'+NF(citProjectedTax)+'</div><div style="font-size:10px;color:#999">'+(citProjectedTax>0?'明年5月繳納':'暫無應稅')+'</div></div>';
-  h+='</div>';
-  h+='<div style="font-size:11px;color:#999;line-height:1.6">※ 營所稅 = (全年淨利 - 12萬免稅額) × 20%，每年 5/31 前申報<br>※ 推估值依已有月份數據等比放大，僅供參考</div>';
-  h+='</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">';
+  h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">已累計淨利</div><div style="font-size:20px;font-weight:800;color:'+(annualNI>=0?'var(--pos)':'var(--neg)')+';font-family:var(--f-num)">$'+NFL(annualNI)+'</div><div style="font-size:10px;color:#999">'+monthsLoaded+'個月</div></div>';
+  h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">全年推估</div><div style="font-size:20px;font-weight:800;font-family:var(--f-num)">$'+NFL(citProjected)+'</div><div style="font-size:10px;color:#999">÷'+monthsLoaded+' ×12</div></div>';
+  h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">免稅額</div><div style="font-size:20px;font-weight:800;color:#16a34a;font-family:var(--f-num)">$120,000</div></div>';
+  h+='<div style="background:'+(citTax>0?'#fee2e2':'#dcfce7')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(citTax>0?'#991b1b':'#166534')+'">預估稅額(20%)</div><div style="font-size:20px;font-weight:800;color:'+(citTax>0?'#dc2626':'#16a34a')+';font-family:var(--f-num)">$'+NF(citTax)+'</div><div style="font-size:10px;color:#999">'+(citTax>0?'明年5月繳':'暫無應稅')+'</div></div>';
+  h+='</div></div>';
 
-  // Tax calendar
+  // Tax Calendar
   h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
   h+='<div style="font-size:16px;font-weight:800;color:#0369a1;margin-bottom:12px">📅 年度稅務行事曆</div>';
-  var cal=[
-    {m:'1月',items:['15日 營業稅(11-12月)申報','31日 各類所得扣繳申報']},
-    {m:'3月',items:['15日 營業稅(1-2月)申報']},
-    {m:'5月',items:['15日 營業稅(3-4月)申報','31日 營利事業所得稅申報']},
-    {m:'7月',items:['15日 營業稅(5-6月)申報']},
-    {m:'9月',items:['15日 營業稅(7-8月)申報','暫繳營所稅(視情況)']},
-    {m:'11月',items:['15日 營業稅(9-10月)申報']},
-  ];
+  var cal=[{m:'1月',items:['15日 營業稅(11-12月)','31日 扣繳申報']},{m:'3月',items:['15日 營業稅(1-2月)']},{m:'5月',items:['15日 營業稅(3-4月)','31日 營所稅']},{m:'7月',items:['15日 營業稅(5-6月)']},{m:'9月',items:['15日 營業稅(7-8月)']},{m:'11月',items:['15日 營業稅(9-10月)']}];
   h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
-  cal.forEach(function(c){
-    var isCur=parseInt(c.m)===MONTH;
-    h+='<div style="padding:10px;border-radius:8px;background:'+(isCur?'#dbeafe':'#f8fafc')+';border:'+(isCur?'2px solid #2563eb':'1px solid #e5e7eb')+'">';
-    h+='<div style="font-weight:800;color:'+(isCur?'#1e40af':'#333')+';font-size:13px;margin-bottom:4px">'+c.m+'</div>';
-    c.items.forEach(function(it){h+='<div style="font-size:11px;color:#555;line-height:1.6">• '+it+'</div>'});
-    h+='</div>';
-  });
+  cal.forEach(function(c){var isCur=parseInt(c.m)===MONTH;h+='<div style="padding:10px;border-radius:8px;background:'+(isCur?'#dbeafe':'#f8fafc')+';border:'+(isCur?'2px solid #2563eb':'1px solid #e5e7eb')+'"><div style="font-weight:800;color:'+(isCur?'#1e40af':'#333')+';font-size:13px;margin-bottom:4px">'+c.m+'</div>';c.items.forEach(function(it){h+='<div style="font-size:11px;color:#555">• '+it+'</div>'});h+='</div>'});
   h+='</div></div>';
 
   h+='</div>';
