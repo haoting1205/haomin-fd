@@ -328,6 +328,12 @@ td.lc input:hover{background:rgba(59,130,246,.06)}
 td.lc input:focus{background:rgba(59,130,246,.15);color:#1d4ed8;font-weight:700;
   box-shadow:inset 0 0 0 2.5px rgba(59,130,246,.5)}
 td.lc.hv input{font-weight:700}
+td.lc.has-note{position:relative}
+td.lc.has-note::after{content:'';position:absolute;top:1px;right:1px;width:0;height:0;
+  border-left:6px solid transparent;border-top:6px solid #f59e0b;z-index:1;pointer-events:none}
+.note-tip{position:absolute;top:-32px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;
+  padding:4px 10px;border-radius:6px;font-size:11px;white-space:nowrap;z-index:30;pointer-events:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);max-width:200px;white-space:normal}
 td.lc.exp input{color:var(--neg)}
 td.lc.inc input{color:var(--pos)}
 /* Row hover highlight */
@@ -519,7 +525,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
   .print-hdr{display:block!important;text-align:center;margin-bottom:8mm}
   .print-hdr h2{font-size:14pt;font-weight:900;color:#000;margin-bottom:2mm;font-family:var(--f-body)}
   .print-hdr p{font-size:9pt;color:#555}
-  #pane-bp,#pane-cl,#pane-tax{display:none!important}
+  #pane-bp,#pane-cl,#pane-tax,#pane-analysis{display:none!important}
 }
 @media(max-width:900px){
   .kpi-row{grid-template-columns:repeat(2,1fr)}
@@ -537,7 +543,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
     <span class="hdr-logo">📋 好洺財會系統</span>
     <span class="hdr-ver" id="hdr-ver">v2.5.0</span>
     <div class="hdr-period">
-      <select class="hdr-sel" id="yr" onchange="chPeriod()"><option value="2026" selected>民國115年</option><option value="2025">民國114年</option></select>
+      <select class="hdr-sel" id="yr" onchange="chPeriod()"><option value="2028">民國117年</option><option value="2027">民國116年</option><option value="2026" selected>民國115年</option><option value="2025">民國114年</option><option value="2024">民國113年</option></select>
       <select class="hdr-sel" id="mo" onchange="chPeriod()"><option value="1">1月</option><option value="2">2月</option><option value="3" selected>3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select>
       <span class="hdr-chip" id="chip">115年 3月</span>
     </div>
@@ -566,6 +572,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
   <div class="nav-sep"></div>
   <div class="nav-tab" onclick="sw('bp',this)"><span>🏗️</span> 系統藍圖</div>
   <div class="nav-tab" onclick="sw('tax',this)" style="color:#dc2626"><span>🧾</span> 稅務中心</div>
+  <div class="nav-tab" onclick="sw('analysis',this)" style="color:#0369a1"><span>📈</span> 營業分析</div>
   <div class="nav-tab changelog" onclick="sw('cl',this)"><span>📜</span> 版本紀錄 <span class="nav-badge" id="nb-cl" style="background:rgba(245,158,11,.15);color:#f59e0b">v2.5.0</span></div>
 </div>
 
@@ -736,6 +743,11 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="tax-center-content">載入中...</div>
 </div>
 
+<!-- Analysis -->
+<div class="pane" id="pane-analysis" style="display:none;overflow:auto;padding:20px">
+<div id="analysis-content">載入中...</div>
+</div>
+
 <div class="pane" id="pane-bp" style="display:none;overflow:auto">
 <div class="bp"><div class="page">
 <div class="pg-hdr"><div><div style="font-size:var(--fs-sm);color:#93c5fd;margin-bottom:5px;letter-spacing:.5px">好洺餐飲</div><h1>🏗️ 企業數位化整合系統架構藍圖</h1><p>Finance · ERP · CRM · POS 四大系統整合規劃</p></div><div style="text-align:right"><div class="v-badge">v1.0 規劃版</div><div style="font-size:var(--fs-sm);color:var(--slate-500);margin-top:8px">民國 115年 4月</div></div></div>
@@ -836,8 +848,8 @@ const NF=v=>v?Number(v).toLocaleString('zh-TW',{maximumFractionDigits:0}):'';con
 function $(id){return document.getElementById(id)}function setTxt(id,v,c){const e=$(id);if(e){e.textContent=v;if(c)e.style.color=c}}
 
 // ═══ NAV ═══
-const FIN_PANES=['pl','bs','cf','bp','cl','tax'];
-function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}closeQF();try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
+const FIN_PANES=['pl','bs','cf','bp','cl','tax','analysis'];
+function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}closeQF();try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
 function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.display='none');const e=$('st-'+k);if(e)e.style.display='block'}
 function chPeriod(){
   // Step 1: SAVE current month BEFORE switching (prevent data loss)
@@ -902,12 +914,27 @@ function chPeriod(){
 function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}
 var monthLabel=(YEAR-1911)+'年'+MONTH+'月';
 let h=`<div style="padding:8px 16px;background:linear-gradient(90deg,var(--navy-700),var(--navy-800));color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px;border-radius:8px 8px 0 0;margin-bottom:-1px"><span style="font-size:18px">📅</span><span>${sn}</span><span style="background:rgba(255,255,255,.15);padding:2px 12px;border-radius:12px;font-family:var(--f-num)">${monthLabel}</span><span style="font-size:11px;color:rgba(255,255,255,.5);margin-left:auto">共 ${rows.length} 項</span></div>`;
-h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:46px">${row.name}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc';h+=`<td class="lc${wk}${hv}${xp}" style="background:${isH?'var(--wk-bg)':bg}"><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:46px">${row.name}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 let actInp=null;
 function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)delete DATA[sn][idx].daily[day];else DATA[sn][idx].daily[day]=v;inp.parentElement.classList.toggle('hv',v!==0);recalc(s);schedAutoSave()}
 function kd(e,inp){if(e.key==='Enter'){e.preventDefault();onCell(inp);inp.select();return}if(e.key==='Tab'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+(e.shiftKey?-1:1)];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowRight'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowLeft'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i-1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowDown'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ntr=tr.nextElementSibling;if(ntr){const ntd=ntr.children[ci];if(ntd){const ni=ntd.querySelector('input[type="number"]');if(ni){ni.focus();ni.select()}}}return}if(e.key==='ArrowUp'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ptr=tr.previousElementSibling;if(ptr){const ptd=ptr.children[ci];if(ptd){const pi=ptd.querySelector('input[type="number"]');if(pi){pi.focus();pi.select()}}}return}if(e.key==='Escape')closeQF()}
+
+function cellNote(e,inp){
+  e.preventDefault();
+  var s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day);
+  var sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;
+  var row=DATA[sn][idx];
+  if(!row.notes)row.notes={};
+  var existing=row.notes[day]||'';
+  var note=prompt('📝 備註（'+row.name+' / '+MONTH+'/'+day+'日）\n\n清空則刪除備註：',existing);
+  if(note===null)return;
+  pushHistory();
+  if(note.trim()===''){delete row.notes[day];if(Object.keys(row.notes).length===0)delete row.notes}
+  else{row.notes[day]=note.trim()}
+  buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
+}
 
 /* ─── Prevent scroll wheel changing number inputs ─── */
 document.addEventListener('wheel',function(e){if(e.target&&e.target.tagName==='INPUT'&&e.target.type==='number'){e.target.blur()}},{passive:true});
@@ -1156,19 +1183,30 @@ document.addEventListener('paste',function(e){
   e.preventDefault();
   pushHistory();
   var tr=inp.closest('tr');if(!tr)return;
-  var allRows=[...tr.parentElement.querySelectorAll('tr')];
-  var trIdx=allRows.indexOf(tr);
+  var tbody=tr.closest('tbody')||tr.parentElement;
+  // Collect ONLY data rows (skip section headers, subtotals, day totals, net income)
+  var dataRows=[];
+  tbody.querySelectorAll('tr').forEach(function(r){
+    var inps=r.querySelectorAll('input[type="number"]');
+    if(inps.length>0)dataRows.push(r);
+  });
+  var startIdx=dataRows.indexOf(tr);
+  if(startIdx<0)return;
   var inputs=[...tr.querySelectorAll('input[type="number"]')];
   var colIdx=inputs.indexOf(inp);
-  var changed=0;
+  // Detect if first column is text (vendor name from Excel) - auto skip
+  var firstVal=rows[0].split('\t')[0];
+  var colOffset=0;
+  if(firstVal&&isNaN(parseFloat(firstVal.replace(/[,$\s]/g,'')))){colOffset=1}
+  var changed=0,rowsFilled=0;
   for(var ri=0;ri<rows.length;ri++){
+    var dataRow=dataRows[startIdx+ri];
+    if(!dataRow)break;
     var vals=rows[ri].split('\t');
-    var targetTr=allRows[trIdx+ri];
-    if(!targetTr)break;
-    var targetInps=[...targetTr.querySelectorAll('input[type="number"]')];
-    if(!targetInps.length)continue;
-    for(var ci=0;ci<vals.length;ci++){
-      var tInp=targetInps[colIdx+ci];
+    var targetInps=[...dataRow.querySelectorAll('input[type="number"]')];
+    var filled=false;
+    for(var ci=colOffset;ci<vals.length;ci++){
+      var tInp=targetInps[colIdx+(ci-colOffset)];
       if(!tInp||!tInp.dataset.s)continue;
       var v=parseFloat(vals[ci].replace(/[,$\s]/g,''))||0;
       tInp.value=v||'';
@@ -1177,11 +1215,15 @@ document.addEventListener('paste',function(e){
         if(v===0)delete DATA[sn2][idx2].daily[String(tInp.dataset.day)];
         else DATA[sn2][idx2].daily[String(tInp.dataset.day)]=v;
         tInp.parentElement.classList.toggle('hv',v!==0);
-        changed++
+        changed++;filled=true;
       }
     }
+    if(filled)rowsFilled++;
   }
   if(changed>0){recalc(CUR);schedAutoSave()}
+  // Show paste result
+  var pb=document.getElementById('pos-bar');
+  if(pb&&changed>0){pb.textContent='📋 已貼上 '+rowsFilled+' 列 × '+changed+' 格';pb.classList.add('on');setTimeout(function(){pb.classList.remove('on')},3000)}
 })
 
 /* ─── Auto-Save（30秒無操作自動儲存）─── */
@@ -1389,12 +1431,45 @@ function toggleVat(storeKey,sec,ri,type){
   renderTaxCenter();
 }
 
+function editFiling(period){
+  var filings=[];try{filings=JSON.parse(localStorage.getItem('fin_vat_filings'))||[]}catch(e){}
+  var existing=filings.find(function(f){return f.year===YEAR&&f.period===period});
+  var salesTax=prompt(''+period+' 申報銷項稅額：',existing?existing.salesTax:'');if(salesTax===null)return;
+  var inputTax=prompt(''+period+' 申報進項稅額：',existing?existing.inputTax:'');if(inputTax===null)return;
+  var paid=prompt(''+period+' 實際繳納稅額：',existing?existing.paid:'');if(paid===null)return;
+  if(existing){existing.salesTax=+salesTax;existing.inputTax=+inputTax;existing.paid=+paid;existing.date=new Date().toISOString().substring(0,10)}
+  else{filings.push({year:YEAR,period:period,salesTax:+salesTax,inputTax:+inputTax,paid:+paid,date:new Date().toISOString().substring(0,10)})}
+  localStorage.setItem('fin_vat_filings',JSON.stringify(filings));
+  renderTaxCenter();
+}
+
+function addInvoice(){
+  var date=prompt('發票日期（如 2026-05-08）：',YEAR+'-'+String(MONTH).padStart(2,'0')+'-');if(!date)return;
+  var number=prompt('發票號碼：');if(!number)return;
+  var vendor=prompt('廠商名稱：');if(!vendor)return;
+  var amount=prompt('發票金額（未稅）：');if(!amount)return;
+  var invoices=[];try{invoices=JSON.parse(localStorage.getItem('fin_invoices_'+YEAR))||[]}catch(e){}
+  invoices.push({month:MONTH,date:date,number:number,vendor:vendor,amount:+amount});
+  localStorage.setItem('fin_invoices_'+YEAR,JSON.stringify(invoices));
+  renderTaxCenter();
+}
+
+function delInvoice(idx){
+  if(!confirm('確定刪除此發票紀錄？'))return;
+  var invoices=[];try{invoices=JSON.parse(localStorage.getItem('fin_invoices_'+YEAR))||[]}catch(e){}
+  var monthInv=invoices.filter(function(inv){return inv.month===MONTH});
+  var target=monthInv[idx];if(!target)return;
+  var gi=invoices.indexOf(target);if(gi>=0)invoices.splice(gi,1);
+  localStorage.setItem('fin_invoices_'+YEAR,JSON.stringify(invoices));
+  renderTaxCenter();
+}
+
 function renderTaxCenter(){
   var el=$('tax-center-content');if(!el)return;
   var rocY=YEAR-1911;
   var cfg=getVatConfig();
 
-  // Collect items - Sales: ONLY 台積電 revenue, Purchase: ALL stores expenses
+  // Collect ALL items - both revenue and expenses from ALL stores
   var salesItems=[],purchaseItems=[];
   var totalSales=0,totalPurchase=0;
 
@@ -1405,13 +1480,11 @@ function renderTaxCenter(){
       if(sum===0)return;
       var key=sk+'__'+r.sec+'__'+ri;
       var cfgItem=cfg[key]||{};
-      if(r.sec==='收入'&&sk==='ts'){
-        // 銷項：只有台積電收入
-        var isSales=cfgItem.sales!==false;// default checked for 台積電
+      if(r.sec==='收入'){
+        var isSales=cfgItem.sales!==undefined?cfgItem.sales:(sk==='ts');
         salesItems.push({key:key,store:sn,storeKey:sk,name:r.name,sec:r.sec,amount:sum,ri:ri,isSales:isSales});
         if(isSales)totalSales+=sum;
-      }else if(r.sec!=='收入'){
-        // 進項：所有門市支出
+      }else{
         var isPurchase=cfgItem.purchase||false;
         purchaseItems.push({key:key,store:sn,storeKey:sk,name:r.name,sec:r.sec,amount:sum,tax:r.tax||'',ri:ri,isPurchase:isPurchase});
         if(isPurchase)totalPurchase+=sum;
@@ -1469,13 +1542,15 @@ function renderTaxCenter(){
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
 
   h+='<div>';
-  h+='<div style="font-size:14px;font-weight:800;color:#dc2626;margin-bottom:4px;padding-bottom:6px;border-bottom:2px solid #fee2e2">📤 銷項（台積電收入）</div>';
-  h+='<div style="font-size:11px;color:#999;margin-bottom:8px">僅台積電門市有開立發票，預設全勾</div>';
+  h+='<div style="font-size:14px;font-weight:800;color:#dc2626;margin-bottom:4px;padding-bottom:6px;border-bottom:2px solid #fee2e2">📤 銷項（各門市收入）</div>';
+  h+='<div style="font-size:11px;color:#999;margin-bottom:8px">勾選有開立發票的收入項目</div>';
+  var lastStore='';
   salesItems.forEach(function(it){
+    if(it.store!==lastStore){lastStore=it.store;h+='<div style="font-size:11px;font-weight:700;color:#666;margin:8px 0 4px;padding:4px 8px;background:#f8fafc;border-radius:4px">'+it.store+'</div>'}
     var chk=it.isSales?'checked':'';
     h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;transition:background .1s'+(it.isSales?';background:#fee2e2':'')+'" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\''+(it.isSales?'#fee2e2':'')+'\'"><input type="checkbox" '+chk+' onchange="toggleVat(\''+it.storeKey+'\',\''+it.sec+'\','+it.ri+',\'sales\')" style="width:16px;height:16px;accent-color:#dc2626"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.name+'</span><span style="font-family:var(--f-num);font-weight:700;color:'+(it.isSales?'#dc2626':'#999')+'">'+NFL(it.amount)+'</span></label>';
   });
-  if(salesItems.length===0)h+='<div style="padding:12px;color:#999;font-size:12px;text-align:center">台積電本月無收入資料</div>';
+  if(salesItems.length===0)h+='<div style="padding:12px;color:#999;font-size:12px;text-align:center">本月無收入資料</div>';
   h+='</div>';
 
   h+='<div>';
@@ -1507,9 +1582,198 @@ function renderTaxCenter(){
   cal.forEach(function(c){var isCur=parseInt(c.m)===MONTH;h+='<div style="padding:10px;border-radius:8px;background:'+(isCur?'#dbeafe':'#f8fafc')+';border:'+(isCur?'2px solid #2563eb':'1px solid #e5e7eb')+'"><div style="font-weight:800;color:'+(isCur?'#1e40af':'#333')+';font-size:13px;margin-bottom:4px">'+c.m+'</div>';c.items.forEach(function(it){h+='<div style="font-size:11px;color:#555">• '+it+'</div>'});h+='</div>'});
   h+='</div></div>';
 
+  // VAT Filing Records
+  h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+  h+='<div style="font-size:16px;font-weight:800;color:#b45309;margin-bottom:12px">📝 雙月申報紀錄</div>';
+  var filings=[];try{filings=JSON.parse(localStorage.getItem('fin_vat_filings'))||[]}catch(e){}
+  var periods=['1-2月','3-4月','5-6月','7-8月','9-10月','11-12月'];
+  h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#fef3c7"><th style="padding:8px">期別</th><th style="padding:8px;text-align:right">申報銷項</th><th style="padding:8px;text-align:right">申報進項</th><th style="padding:8px;text-align:right">實繳稅額</th><th style="padding:8px;text-align:right">系統試算</th><th style="padding:8px;text-align:center">差異</th><th style="padding:8px">操作</th></tr>';
+  periods.forEach(function(p,pi){
+    var f=filings.find(function(x){return x.year===YEAR&&x.period===p});
+    if(f){var diff=f.paid-(f.salesTax-f.inputTax);
+    h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px;font-weight:700">'+rocY+'年'+p+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NF(f.salesTax)+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NF(f.inputTax)+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num);font-weight:700;color:#dc2626">'+NF(f.paid)+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NF(f.salesTax-f.inputTax)+'</td><td style="padding:8px;text-align:center;color:'+(Math.abs(diff)<100?'#16a34a':'#dc2626')+'">'+NF(diff)+'</td><td style="padding:8px"><button onclick="editFiling(\''+p+'\')" style="font-size:10px;padding:2px 8px;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#fff">編輯</button></td></tr>';
+    }else{h+='<tr style="border-bottom:1px solid #e5e7eb;color:#ccc"><td style="padding:8px">'+rocY+'年'+p+'</td><td colspan="5" style="padding:8px;text-align:center;font-size:11px">尚未申報</td><td style="padding:8px"><button onclick="editFiling(\''+p+'\')" style="font-size:10px;padding:2px 8px;border:1px solid #ddd;border-radius:4px;cursor:pointer;background:#f8f8f8;color:#666">登記</button></td></tr>'}
+  });
+  h+='</table></div>';
+
+  // Invoice Management
+  h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div style="font-size:16px;font-weight:800;color:#1e40af">🧾 進項發票管理</div><button onclick="addInvoice()" style="padding:6px 14px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">+ 新增發票</button></div>';
+  var invoices=[];try{invoices=JSON.parse(localStorage.getItem('fin_invoices_'+YEAR))||[]}catch(e){}
+  var monthInv=invoices.filter(function(inv){return inv.month===MONTH});
+  if(monthInv.length>0){
+  var invTotal=monthInv.reduce(function(a,b){return a+b.amount},0);
+  h+='<div style="font-size:12px;color:#666;margin-bottom:8px">'+MONTH+'月共 '+monthInv.length+' 張，合計 $'+NFL(invTotal)+'（稅額 $'+NF(Math.round(invTotal*0.05))+'）</div>';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:11px"><tr style="background:#dbeafe"><th style="padding:6px">日期</th><th style="padding:6px">發票號碼</th><th style="padding:6px">廠商</th><th style="padding:6px;text-align:right">金額</th><th style="padding:6px;text-align:right">稅額</th><th style="padding:6px">操作</th></tr>';
+  monthInv.forEach(function(inv,ii){h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:5px">'+inv.date+'</td><td style="padding:5px;font-family:var(--f-num)">'+inv.number+'</td><td style="padding:5px">'+inv.vendor+'</td><td style="padding:5px;text-align:right;font-family:var(--f-num)">'+NFL(inv.amount)+'</td><td style="padding:5px;text-align:right;font-family:var(--f-num)">'+NF(Math.round(inv.amount*0.05))+'</td><td style="padding:5px"><button onclick="delInvoice('+ii+')" style="font-size:10px;color:#dc2626;background:none;border:none;cursor:pointer">✕</button></td></tr>'});
+  h+='</table>';
+  }else h+='<div style="color:#999;text-align:center;padding:16px;font-size:13px">本月尚無進項發票紀錄</div>';
+  h+='</div>';
+
   h+='</div>';
   el.innerHTML=h;
 }
+
+/* ═══ Business Analysis — 營業分析 ═══ */
+function loadMonthData(y,m){var mk=y+'-'+String(m).padStart(2,'0');if(y===YEAR&&m===MONTH){var r={};Object.entries(SMAP).forEach(function(e){r[e[1]]=DATA[e[1]]});return r}if(y===2026&&m===3)return JSON.parse(JSON.stringify(RAW));try{var s=localStorage.getItem('fin_v3_'+mk);if(s)return JSON.parse(s)}catch(e){}return null}
+function calcMS(mData){if(!mData)return null;var inc=0,exp=0,cogs=0;Object.values(SMAP).forEach(function(sn){if(!mData[sn])return;mData[sn].forEach(function(r){var s=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc+=s;else if(r.sec.indexOf('食材')>=0||r.sec.indexOf('食/包材')>=0)cogs+=s;else exp+=s})});exp+=cogs;return{inc:inc,exp:exp,cogs:cogs,opex:exp-cogs,gp:inc-cogs,ni:inc-exp,gpR:inc>0?((inc-cogs)/inc*100):0}}
+function calcSS(mData,sn){if(!mData||!mData[sn])return{inc:0,cogs:0,gp:0,ni:0,gpR:0};var inc=0,exp=0,cogs=0;mData[sn].forEach(function(r){var s=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc+=s;else if(r.sec.indexOf('食材')>=0||r.sec.indexOf('食/包材')>=0)cogs+=s;else exp+=s});exp+=cogs;return{inc:inc,cogs:cogs,gp:inc-cogs,ni:inc-exp,gpR:inc>0?((inc-cogs)/inc*100):0}}
+function renderAnalysis(){
+var el=$('analysis-content');if(!el)return;var rY=YEAR-1911,cur=calcMS(loadMonthData(YEAR,MONTH));
+var pm=MONTH-1,py=YEAR;if(pm<1){pm=12;py--}var prev=calcMS(loadMonthData(py,pm));
+var ly=calcMS(loadMonthData(YEAR-1,MONTH));
+var qS=Math.floor((MONTH-1)/3)*3+1,qN=Math.floor((MONTH-1)/3)+1,qI=0,qE=0,qC=0,qM=0;
+for(var i=qS;i<=Math.min(qS+2,MONTH);i++){var qd=calcMS(loadMonthData(YEAR,i));if(qd){qI+=qd.inc;qE+=qd.exp;qC+=qd.cogs;qM++}}
+var pqS=qS-3,pqY=YEAR;if(pqS<1){pqS+=12;pqY--}var pqI=0,pqM2=0;for(var j=0;j<3;j++){var am=pqS+j,ay=pqY;if(am>12){am-=12;ay++}var pd=calcMS(loadMonthData(ay,am));if(pd){pqI+=pd.inc;pqM2++}}
+var yI=0,yE=0,yC=0,yM=0;for(var k=1;k<=MONTH;k++){var yd=calcMS(loadMonthData(YEAR,k));if(yd){yI+=yd.inc;yE+=yd.exp;yC+=yd.cogs;yM++}}
+function pc(c,p){if(!p||p===0)return'—';var v=((c-p)/Math.abs(p)*100);return(v>=0?'<span style="color:#16a34a">▲+':'<span style="color:#dc2626">▼')+v.toFixed(1)+'%</span>'}
+var h='<div style="max-width:960px;margin:0 auto">';
+h+='<div style="font-size:22px;font-weight:800;color:var(--navy-700);margin-bottom:4px">📈 營業分析</div>';
+h+='<div style="font-size:13px;color:#666;margin-bottom:20px">'+rY+'年'+MONTH+'月 — 好洺餐飲事業有限公司</div>';
+// MoM
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#0369a1;margin-bottom:14px">📊 月度比較（vs 上月 '+(py-1911)+'年'+pm+'月）</div>';
+if(cur&&prev){h+='<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#f1f5f9"><th style="padding:8px;text-align:left">指標</th><th style="padding:8px;text-align:right">上月</th><th style="padding:8px;text-align:right">本月</th><th style="padding:8px;text-align:right">增減</th><th style="padding:8px;text-align:center">變化</th></tr>';
+[['營業收入',prev.inc,cur.inc],['銷貨成本',prev.cogs,cur.cogs],['毛利',prev.gp,cur.gp],['營業費用',prev.opex,cur.opex],['稅前淨利',prev.ni,cur.ni]].forEach(function(r,i){h+='<tr style="background:'+(i%2?'#f8fafc':'#fff')+';border-bottom:1px solid #e5e7eb"><td style="padding:8px;font-weight:600">'+r[0]+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NFL(r[1])+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num);font-weight:700">'+NFL(r[2])+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NF(r[2]-r[1])+'</td><td style="padding:8px;text-align:center">'+pc(r[2],r[1])+'</td></tr>'});
+h+='<tr style="background:#eef2ff;font-weight:800"><td style="padding:8px">毛利率</td><td style="padding:8px;text-align:right">'+prev.gpR.toFixed(1)+'%</td><td style="padding:8px;text-align:right">'+cur.gpR.toFixed(1)+'%</td><td colspan="2" style="padding:8px;text-align:center">'+(cur.gpR-prev.gpR>=0?'<span style="color:#16a34a">▲':'<span style="color:#dc2626">▼')+' '+(cur.gpR-prev.gpR).toFixed(1)+'pp</span></td></tr></table>'}else h+='<div style="color:#999;padding:16px;text-align:center">上月無資料</div>';
+h+='</div>';
+// YoY
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#7c3aed;margin-bottom:14px">📅 同期比較（vs '+(rY-1)+'年'+MONTH+'月）</div>';
+if(cur&&ly){h+='<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#f5f3ff"><th style="padding:8px;text-align:left">指標</th><th style="padding:8px;text-align:right">去年同月</th><th style="padding:8px;text-align:right">今年</th><th style="padding:8px;text-align:right">增減</th><th style="padding:8px;text-align:center">YoY</th></tr>';
+[['營業收入',ly.inc,cur.inc],['銷貨成本',ly.cogs,cur.cogs],['毛利',ly.gp,cur.gp],['稅前淨利',ly.ni,cur.ni]].forEach(function(r){h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px;font-weight:600">'+r[0]+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NFL(r[1])+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num);font-weight:700">'+NFL(r[2])+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NF(r[2]-r[1])+'</td><td style="padding:8px;text-align:center">'+pc(r[2],r[1])+'</td></tr>'});h+='</table>'}else h+='<div style="color:#999;padding:16px;text-align:center">去年同月無資料</div>';
+h+='</div>';
+// Quarterly
+var qG=qI-qC,qNI=qI-qE;
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#059669;margin-bottom:14px">📊 季度分析（Q'+qN+'）</div>';
+h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">';
+h+='<div style="background:#ecfdf5;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#047857">本季營收</div><div style="font-size:20px;font-weight:800;color:#059669;font-family:var(--f-num)">$'+NFL(qI)+'</div><div style="font-size:10px;color:#999">'+qM+'個月</div></div>';
+h+='<div style="background:#ecfdf5;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#047857">本季毛利</div><div style="font-size:20px;font-weight:800;font-family:var(--f-num)">$'+NFL(qG)+'</div><div style="font-size:10px;color:#999">'+(qI>0?(qG/qI*100).toFixed(1):'0')+'%</div></div>';
+h+='<div style="background:#ecfdf5;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#047857">本季淨利</div><div style="font-size:20px;font-weight:800;color:'+(qNI>=0?'#059669':'#dc2626')+';font-family:var(--f-num)">$'+NFL(qNI)+'</div></div>';
+h+='<div style="background:#ecfdf5;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#047857">vs上季</div><div style="font-size:16px;font-weight:800">'+(pqI>0?pc(qI,pqI):'無資料')+'</div></div>';
+h+='</div></div>';
+// Store comparison
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#b45309;margin-bottom:14px">🏪 各門市比較</div>';
+h+='<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#fef3c7"><th style="padding:8px;text-align:left">門市</th><th style="padding:8px;text-align:right">營收</th><th style="padding:8px;text-align:right">成本</th><th style="padding:8px;text-align:right">毛利</th><th style="padding:8px;text-align:center">毛利率</th><th style="padding:8px;text-align:right">淨利</th><th style="padding:8px;text-align:center">vs上月</th></tr>';
+var cd=loadMonthData(YEAR,MONTH),pd2=loadMonthData(py,pm);
+Object.values(SMAP).forEach(function(sn){var sc=calcSS(cd,sn),sp=pd2?calcSS(pd2,sn):null;h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px;font-weight:700">'+sn+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num);color:var(--pos)">'+NFL(sc.inc)+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num);color:var(--neg)">'+NFL(sc.cogs)+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NFL(sc.gp)+'</td><td style="padding:8px;text-align:center;font-weight:700;color:'+(sc.gpR>=50?'#16a34a':'#dc2626')+'">'+sc.gpR.toFixed(1)+'%</td><td style="padding:8px;text-align:right;font-family:var(--f-num);font-weight:700;color:'+(sc.ni>=0?'var(--pos)':'var(--neg)')+'">'+NFL(sc.ni)+'</td><td style="padding:8px;text-align:center">'+(sp&&sp.inc>0?pc(sc.inc,sp.inc):'—')+'</td></tr>'});
+h+='</table></div>';
+// YTD
+var yG=yI-yC,yNI=yI-yE;
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:var(--navy-700);margin-bottom:14px">📊 年度累計（1~'+MONTH+'月）</div>';
+h+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">';
+h+='<div style="background:#f8fafc;padding:12px;border-radius:10px;text-align:center"><div style="font-size:10px;color:#666">累計營收</div><div style="font-size:17px;font-weight:800;color:var(--pos);font-family:var(--f-num)">$'+NFL(yI)+'</div></div>';
+h+='<div style="background:#f8fafc;padding:12px;border-radius:10px;text-align:center"><div style="font-size:10px;color:#666">累計成本</div><div style="font-size:17px;font-weight:800;color:var(--neg);font-family:var(--f-num)">$'+NFL(yC)+'</div></div>';
+h+='<div style="background:#f8fafc;padding:12px;border-radius:10px;text-align:center"><div style="font-size:10px;color:#666">累計毛利</div><div style="font-size:17px;font-weight:800;font-family:var(--f-num)">$'+NFL(yG)+'</div><div style="font-size:10px;color:#999">'+(yI>0?(yG/yI*100).toFixed(1)+'%':'—')+'</div></div>';
+h+='<div style="background:#f8fafc;padding:12px;border-radius:10px;text-align:center"><div style="font-size:10px;color:#666">累計淨利</div><div style="font-size:17px;font-weight:800;color:'+(yNI>=0?'var(--pos)':'var(--neg)')+';font-family:var(--f-num)">$'+NFL(yNI)+'</div></div>';
+h+='<div style="background:#f8fafc;padding:12px;border-radius:10px;text-align:center"><div style="font-size:10px;color:#666">月均營收</div><div style="font-size:17px;font-weight:800;font-family:var(--f-num)">$'+NFL(yM>0?Math.round(yI/yM):0)+'</div></div>';
+h+='</div></div>';
+// Monthly Trend
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#6d28d9;margin-bottom:14px">📉 月度趨勢（'+rY+'年）</div>';
+h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#f5f3ff"><th style="padding:6px">月份</th><th style="padding:6px;text-align:right">營收</th><th style="padding:6px;text-align:right">成本</th><th style="padding:6px;text-align:right">毛利</th><th style="padding:6px;text-align:center">毛利率</th><th style="padding:6px;text-align:right">淨利</th><th style="padding:6px;text-align:center">MoM</th></tr>';
+var pI=0;for(var tm=1;tm<=12;tm++){var td=calcMS(loadMonthData(YEAR,tm));if(!td){h+='<tr style="color:#ccc"><td style="padding:6px">'+tm+'月</td><td colspan="6" style="padding:6px;text-align:center;font-size:11px">無資料</td></tr>';continue}
+h+='<tr style="border-bottom:1px solid #e5e7eb;'+(tm===MONTH?'background:#eef2ff;font-weight:700':'')+'"><td style="padding:6px;font-weight:700">'+tm+'月</td><td style="padding:6px;text-align:right;font-family:var(--f-num);color:var(--pos)">'+NFL(td.inc)+'</td><td style="padding:6px;text-align:right;font-family:var(--f-num);color:var(--neg)">'+NFL(td.cogs)+'</td><td style="padding:6px;text-align:right;font-family:var(--f-num)">'+NFL(td.gp)+'</td><td style="padding:6px;text-align:center;color:'+(td.gpR>=50?'#16a34a':'#dc2626')+'">'+td.gpR.toFixed(1)+'%</td><td style="padding:6px;text-align:right;font-family:var(--f-num);color:'+(td.ni>=0?'var(--pos)':'var(--neg)')+'">'+NFL(td.ni)+'</td><td style="padding:6px;text-align:center">'+(pI>0?pc(td.inc,pI):'—')+'</td></tr>';pI=td.inc}
+h+='</table></div>';
+// Food Cost & Labor Cost Dashboard
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:14px">🍳 餐飲核心指標</div>';
+h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">';
+var fcR=cur?(cur.cogs/Math.max(cur.inc,1)*100):0;var fcOk=fcR<=35;
+var hrCost=0;if(cur){var cd2=loadMonthData(YEAR,MONTH);Object.values(SMAP).forEach(function(sn){if(!cd2||!cd2[sn])return;cd2[sn].forEach(function(r){if(r.sec==='人事費用'){hrCost+=Object.values(r.daily).reduce(function(a,b){return a+b},0)}})})}
+var lbR=cur?(hrCost/Math.max(cur.inc,1)*100):0;var lbOk=lbR<=30;
+var primeCost=fcR+lbR;var primeOk=primeCost<=65;
+h+='<div style="background:'+(fcOk?'#dcfce7':'#fee2e2')+';padding:16px;border-radius:10px;text-align:center"><div style="font-size:12px;color:'+(fcOk?'#166534':'#991b1b')+'">食材成本率</div><div style="font-size:28px;font-weight:900;color:'+(fcOk?'#16a34a':'#dc2626')+';font-family:var(--f-num)">'+fcR.toFixed(1)+'%</div><div style="font-size:10px;color:#999">健康值 28~35%</div><div style="font-size:11px;margin-top:4px;color:'+(fcOk?'#166534':'#991b1b')+'">'+(fcOk?'✅ 正常':'⚠ 偏高，需檢討')+'</div></div>';
+h+='<div style="background:'+(lbOk?'#dcfce7':'#fee2e2')+';padding:16px;border-radius:10px;text-align:center"><div style="font-size:12px;color:'+(lbOk?'#166534':'#991b1b')+'">人事費用率</div><div style="font-size:28px;font-weight:900;color:'+(lbOk?'#16a34a':'#dc2626')+';font-family:var(--f-num)">'+lbR.toFixed(1)+'%</div><div style="font-size:10px;color:#999">健康值 25~30%</div><div style="font-size:11px;margin-top:4px;color:'+(lbOk?'#166534':'#991b1b')+'">'+(lbOk?'✅ 正常':'⚠ 偏高')+'</div></div>';
+h+='<div style="background:'+(primeOk?'#dbeafe':'#fee2e2')+';padding:16px;border-radius:10px;text-align:center"><div style="font-size:12px;color:'+(primeOk?'#1e40af':'#991b1b')+'">Prime Cost</div><div style="font-size:28px;font-weight:900;color:'+(primeOk?'#2563eb':'#dc2626')+';font-family:var(--f-num)">'+primeCost.toFixed(1)+'%</div><div style="font-size:10px;color:#999">食材+人事 ≤65%</div><div style="font-size:11px;margin-top:4px;color:'+(primeOk?'#1e40af':'#991b1b')+'">'+(primeOk?'✅ 健康':'⚠ 獲利空間不足')+'</div></div>';
+h+='</div>';
+// Per-store food cost
+h+='<div style="font-size:13px;font-weight:700;color:#666;margin-bottom:6px">各門市食材成本率</div>';
+h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#f1f5f9"><th style="padding:6px;text-align:left">門市</th><th style="padding:6px;text-align:right">營收</th><th style="padding:6px;text-align:right">食材成本</th><th style="padding:6px;text-align:center">成本率</th><th style="padding:6px">狀態</th></tr>';
+Object.values(SMAP).forEach(function(sn){var ss=calcSS(loadMonthData(YEAR,MONTH),sn);var fc2=ss.inc>0?(ss.cogs/ss.inc*100):0;
+h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:6px;font-weight:600">'+sn+'</td><td style="padding:6px;text-align:right;font-family:var(--f-num)">'+NFL(ss.inc)+'</td><td style="padding:6px;text-align:right;font-family:var(--f-num)">'+NFL(ss.cogs)+'</td><td style="padding:6px;text-align:center;font-weight:700;color:'+(fc2<=35?'#16a34a':'#dc2626')+'">'+fc2.toFixed(1)+'%</td><td style="padding:6px">'+(fc2<=35?'✅':'⚠')+'</td></tr>'});
+h+='</table></div>';
+
+// Break-even Analysis
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#92400e;margin-bottom:14px">📐 損益兩平分析</div>';
+h+='<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#fef3c7"><th style="padding:8px;text-align:left">門市</th><th style="padding:8px;text-align:right">固定成本</th><th style="padding:8px;text-align:right">毛利率</th><th style="padding:8px;text-align:right">兩平營收</th><th style="padding:8px;text-align:right">本月營收</th><th style="padding:8px;text-align:center">達成</th></tr>';
+var cd3=loadMonthData(YEAR,MONTH);
+Object.values(SMAP).forEach(function(sn){
+  if(!cd3||!cd3[sn])return;var ss=calcSS(cd3,sn);
+  var fixed=0;cd3[sn].forEach(function(r){if(r.sec==='租金'||r.sec==='水電瓦斯'||r.sec==='人事費用'||r.sec==='其他費用'){fixed+=Object.values(r.daily).reduce(function(a,b){return a+b},0)}});
+  var gpRate=ss.inc>0?(ss.gp/ss.inc):0;var bep=gpRate>0?Math.round(fixed/gpRate):0;var reached=ss.inc>=bep&&bep>0;
+  h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px;font-weight:700">'+sn+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NFL(fixed)+'</td><td style="padding:8px;text-align:right">'+(gpRate*100).toFixed(1)+'%</td><td style="padding:8px;text-align:right;font-family:var(--f-num);font-weight:700;color:#92400e">'+NFL(bep)+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num)">'+NFL(ss.inc)+'</td><td style="padding:8px;text-align:center;font-size:16px">'+(reached?'✅':'❌')+'</td></tr>';
+});
+h+='</table><div style="font-size:11px;color:#999;margin-top:8px">兩平營收 = 固定成本（租金+水電+人事+其他）÷ 毛利率</div></div>';
+
+// Daily Revenue Analysis
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#0369a1;margin-bottom:14px">📅 日營收分析（星期分布）</div>';
+var dowTotals=[0,0,0,0,0,0,0],dowCounts=[0,0,0,0,0,0,0],dowNames=['日','一','二','三','四','五','六'];
+if(cd3){Object.values(SMAP).forEach(function(sn){if(!cd3[sn])return;cd3[sn].forEach(function(r){if(r.sec!=='收入')return;Object.entries(r.daily).forEach(function(e){var day=+e[0],val=e[1];var dt=new Date(YEAR,MONTH-1,day);var dow=dt.getDay();dowTotals[dow]+=val;if(dowCounts[dow]===0||!dowCounts['_'+dow+'_'+day]){dowCounts[dow]++;dowCounts['_'+dow+'_'+day]=1}})})});
+// Recount properly
+dowCounts=[0,0,0,0,0,0,0];var daysInM=new Date(YEAR,MONTH,0).getDate();for(var dd=1;dd<=daysInM;dd++){var ddt=new Date(YEAR,MONTH-1,dd);dowCounts[ddt.getDay()]++}}
+var maxDow=Math.max.apply(null,dowTotals)||1;
+h+='<div style="display:flex;align-items:flex-end;gap:8px;height:120px;margin-bottom:12px;padding:0 20px">';
+for(var di=1;di<=6;di++){var idx=di%7;var avg=dowCounts[idx]>0?Math.round(dowTotals[idx]/dowCounts[idx]):0;var barH=Math.max(8,Math.round(dowTotals[idx]/maxDow*100));var isWk=idx===0||idx===6;
+h+='<div style="flex:1;text-align:center"><div style="height:'+barH+'px;background:'+(isWk?'#fbbf24':'#3b82f6')+';border-radius:4px 4px 0 0;margin:0 4px;transition:height .3s"></div><div style="font-size:11px;font-weight:700;margin-top:4px;color:'+(isWk?'#92400e':'#333')+'">'+dowNames[idx]+'</div><div style="font-size:10px;color:#999">$'+NF(avg)+'</div></div>'}
+h+='</div>';
+h+='<div style="font-size:11px;color:#999;text-align:center">柱狀高度 = 當月該星期總營收，下方數字 = 日均</div></div>';
+
+// Payment Method Mix
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#7c3aed;margin-bottom:14px">💳 支付方式佔比</div>';
+var payMethods=[];
+if(cd3){Object.values(SMAP).forEach(function(sn){if(!cd3[sn])return;cd3[sn].forEach(function(r){if(r.sec!=='收入')return;var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(sum>0)payMethods.push({name:r.name,store:sn,amount:sum})})})}
+payMethods.sort(function(a,b){return b.amount-a.amount});
+var payTotal=payMethods.reduce(function(a,b){return a+b.amount},0);
+if(payMethods.length>0){
+h+='<div style="margin-bottom:12px">';
+payMethods.forEach(function(p){var pct=payTotal>0?(p.amount/payTotal*100):0;var barW=Math.max(2,pct);
+h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">'+p.name+'</span><div style="flex:1;height:18px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="width:'+barW+'%;height:100%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);border-radius:4px"></div></div><span style="min-width:70px;text-align:right;font-family:var(--f-num);font-weight:700">'+NFL(p.amount)+'</span><span style="min-width:45px;text-align:right;color:#666">'+pct.toFixed(1)+'%</span></div>'});
+h+='</div>'}else h+='<div style="color:#999;text-align:center;padding:16px">無資料</div>';
+h+='</div>';
+
+// Vendor Cost Ranking
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#b91c1c;margin-bottom:14px">🏭 廠商成本排行</div>';
+var vendors=[];
+if(cd3){Object.entries(SMAP).forEach(function(e){var sn=e[1];if(!cd3[sn])return;cd3[sn].forEach(function(r){if(r.sec==='收入')return;var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(sum>0)vendors.push({name:r.name,store:sn,sec:r.sec,amount:sum})})})}
+vendors.sort(function(a,b){return b.amount-a.amount});
+var topV=vendors.slice(0,15);var vendorTotal=vendors.reduce(function(a,b){return a+b.amount},0);
+if(topV.length>0){
+h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#fee2e2"><th style="padding:6px">#</th><th style="padding:6px;text-align:left">廠商</th><th style="padding:6px;text-align:left">門市</th><th style="padding:6px;text-align:left">類別</th><th style="padding:6px;text-align:right">金額</th><th style="padding:6px;text-align:right">佔比</th></tr>';
+topV.forEach(function(v,i){h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:6px;font-weight:700;color:#dc2626">'+(i+1)+'</td><td style="padding:6px;font-weight:600">'+v.name+'</td><td style="padding:6px;font-size:11px;color:#666">'+v.store+'</td><td style="padding:6px;font-size:11px;color:#666">'+v.sec+'</td><td style="padding:6px;text-align:right;font-family:var(--f-num);font-weight:700;color:var(--neg)">'+NFL(v.amount)+'</td><td style="padding:6px;text-align:right;color:#666">'+(vendorTotal>0?(v.amount/vendorTotal*100).toFixed(1):'0')+'%</td></tr>'});
+h+='</table>'}
+h+='</div>';
+
+// Store Contribution
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#059669;margin-bottom:14px">🏪 門市貢獻度</div>';
+var totalInc2=0,totalNI2=0;var storeContribs=[];
+Object.values(SMAP).forEach(function(sn){var ss=calcSS(cd3,sn);totalInc2+=ss.inc;totalNI2+=ss.ni;storeContribs.push({name:sn,inc:ss.inc,ni:ss.ni,gpR:ss.gpR})});
+h+='<div style="display:grid;grid-template-columns:repeat('+storeContribs.length+',1fr);gap:12px">';
+var colors=['#3b82f6','#16a34a','#f59e0b'];
+storeContribs.forEach(function(s,i){var incPct=totalInc2>0?(s.inc/totalInc2*100):0;
+h+='<div style="text-align:center;padding:14px;background:#f8fafc;border-radius:10px;border-top:4px solid '+colors[i%3]+'"><div style="font-size:14px;font-weight:800;margin-bottom:8px">'+s.name+'</div><div style="font-size:11px;color:#666">營收貢獻</div><div style="font-size:22px;font-weight:900;color:'+colors[i%3]+';font-family:var(--f-num)">'+incPct.toFixed(1)+'%</div><div style="font-size:11px;color:#666;margin-top:6px">毛利率 <b style="color:'+(s.gpR>=50?'#16a34a':'#dc2626')+'">'+s.gpR.toFixed(1)+'%</b></div><div style="font-size:11px;color:#666">淨利 <b style="color:'+(s.ni>=0?'#16a34a':'#dc2626')+'">$'+NFL(s.ni)+'</b></div></div>'});
+h+='</div></div>';
+
+// Cash Flow Forecast
+h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+h+='<div style="font-size:16px;font-weight:800;color:#0f172a;margin-bottom:14px">🔮 未來 3 個月現金流預測</div>';
+h+='<table style="width:100%;border-collapse:collapse;font-size:13px"><tr style="background:#f1f5f9"><th style="padding:8px;text-align:left">月份</th><th style="padding:8px;text-align:right">預估營收</th><th style="padding:8px;text-align:right">預估支出</th><th style="padding:8px;text-align:right">預估淨利</th><th style="padding:8px;text-align:left">依據</th></tr>';
+var avgInc=yM>0?Math.round(yI/yM):0;var avgExp=yM>0?Math.round(yE/yM):0;
+for(var fm=1;fm<=3;fm++){var fMonth=MONTH+fm;var fYear=YEAR;if(fMonth>12){fMonth-=12;fYear++}
+var lyData=calcMS(loadMonthData(fYear-1,fMonth));
+var fInc=lyData?Math.round(lyData.inc*1.05):avgInc;var fExp=lyData?Math.round(lyData.exp*1.02):avgExp;
+h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:8px;font-weight:700">'+(fYear-1911)+'年'+fMonth+'月</td><td style="padding:8px;text-align:right;font-family:var(--f-num);color:var(--pos)">'+NFL(fInc)+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num);color:var(--neg)">'+NFL(fExp)+'</td><td style="padding:8px;text-align:right;font-family:var(--f-num);font-weight:700;color:'+(fInc-fExp>=0?'var(--pos)':'var(--neg)')+'">'+NFL(fInc-fExp)+'</td><td style="padding:8px;font-size:11px;color:#999">'+(lyData?'去年同月×1.05':'月均值')+'</td></tr>'}
+h+='</table><div style="font-size:11px;color:#999;margin-top:6px">預測依據：有去年同月資料→去年×105%，否則→年度月均值</div></div>';
+
+h+='</div>';el.innerHTML=h}
 
 /* ─── Startup Tax Reminder ─── */
 function checkTaxReminder(){
