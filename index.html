@@ -1537,15 +1537,20 @@ function renderTaxCenter(){
   var purchaseTax=Math.round(totalPurchase*0.05);
   var vatDue=salesTax-purchaseTax;
 
-  // Annual CIT
+  // Determine which stores have checked sales items
+  var salesStores={};
+  salesItems.forEach(function(it){if(it.isSales)salesStores[it.storeKey]=true});
+  var salesStoreNames=Object.keys(salesStores).map(function(sk){return SMAP[sk]});
+
+  // Annual CIT - only from stores with checked sales
   var annualNI=0,monthsLoaded=0;
   for(var m=1;m<=12;m++){
     var amk=YEAR+'-'+String(m).padStart(2,'0');
     if(m===MONTH){
-      Object.values(SMAP).forEach(function(sn){var rows=DATA[sn];var inc2=0,exp2=0;rows.forEach(function(r){var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc2+=sum;else exp2+=sum});annualNI+=inc2-exp2});
+      Object.entries(SMAP).forEach(function(e){var sk=e[0],sn=e[1];if(!salesStores[sk])return;var rows=DATA[sn];var inc2=0,exp2=0;rows.forEach(function(r){var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc2+=sum;else exp2+=sum});annualNI+=inc2-exp2});
       monthsLoaded++;
     }else{
-      try{var s=localStorage.getItem('fin_v3_'+amk);if(s){var md=JSON.parse(s);Object.values(SMAP).forEach(function(sn){if(!md[sn])return;var inc2=0,exp2=0;md[sn].forEach(function(r){var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc2+=sum;else exp2+=sum});annualNI+=inc2-exp2});monthsLoaded++}}catch(e){}
+      try{var s=localStorage.getItem('fin_v3_'+amk);if(s){var md=JSON.parse(s);Object.entries(SMAP).forEach(function(e){var sk=e[0],sn=e[1];if(!salesStores[sk])return;if(!md[sn])return;var inc2=0,exp2=0;md[sn].forEach(function(r){var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc2+=sum;else exp2+=sum});annualNI+=inc2-exp2});monthsLoaded++}}catch(e){}
     }
   }
   var citProjected=monthsLoaded>0?Math.round((annualNI/monthsLoaded)*12):0;
@@ -1607,7 +1612,8 @@ function renderTaxCenter(){
 
   // CIT Section
   h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;margin-top:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
-  h+='<div style="font-size:16px;font-weight:800;color:#7c3aed;margin-bottom:12px">📊 營利事業所得稅（年度預估）</div>';
+  h+='<div style="font-size:16px;font-weight:800;color:#7c3aed;margin-bottom:4px">📊 營利事業所得稅（年度預估）</div>';
+  h+='<div style="font-size:12px;color:#666;margin-bottom:12px">計算範圍：'+(salesStoreNames.length>0?salesStoreNames.join('、'):'未勾選銷項門市')+' — 依上方銷項勾選的門市計算</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px">';
   h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">已累計淨利</div><div style="font-size:20px;font-weight:800;color:'+(annualNI>=0?'var(--pos)':'var(--neg)')+';font-family:var(--f-num)">$'+NFL(annualNI)+'</div><div style="font-size:10px;color:#999">'+monthsLoaded+'個月</div></div>';
   h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">全年推估</div><div style="font-size:20px;font-weight:800;font-family:var(--f-num)">$'+NFL(citProjected)+'</div><div style="font-size:10px;color:#999">÷'+monthsLoaded+' ×12</div></div>';
@@ -1650,6 +1656,121 @@ function renderTaxCenter(){
   h+='</table>';
   }else h+='<div style="color:#999;text-align:center;padding:16px;font-size:13px">本月尚無進項發票紀錄</div>';
   h+='</div>';
+
+  // Tax Rules Reference
+  h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="var c=this.nextElementSibling;c.style.display=c.style.display===\'none\'?\'block\':\'none\'">';
+  h+='<div style="font-size:16px;font-weight:800;color:#0f172a">📚 台灣有限公司稅務規定參考</div>';
+  h+='<span style="font-size:20px;color:#999">▾</span></div>';
+  h+='<div style="display:none;margin-top:16px;font-size:12px;line-height:1.8;color:#333">';
+
+  // 營業稅
+  h+='<div style="background:#fee2e2;padding:8px 12px;border-radius:6px;font-weight:800;font-size:13px;color:#991b1b;margin-bottom:6px">一、營業稅（加值型）</div>';
+  h+='<div style="padding:4px 12px 12px">';
+  h+='<b>稅率</b>：5%（加值型營業稅）<br>';
+  h+='<b>計算公式</b>：應繳稅額 = 銷項稅額 - 進項稅額<br>';
+  h+='<b>銷項稅額</b>：開出發票金額 × 5%（向客戶收取）<br>';
+  h+='<b>進項稅額</b>：取得進項發票金額 × 5%（向廠商支付，可扣抵）<br>';
+  h+='<b>申報頻率</b>：每 2 個月申報一次（奇數月 15 日前）<br>';
+  h+='<b>申報期別</b>：1-2月→3/15、3-4月→5/15、5-6月→7/15、7-8月→9/15、9-10月→11/15、11-12月→隔年1/15<br>';
+  h+='<b>申報方式</b>：401 申報書（一般稅額計算）<br>';
+  h+='<b>留抵稅額</b>：進項 > 銷項時，差額可留抵下期或申請退稅<br><br>';
+
+  h+='<b style="color:#dc2626">▸ 可扣抵的進項稅額：</b><br>';
+  h+='• 食材、原物料、包材採購（有統一發票）<br>';
+  h+='• 設備、器具購置（含冷藏設備、廚房設備）<br>';
+  h+='• 水電瓦斯費（營業用部分，需有統一發票）<br>';
+  h+='• 租金（房東有開發票的部分）<br>';
+  h+='• 電話費、網路費<br>';
+  h+='• 廣告費、行銷費用<br>';
+  h+='• 修繕費、維護費<br>';
+  h+='• 交通費（營業用，有發票）<br>';
+  h+='• 保全費用<br>';
+  h+='• 會計師/記帳士費用<br><br>';
+
+  h+='<b style="color:#991b1b">▸ 不可扣抵的進項稅額：</b><br>';
+  h+='• 員工薪資（非營業稅範疇）<br>';
+  h+='• 交際應酬費用<br>';
+  h+='• 自用乘人小汽車相關費用<br>';
+  h+='• 員工福利（非屬營業必要）<br>';
+  h+='• 沒有統一發票的支出（收據、手開發票不可扣抵）<br>';
+  h+='• 免稅貨物（如未加工蔬菜、稻米等）本身無進項稅<br>';
+  h+='</div>';
+
+  // 營所稅
+  h+='<div style="background:#ede9fe;padding:8px 12px;border-radius:6px;font-weight:800;font-size:13px;color:#5b21b6;margin-bottom:6px">二、營利事業所得稅</div>';
+  h+='<div style="padding:4px 12px 12px">';
+  h+='<b>稅率</b>：20%（全年課稅所得額超過 12 萬元）<br>';
+  h+='<b>免稅額</b>：全年課稅所得 ≤ 12 萬元免稅<br>';
+  h+='<b>計算公式</b>：<br>';
+  h+='　課稅所得 = 營業收入淨額 - 營業成本 - 營業費用 + 非營業收益 - 非營業損失<br>';
+  h+='　應納稅額 = (課稅所得 - 12萬) × 20%<br>';
+  h+='<b>申報期間</b>：每年 5/1 ~ 5/31<br>';
+  h+='<b>暫繳</b>：9 月暫繳（去年稅額 ½），次年 5 月結算<br><br>';
+
+  h+='<b style="color:#5b21b6">▸ 可認列的營業費用（減少課稅所得）：</b><br>';
+  h+='• 薪資支出（含勞健保雇主負擔）<br>';
+  h+='• 租金支出<br>';
+  h+='• 水電瓦斯<br>';
+  h+='• 折舊費用（設備、裝潢攤提）<br>';
+  h+='• 保險費（商業保險、火險等）<br>';
+  h+='• 修繕費<br>';
+  h+='• 廣告費<br>';
+  h+='• 稅捐（營業稅、印花稅、房屋稅等）<br>';
+  h+='• 伙食費（每人每月 $2,400 免稅額度）<br>';
+  h+='• 交通費<br>';
+  h+='• 郵電費<br>';
+  h+='• 文具用品<br>';
+  h+='• 交際費（有限額：營收 ≤ 3,000萬 → 營收×0.3%，上限 30 萬）<br>';
+  h+='• 職工福利（有限額：營收×0.15%）<br>';
+  h+='• 呆帳損失（需舉證）<br>';
+  h+='• 會計師簽證費<br><br>';
+
+  h+='<b style="color:#991b1b">▸ 不可認列的費用：</b><br>';
+  h+='• 罰鍰（違規罰款）<br>';
+  h+='• 與營業無關的私人支出<br>';
+  h+='• 超過限額的交際費/福利費<br>';
+  h+='• 未取得合法憑證的支出<br>';
+  h+='</div>';
+
+  // 扣繳
+  h+='<div style="background:#dbeafe;padding:8px 12px;border-radius:6px;font-weight:800;font-size:13px;color:#1e40af;margin-bottom:6px">三、各類所得扣繳</div>';
+  h+='<div style="padding:4px 12px 12px">';
+  h+='<b>薪資</b>：依「薪資所得扣繳稅額表」或 5% 扣繳<br>';
+  h+='<b>租金</b>：給付時扣繳 10%（每次給付 > $20,000）<br>';
+  h+='<b>執行業務報酬</b>：扣繳 10%（如會計師、律師費）<br>';
+  h+='<b>申報</b>：每月 10 日前繳納上月扣繳稅款，1/31 前申報年度扣繳憑單<br>';
+  h+='</div>';
+
+  // 二代健保
+  h+='<div style="background:#dcfce7;padding:8px 12px;border-radius:6px;font-weight:800;font-size:13px;color:#166534;margin-bottom:6px">四、二代健保補充保費</div>';
+  h+='<div style="padding:4px 12px 12px">';
+  h+='<b>費率</b>：2.11%<br>';
+  h+='<b>適用</b>：單次給付超過基本工資時（薪資所得、租金、執行業務報酬等）<br>';
+  h+='<b>計算</b>：(給付金額 - 基本工資) × 2.11%<br>';
+  h+='</div>';
+
+  // 印花稅
+  h+='<div style="background:#fef3c7;padding:8px 12px;border-radius:6px;font-weight:800;font-size:13px;color:#92400e;margin-bottom:6px">五、印花稅</div>';
+  h+='<div style="padding:4px 12px 12px">';
+  h+='<b>銀錢收據</b>：收款金額 × 0.4%（每件 > $250 才需貼）<br>';
+  h+='<b>承攬契約</b>：契約金額 × 0.1%<br>';
+  h+='<b>注意</b>：電子發票免印花稅，僅紙本收據/契約需要<br>';
+  h+='</div>';
+
+  // 餐飲業特別注意
+  h+='<div style="background:#f1f5f9;padding:8px 12px;border-radius:6px;font-weight:800;font-size:13px;color:#0f172a;margin-bottom:6px">六、餐飲業特別注意事項</div>';
+  h+='<div style="padding:4px 12px 12px">';
+  h+='<b>免稅食材</b>：未加工農產品（蔬菜、水果、稻米、雞蛋等）免營業稅，無進項稅額可扣<br>';
+  h+='<b>小規模營業人</b>：月營收 < 20 萬可免開發票（交大店若為小規模，查定課稅 1%）<br>';
+  h+='<b>統一發票</b>：月營收 ≥ 20 萬或使用 POS 系統需開立統一發票<br>';
+  h+='<b>伙食費</b>：員工餐每人每月 $2,400 免列員工薪資所得<br>';
+  h+='<b>折舊</b>：餐飲設備耐用年限通常 3~5 年，可加速折舊<br>';
+  h+='<b>外送平台抽成</b>：Uber Eats / Foodpanda 抽成有開發票，可作為進項扣抵<br>';
+  h+='</div>';
+
+  h+='<div style="font-size:10px;color:#999;margin-top:8px;padding:8px;background:#f8fafc;border-radius:4px">⚠ 以上為一般性參考，實際申報請依國稅局規定及會計師建議辦理。稅法規定可能變動，請以最新法規為準。</div>';
+  h+='</div></div>';
 
   h+='</div>';
   el.innerHTML=h;
