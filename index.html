@@ -916,7 +916,7 @@ function chPeriod(){
 function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}
 var monthLabel=(YEAR-1911)+'年'+MONTH+'月';
 let h=`<div style="padding:8px 16px;background:linear-gradient(90deg,var(--navy-700),var(--navy-800));color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px;border-radius:8px 8px 0 0;margin-bottom:-1px"><span style="font-size:18px">📅</span><span>${sn}</span><span style="background:rgba(255,255,255,.15);padding:2px 12px;border-radius:12px;font-family:var(--f-num)">${monthLabel}</span><span style="font-size:11px;color:rgba(255,255,255,.5);margin-left:auto">共 ${rows.length} 項</span></div>`;
-h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:46px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-dt"><th class="cn" colspan="2">日期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr>';h+=`<tr class="lh-wd"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}${row.memo?'\n📝 '+row.memo:''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:56px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}${row.term?'<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();editTerm(\''+sec+'\','+ri+')">'+row.term.cur+'/'+row.term.total+'</span>':''}${row.memo?'<span style="font-size:9px;color:#f59e0b;margin-left:3px" title="'+row.memo.replace(/"/g,'&#34;')+'">📝</span>':''}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 let actInp=null;
@@ -952,9 +952,41 @@ function rowMenu(sec,ri){
   var sn=SMAP[CUR],rows=DATA[sn],match=rows.filter(function(r){return r.sec===sec});
   if(ri>=match.length)return;
   var target=match[ri];
-  var choice=prompt('「'+target.name+'」操作選單：\n\n1 = 修改名稱\n2 = '+(target.noSum?'恢復加總':'排除加總（僅紀錄）')+'\n3 = 取消\n\n輸入 1 或 2：');
+  var choice=prompt('「'+target.name+'」操作選單：\n\n1 = 修改名稱\n2 = '+(target.noSum?'恢復加總':'排除加總（僅紀錄）')+'\n3 = 設定期數（分期付款）\n4 = 編輯備註\n5 = 取消\n\n輸入編號：');
   if(choice==='1')editName(sec,ri);
   else if(choice==='2'){pushHistory();target.noSum=!target.noSum;buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave()}
+  else if(choice==='3')editTerm(sec,ri);
+  else if(choice==='4')editMemo(sec,ri);
+}
+
+function editTerm(sec,ri){
+  var sn=SMAP[CUR],rows=DATA[sn],match=rows.filter(function(r){return r.sec===sec});
+  if(ri>=match.length)return;
+  var target=match[ri];
+  var existing=target.term;
+  var total=prompt('「'+target.name+'」總期數：\n（輸入 0 或留空 = 清除期數）',existing?existing.total:'');
+  if(total===null)return;
+  total=parseInt(total)||0;
+  if(total<=0){pushHistory();delete target.term;buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();return}
+  var cur=prompt('目前第幾期：',existing?existing.cur:'1');
+  if(cur===null)return;
+  cur=parseInt(cur)||1;
+  if(cur<1)cur=1;if(cur>total)cur=total;
+  pushHistory();
+  target.term={cur:cur,total:total};
+  buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
+}
+
+function editMemo(sec,ri){
+  var sn=SMAP[CUR],rows=DATA[sn],match=rows.filter(function(r){return r.sec===sec});
+  if(ri>=match.length)return;
+  var target=match[ri];
+  var memo=prompt('「'+target.name+'」備註：\n（清空 = 刪除備註）',target.memo||'');
+  if(memo===null)return;
+  pushHistory();
+  if(memo.trim()==='')delete target.memo;
+  else target.memo=memo.trim();
+  buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
 }
 
 /* ─── Prevent scroll wheel changing number inputs ─── */
@@ -1717,7 +1749,7 @@ function renderTaxCenter(){
   h+='• 修繕費<br>';
   h+='• 廣告費<br>';
   h+='• 稅捐（營業稅、印花稅、房屋稅等）<br>';
-  h+='• 伙食費（每人每月 $2,400 免稅額度）<br>';
+  h+='• 伙食費（每人每月 $3,000 免稅額度，自112年起適用）<br>';
   h+='• 交通費<br>';
   h+='• 郵電費<br>';
   h+='• 文具用品<br>';
@@ -1764,7 +1796,7 @@ function renderTaxCenter(){
   h+='<b>免稅食材</b>：未加工農產品（蔬菜、水果、稻米、雞蛋等）免營業稅，無進項稅額可扣<br>';
   h+='<b>小規模營業人</b>：月營收 < 20 萬可免開發票（交大店若為小規模，查定課稅 1%）<br>';
   h+='<b>統一發票</b>：月營收 ≥ 20 萬或使用 POS 系統需開立統一發票<br>';
-  h+='<b>伙食費</b>：員工餐每人每月 $2,400 免列員工薪資所得<br>';
+  h+='<b>伙食費</b>：員工餐每人每月 $3,000 免列員工薪資所得（自112年起適用）<br>';
   h+='<b>折舊</b>：餐飲設備耐用年限通常 3~5 年，可加速折舊<br>';
   h+='<b>外送平台抽成</b>：Uber Eats / Foodpanda 抽成有開發票，可作為進項扣抵<br>';
   h+='</div>';
