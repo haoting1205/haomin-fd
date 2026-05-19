@@ -285,15 +285,15 @@ table.lt thead{position:sticky;top:0;z-index:20}
 .lh-dt th.toth{background:var(--navy-900);font-size:var(--fs-md);min-width:96px}
 .lh-dt th.pcth{background:var(--navy-900);font-size:var(--fs-sm);color:var(--slate-400);min-width:68px}
 tr.lsec td{font-weight:800;font-size:var(--fs-sm);color:#fff;padding:7px 12px;letter-spacing:.5px}
-td.lbar{width:6px;padding:0;position:sticky;left:0;z-index:8}
+td.lbar{width:6px;padding:0;position:sticky;left:0;z-index:10}
 td.lnm{padding:5px 12px;font-size:var(--fs-sm);font-weight:600;color:var(--txt);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:192px;max-width:210px;
-  position:sticky;left:6px;z-index:7;cursor:default;background:inherit}
+  position:sticky;left:6px;z-index:9;cursor:default;background:inherit}
 td.lnm .del-btn{display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);
   width:20px;height:20px;border:none;border-radius:4px;background:#fee2e2;color:#dc2626;
   font-size:13px;line-height:20px;text-align:center;cursor:pointer;padding:0;font-weight:700}
 td.lnm .del-btn:hover{background:#dc2626;color:#fff}
-td.lnm{position:sticky;left:6px;z-index:7;cursor:default;background:inherit;overflow:visible}
+td.lnm{position:sticky;left:6px;z-index:9;cursor:default;background:inherit;overflow:visible}
 tr:hover td.lnm .del-btn{display:block}
 /* Tax badges */
 .tax-badge{display:inline-block;width:18px;height:18px;border-radius:4px;font-size:10px;font-weight:900;
@@ -350,7 +350,9 @@ table.lt tbody tr.row-active>td.lc input{background:transparent}
 table.lt tbody tr.row-active>td.lc.wk{background:#dde5f9!important}
 /* Column highlight */
 td.lc.col-hl{background:rgba(59,130,246,.05)!important}
+td.lc.col-hover{background:rgba(59,130,246,.04)!important}
 th.col-hl{background:var(--navy-600)!important}
+th.col-hover{background:var(--navy-600)!important}
 /* Position indicator */
 #pos-bar{position:fixed;bottom:36px;left:50%;transform:translateX(-50%);
   background:var(--navy-700);color:#fff;padding:6px 20px;border-radius:20px;
@@ -914,7 +916,7 @@ function chPeriod(){
 function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}
 var monthLabel=(YEAR-1911)+'年'+MONTH+'月';
 let h=`<div style="padding:8px 16px;background:linear-gradient(90deg,var(--navy-700),var(--navy-800));color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px;border-radius:8px 8px 0 0;margin-bottom:-1px"><span style="font-size:18px">📅</span><span>${sn}</span><span style="background:rgba(255,255,255,.15);padding:2px 12px;border-radius:12px;font-family:var(--f-num)">${monthLabel}</span><span style="font-size:11px;color:rgba(255,255,255,.5);margin-left:auto">共 ${rows.length} 項</span></div>`;
-h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:7" title="${row.name}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:46px">${row.name}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<col style="width:${isH?46:54}px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-wd"><th class="cn" colspan="2">星期</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr>';h+=`<tr class="lh-dt"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=d.w>=5||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:46px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=d.w>=5||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 let actInp=null;
@@ -934,6 +936,25 @@ function cellNote(e,inp){
   if(note.trim()===''){delete row.notes[day];if(Object.keys(row.notes).length===0)delete row.notes}
   else{row.notes[day]=note.trim()}
   buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
+}
+
+function editName(sec,ri){
+  var sn=SMAP[CUR],rows=DATA[sn],match=rows.filter(function(r){return r.sec===sec});
+  if(ri>=match.length)return;
+  var target=match[ri];
+  var newName=prompt('修改科目名稱：',target.name);
+  if(!newName||newName.trim()===''||newName.trim()===target.name)return;
+  pushHistory();target.name=newName.trim();
+  buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
+}
+
+function rowMenu(sec,ri){
+  var sn=SMAP[CUR],rows=DATA[sn],match=rows.filter(function(r){return r.sec===sec});
+  if(ri>=match.length)return;
+  var target=match[ri];
+  var choice=prompt('「'+target.name+'」操作選單：\n\n1 = 修改名稱\n2 = '+(target.noSum?'恢復加總':'排除加總（僅紀錄）')+'\n3 = 取消\n\n輸入 1 或 2：');
+  if(choice==='1')editName(sec,ri);
+  else if(choice==='2'){pushHistory();target.noSum=!target.noSum;buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave()}
 }
 
 /* ─── Prevent scroll wheel changing number inputs ─── */
@@ -1017,7 +1038,27 @@ document.querySelectorAll('.nav-tab').forEach(function(tab){
 });
 
 /* ─── Column Highlight + Position Indicator ─── */
+/* ─── Column Highlight on HOVER (not just focus) ─── */
 var _hlCol=-1,_posTimer=null,_activeRow=null;
+document.addEventListener('mouseover',function(e){
+  var td=e.target.closest('td.lc');if(!td)return;
+  var tr=td.closest('tr');if(!tr)return;
+  var ci=[...tr.children].indexOf(td);
+  // Clear previous hover column
+  document.querySelectorAll('.col-hover').forEach(function(el){el.classList.remove('col-hover')});
+  // Highlight column
+  var tbl=tr.closest('table');if(!tbl)return;
+  tbl.querySelectorAll('tr').forEach(function(r){
+    var c=r.children[ci];if(c){c.classList.add('col-hover')}
+  });
+});
+document.addEventListener('mouseout',function(e){
+  var td=e.target.closest('td.lc');
+  if(td){var related=e.relatedTarget;if(!related||!related.closest||!related.closest('td.lc')){
+    document.querySelectorAll('.col-hover').forEach(function(el){el.classList.remove('col-hover')});
+  }}
+});
+
 document.addEventListener('focusin',function(e){
   var inp=e.target;if(!inp||inp.tagName!=='INPUT'||!inp.dataset.s)return;
   // Clear previous active row
@@ -1074,7 +1115,7 @@ function closeQF(){$('qfp').classList.remove('on')}
 document.addEventListener('click',e=>{if(!e.target.closest('#qfp')&&!e.target.closest('td.lc'))closeQF()});
 
 // ═══ RECALC ═══
-function recalc(sk){const sn=SMAP[sk],rows=DATA[sn],secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let revT=0;if(secs['收入'])for(const r of secs['收入'])revT+=Object.values(r.daily).reduce((a,b)=>a+b,0);const sT={};for(const sec of so){sT[sec]={total:0,byd:{}};let ri=0;for(const row of secs[sec]){const rid=`${sk}__${EID(sec)}__${ri}`;let rs=0;for(const[d,v]of Object.entries(row.daily)){rs+=v;sT[sec].byd[d]=(sT[sec].byd[d]||0)+v}sT[sec].total+=rs;const c=cfg(sec);setTxt('rt-'+rid,rs?NFL(rs):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('rp-'+rid,revT?PCT(rs,revT):'—');ri++}const sid=`${sk}__${EID(sec)}`,c=cfg(sec);setTxt('ss-'+sid,sT[sec].total?NFL(sT[sec].total):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('sp-'+sid,revT?PCT(sT[sec].total,revT):'—');for(const d of DAYS){const e=$(`sd-${sid}__${d.d}`);if(e){const v=sT[sec].byd[String(d.d)]||0;e.textContent=v?NF(v):''}}}const rbd={};if(secs['收入'])for(const r of secs['收入'])for(const[d,v]of Object.entries(r.daily))rbd[d]=(rbd[d]||0)+v;for(const d of DAYS)setTxt(`dv-${sk}__${d.d}`,rbd[String(d.d)]?NF(rbd[String(d.d)]):'');setTxt('dg-'+sk,revT?NFL(revT):'—','var(--pos)');let incT=0,expT=0;for(const s of so){const c=cfg(s);if(c.exp)expT+=sT[s].total;else incT+=sT[s].total}const ni=incT-expT;const ne=$('ni-'+sk);if(ne){ne.textContent=(ni<0?'▼ ':'▲ ')+NFL(Math.abs(ni));ne.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('nip-'+sk,revT?PCT(ni,revT):'—');const cogs=['支出食材(月結)','支出食/包材(日結)','員工餐'];let cogsT=0;for(const s of cogs)if(sT[s])cogsT+=sT[s].total;const gp=incT-cogsT;let opexT=0;for(const s of so)if(cfg(s).exp&&!cogs.includes(s))opexT+=sT[s].total;const sv=(id,v,c)=>setTxt(id,'$'+NFL(v),c);sv('lv-rev',incT,'var(--pos)');sv('lv-cogs',cogsT,'var(--neg)');setTxt('lk-cogs',PCT(cogsT,incT));sv('lv-gp',gp,gp>=0?'var(--pos)':'var(--neg)');setTxt('lk-gp',PCT(gp,incT));sv('lv-opex',opexT,'var(--neg)');setTxt('lk-opex',PCT(opexT,incT));const nv=$('lv-ni');if(nv){nv.textContent=(ni<0?'▼ ':'▲ ')+'$'+NFL(Math.abs(ni));nv.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('lk-ni',PCT(ni,incT));const nb=$('nb-'+sk);if(nb){nb.textContent=(ni>=0?'▲':'▼')+'$'+NFL(Math.abs(ni));nb.style.color=ni>=0?'#34d399':'#fca5a5'}setTxt('l-foot-r',`收入 $${NFL(incT)} | 支出 $${NFL(expT)} | 淨利 ${ni>=0?'▲':'▼'}$${NFL(Math.abs(ni))}`);
+function recalc(sk){const sn=SMAP[sk],rows=DATA[sn],secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let revT=0;if(secs['收入'])for(const r of secs['收入'])if(!r.noSum)revT+=Object.values(r.daily).reduce((a,b)=>a+b,0);const sT={};for(const sec of so){sT[sec]={total:0,byd:{}};let ri=0;for(const row of secs[sec]){const rid=`${sk}__${EID(sec)}__${ri}`;let rs=0;for(const[d,v]of Object.entries(row.daily)){rs+=v;if(!row.noSum)sT[sec].byd[d]=(sT[sec].byd[d]||0)+v}if(!row.noSum)sT[sec].total+=rs;const c=cfg(sec);setTxt('rt-'+rid,rs?NFL(rs):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('rp-'+rid,revT?PCT(rs,revT):'—');ri++}const sid=`${sk}__${EID(sec)}`,c=cfg(sec);setTxt('ss-'+sid,sT[sec].total?NFL(sT[sec].total):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('sp-'+sid,revT?PCT(sT[sec].total,revT):'—');for(const d of DAYS){const e=$(`sd-${sid}__${d.d}`);if(e){const v=sT[sec].byd[String(d.d)]||0;e.textContent=v?NF(v):''}}}const rbd={};if(secs['收入'])for(const r of secs['收入'])for(const[d,v]of Object.entries(r.daily))rbd[d]=(rbd[d]||0)+v;for(const d of DAYS)setTxt(`dv-${sk}__${d.d}`,rbd[String(d.d)]?NF(rbd[String(d.d)]):'');setTxt('dg-'+sk,revT?NFL(revT):'—','var(--pos)');let incT=0,expT=0;for(const s of so){const c=cfg(s);if(c.exp)expT+=sT[s].total;else incT+=sT[s].total}const ni=incT-expT;const ne=$('ni-'+sk);if(ne){ne.textContent=(ni<0?'▼ ':'▲ ')+NFL(Math.abs(ni));ne.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('nip-'+sk,revT?PCT(ni,revT):'—');const cogs=['支出食材(月結)','支出食/包材(日結)','員工餐'];let cogsT=0;for(const s of cogs)if(sT[s])cogsT+=sT[s].total;const gp=incT-cogsT;let opexT=0;for(const s of so)if(cfg(s).exp&&!cogs.includes(s))opexT+=sT[s].total;const sv=(id,v,c)=>setTxt(id,'$'+NFL(v),c);sv('lv-rev',incT,'var(--pos)');sv('lv-cogs',cogsT,'var(--neg)');setTxt('lk-cogs',PCT(cogsT,incT));sv('lv-gp',gp,gp>=0?'var(--pos)':'var(--neg)');setTxt('lk-gp',PCT(gp,incT));sv('lv-opex',opexT,'var(--neg)');setTxt('lk-opex',PCT(opexT,incT));const nv=$('lv-ni');if(nv){nv.textContent=(ni<0?'▼ ':'▲ ')+'$'+NFL(Math.abs(ni));nv.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('lk-ni',PCT(ni,incT));const nb=$('nb-'+sk);if(nb){nb.textContent=(ni>=0?'▲':'▼')+'$'+NFL(Math.abs(ni));nb.style.color=ni>=0?'#34d399':'#fca5a5'}setTxt('l-foot-r',`收入 $${NFL(incT)} | 支出 $${NFL(expT)} | 淨利 ${ni>=0?'▲':'▼'}$${NFL(Math.abs(ni))}`);
 /* Tax summary calculation */
 var taxMonthly=0,taxIncluded=0,taxExempt=0,taxUnmarked=0;
 for(var s2 of so){if(!cfg(s2).exp)continue;for(var r2 of secs[s2]){var rSum=Object.values(r2.daily).reduce(function(a,b){return a+b},0);if(r2.tax==='T')taxMonthly+=rSum;else if(r2.tax==='I')taxIncluded+=rSum;else if(r2.tax==='F')taxExempt+=rSum;else taxUnmarked+=rSum}}
