@@ -798,7 +798,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:2,minor:6,patch:8,build:28,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:2,minor:6,patch:9,build:29,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -830,7 +830,8 @@ const CHANGELOG=[
 {build:25,version:'2.6.5',date:'2026-06-07',author:'Claude + Tim',summary:'資料保護強化 + Console 警告清理',changes:[{cat:'FIX',module:'DATA',desc:'存檔合併改為強制從伺服器讀取（get source:server）— 確保「讀-合併-寫」的合併一定基於雲端真實最新版，不受本地快取影響，強化防覆蓋保護'},{cat:'FIX',module:'DATA',desc:'移除 Firestore enablePersistence 多分頁離線快取 — 改為完全由系統自身 localStorage 容錯，邏輯更單純、消除多分頁快取干擾，同時消除 enablePersistence 棄用警告'},{cat:'FIX',module:'DATA',desc:'移除多餘的 db.settings() 呼叫 — 消除「overriding the original host」警告'}]},
 {build:26,version:'2.6.6',date:'2026-06-07',author:'Claude + Tim',summary:'新增批次匯入功能 — 一次匯入多月歷史資料',changes:[{cat:'NEW',module:'DATA',desc:'📊 批次匯入功能 — 可一次匯入多月份資料（本機+雲端直接覆蓋，不與現有資料合併），用於匯入整理好的歷史流水帳。匯入檔格式 type:haomin-fd-batch-import'},{cat:'NEW',module:'DATA',desc:'批次匯入採直接覆蓋（非合併）— 確保匯入的資料純淨，不混入雲端殘留的舊版本'}]},
 {build:27,version:'2.6.7',date:'2026-06-07',author:'Claude + Tim',summary:'3月三表改為動態計算 — 停用115/3靜態快照',changes:[{cat:'MOD',module:'SYSTEM',desc:'停用 115/3 靜態快照 — 3月 P&L/BS/CF 三表改為從匯入的流水帳動態計算，與流水帳完全一致（配合 Excel 完整版資料匯入）。靜態 HTML 容器保留未刪，如需還原快照可改回 isSnapMonth'}]},
-{build:28,version:'2.6.8',date:'2026-06-11',author:'Claude + Tim',summary:'修正月度趨勢/分析顯示舊資料 — 移除 loadMonthData 的 RAW 硬編碼',changes:[{cat:'FIX',module:'DATA',desc:'★移除 loadMonthData 內 3月硬編碼回傳 RAW 的殘留 — 此行讓「3月永遠回傳系統內建舊資料」，導致批次匯入後月度趨勢、營業分析的 3月 仍顯示舊版、且其他月份切換時連帶顯示錯亂。移除後各月一律讀各自的 localStorage（批次匯入後即為正確 Excel 版）'}]}
+{build:28,version:'2.6.8',date:'2026-06-11',author:'Claude + Tim',summary:'修正月度趨勢/分析顯示舊資料 — 移除 loadMonthData 的 RAW 硬編碼',changes:[{cat:'FIX',module:'DATA',desc:'★移除 loadMonthData 內 3月硬編碼回傳 RAW 的殘留 — 此行讓「3月永遠回傳系統內建舊資料」，導致批次匯入後月度趨勢、營業分析的 3月 仍顯示舊版、且其他月份切換時連帶顯示錯亂。移除後各月一律讀各自的 localStorage（批次匯入後即為正確 Excel 版）'}]},
+{build:29,version:'2.6.9',date:'2026-06-11',author:'Claude + Tim',summary:'修正多分頁警告橫幅遮住 header',changes:[{cat:'FIX',module:'UI',desc:'★多分頁警告橫幅改為佔位推下內容（position:relative + 插入頁首），不再用 fixed 定位蓋住 header — 原本橫幅會遮住版本選單、月份選單與「📊批次匯入」等按鈕，導致無法操作'}]}
 ];
 let clExpanded={19:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
@@ -1504,9 +1505,9 @@ function _showMultiTab(){
   var b=document.getElementById('multitab-warn');
   if(!b){
     b=document.createElement('div');b.id='multitab-warn';
-    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;padding:9px 16px;text-align:center;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)';
+    b.style.cssText='position:relative;z-index:99999;background:#dc2626;color:#fff;padding:9px 16px;text-align:center;font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3)';
     b.innerHTML='⚠️ 偵測到你開啟了多個財會分頁！為避免資料互相覆蓋，請只保留「一個」分頁編輯，其餘請關閉。<button onclick="document.getElementById(\'multitab-warn\').style.display=\'none\'" style="margin-left:14px;background:#fff;color:#dc2626;border:none;border-radius:5px;padding:3px 12px;cursor:pointer;font-weight:700;font-family:inherit">知道了</button>';
-    document.body.appendChild(b);
+    document.body.insertBefore(b,document.body.firstChild);
   }
   b.style.display='block';
 }
