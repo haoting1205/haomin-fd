@@ -528,7 +528,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
   .print-hdr{display:block!important;text-align:center;margin-bottom:8mm}
   .print-hdr h2{font-size:14pt;font-weight:900;color:#000;margin-bottom:2mm;font-family:var(--f-body)}
   .print-hdr p{font-size:9pt;color:#555}
-  #pane-bp,#pane-cl,#pane-tax,#pane-analysis{display:none!important}
+  #pane-bp,#pane-cl,#pane-tax,#pane-analysis,#pane-mall{display:none!important}
 }
 @media(max-width:900px){
   .kpi-row{grid-template-columns:repeat(2,1fr)}
@@ -577,6 +577,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
   <div class="nav-tab" onclick="sw('bp',this)"><span>🏗️</span> 系統藍圖</div>
   <div class="nav-tab" onclick="sw('tax',this)" style="color:#dc2626"><span>🧾</span> 稅務中心</div>
   <div class="nav-tab" onclick="sw('analysis',this)" style="color:#0369a1"><span>📈</span> 營業分析</div>
+  <div class="nav-tab" onclick="sw('mall',this)" style="color:#7c3aed"><span>🏬</span> 商場對帳</div>
   <div class="nav-tab changelog" onclick="sw('cl',this)"><span>📜</span> 版本紀錄 <span class="nav-badge" id="nb-cl" style="background:rgba(245,158,11,.15);color:#f59e0b">v2.5.0</span></div>
 </div>
 
@@ -758,6 +759,11 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="analysis-content">載入中...</div>
 </div>
 
+<!-- 台積電商場對帳 -->
+<div class="pane" id="pane-mall" style="display:none;overflow:auto;padding:20px">
+<div id="mall-content">載入中...</div>
+</div>
+
 <div class="pane" id="pane-bp" style="display:none;overflow:auto">
 <div class="bp"><div class="page">
 <div class="pg-hdr"><div><div style="font-size:var(--fs-sm);color:#93c5fd;margin-bottom:5px;letter-spacing:.5px">好洺餐飲</div><h1>🏗️ 企業數位化整合系統架構藍圖</h1><p>Finance · ERP · CRM · POS 四大系統整合規劃</p></div><div style="text-align:right"><div class="v-badge">v1.0 規劃版</div><div style="font-size:var(--fs-sm);color:var(--slate-500);margin-top:8px">民國 115年 4月</div></div></div>
@@ -798,7 +804,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:2,minor:6,patch:9,build:29,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:2,minor:8,patch:0,build:31,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -831,7 +837,8 @@ const CHANGELOG=[
 {build:26,version:'2.6.6',date:'2026-06-07',author:'Claude + Tim',summary:'新增批次匯入功能 — 一次匯入多月歷史資料',changes:[{cat:'NEW',module:'DATA',desc:'📊 批次匯入功能 — 可一次匯入多月份資料（本機+雲端直接覆蓋，不與現有資料合併），用於匯入整理好的歷史流水帳。匯入檔格式 type:haomin-fd-batch-import'},{cat:'NEW',module:'DATA',desc:'批次匯入採直接覆蓋（非合併）— 確保匯入的資料純淨，不混入雲端殘留的舊版本'}]},
 {build:27,version:'2.6.7',date:'2026-06-07',author:'Claude + Tim',summary:'3月三表改為動態計算 — 停用115/3靜態快照',changes:[{cat:'MOD',module:'SYSTEM',desc:'停用 115/3 靜態快照 — 3月 P&L/BS/CF 三表改為從匯入的流水帳動態計算，與流水帳完全一致（配合 Excel 完整版資料匯入）。靜態 HTML 容器保留未刪，如需還原快照可改回 isSnapMonth'}]},
 {build:28,version:'2.6.8',date:'2026-06-11',author:'Claude + Tim',summary:'修正月度趨勢/分析顯示舊資料 — 移除 loadMonthData 的 RAW 硬編碼',changes:[{cat:'FIX',module:'DATA',desc:'★移除 loadMonthData 內 3月硬編碼回傳 RAW 的殘留 — 此行讓「3月永遠回傳系統內建舊資料」，導致批次匯入後月度趨勢、營業分析的 3月 仍顯示舊版、且其他月份切換時連帶顯示錯亂。移除後各月一律讀各自的 localStorage（批次匯入後即為正確 Excel 版）'}]},
-{build:29,version:'2.6.9',date:'2026-06-11',author:'Claude + Tim',summary:'修正多分頁警告橫幅遮住 header',changes:[{cat:'FIX',module:'UI',desc:'★多分頁警告橫幅改為佔位推下內容（position:relative + 插入頁首），不再用 fixed 定位蓋住 header — 原本橫幅會遮住版本選單、月份選單與「📊批次匯入」等按鈕，導致無法操作'}]}
+{build:29,version:'2.6.9',date:'2026-06-11',author:'Claude + Tim',summary:'修正多分頁警告橫幅遮住 header',changes:[{cat:'FIX',module:'UI',desc:'★多分頁警告橫幅改為佔位推下內容（position:relative + 插入頁首），不再用 fixed 定位蓋住 header — 原本橫幅會遮住版本選單、月份選單與「📊批次匯入」等按鈕，導致無法操作'}]},
+{build:30,version:'2.7.0',date:'2026-06-12',author:'Claude + Tim',summary:'台積電商場抽成自動計算 + 損益表應開票淨額對帳',changes:[{cat:'NEW',module:'LEDGER',desc:'★台積電商場抽成自動計算 — 輸入6項收入(電子支付/夜早金額/自費早餐/紙本補單/臨辦現金/臨辦刷餐)後，系統自動算 ×7% 帶入商場抽成(記於每月1號)，該格設為唯讀(藍底)避免手動誤改'},{cat:'NEW',module:'PNL',desc:'★損益表新增台積電商場對帳條 — 並列「營業毛額(管理帳)」與「應開票淨額(=毛額−商場抽成7%，報稅參考)」，提醒報稅銷售額以淨額/對帳單為準，非管理毛額'}]}
 ];
 let clExpanded={19:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
@@ -870,8 +877,8 @@ const NF=v=>v?Number(v).toLocaleString('zh-TW',{maximumFractionDigits:0}):'';con
 function $(id){return document.getElementById(id)}function setTxt(id,v,c){const e=$(id);if(e){e.textContent=v;if(c)e.style.color=c}}
 
 // ═══ NAV ═══
-const FIN_PANES=['pl','bs','cf','bp','cl','tax','analysis'];
-function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis();if(id==='pl')renderPL();if(id==='bs')renderBS();if(id==='cf')renderCF()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}closeQF();try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
+const FIN_PANES=['pl','bs','cf','bp','cl','tax','analysis','mall'];
+function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'||id==='mall'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis();if(id==='mall')renderMallRecon();if(id==='mall')renderMallRecon();if(id==='pl')renderPL();if(id==='bs')renderBS();if(id==='cf')renderCF()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}closeQF();try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
 function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.display='none');const e=$('st-'+k);if(e)e.style.display='block'}
 function chPeriod(){
   // Step 1: 切換前只存本機（不覆蓋雲端，避免舊月在其他分頁的新資料被蓋）
@@ -944,7 +951,7 @@ function _reRenderFinPane(){
 function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}
 var monthLabel=(YEAR-1911)+'年'+MONTH+'月';
 let h=`<div style="padding:8px 16px;background:linear-gradient(90deg,var(--navy-700),var(--navy-800));color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px;border-radius:8px 8px 0 0;margin-bottom:-1px"><span style="font-size:18px">📅</span><span>${sn}</span><span style="background:rgba(255,255,255,.15);padding:2px 12px;border-radius:12px;font-family:var(--f-num)">${monthLabel}</span><span style="font-size:11px;color:rgba(255,255,255,.5);margin-left:auto">共 ${rows.length} 項</span></div>`;
-h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){h+=`<col style="width:54px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-dt"><th class="cn" colspan="2">日期</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr>';h+=`<tr class="lh-wd"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}${row.memo?'\n📝 '+row.memo:''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:56px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}${row.term?'<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();editTerm(\''+sec+'\','+ri+')">'+row.term.cur+'/'+row.term.total+'</span>':''}${row.memo?'<span style="font-size:9px;color:#f59e0b;margin-left:3px" title="'+row.memo.replace(/"/g,'&#34;')+'">📝</span>':''}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=(d.w===0||d.w===6)||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){h+=`<col style="width:54px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-dt"><th class="cn" colspan="2">日期</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr>';h+=`<tr class="lh-wd"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}${row.memo?'\n📝 '+row.memo:''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:56px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}${row.term?'<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();editTerm(\''+sec+'\','+ri+')">'+row.term.cur+'/'+row.term.total+'</span>':''}${row.memo?'<span style="font-size:9px;color:#f59e0b;margin-left:3px" title="'+row.memo.replace(/"/g,'&#34;')+'">📝</span>':''}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=(d.w===0||d.w===6)||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"${row.auto?' readonly title="自動計算：6項收入×7%" style="background:#e0f2fe;color:#0369a1;font-weight:700;cursor:not-allowed"':''}></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 let actInp=null;
@@ -1175,7 +1182,23 @@ function closeQF(){$('qfp').classList.remove('on')}
 document.addEventListener('click',e=>{if(!e.target.closest('#qfp')&&!e.target.closest('td.lc'))closeQF()});
 
 // ═══ RECALC ═══
-function recalc(sk){const sn=SMAP[sk],rows=DATA[sn],secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let revT=0;if(secs['收入'])for(const r of secs['收入'])if(!r.noSum)revT+=Object.values(r.daily).reduce((a,b)=>a+b,0);const sT={};for(const sec of so){sT[sec]={total:0,byd:{}};let ri=0;for(const row of secs[sec]){const rid=`${sk}__${EID(sec)}__${ri}`;let rs=0;for(const[d,v]of Object.entries(row.daily)){rs+=v;if(!row.noSum)sT[sec].byd[d]=(sT[sec].byd[d]||0)+v}if(!row.noSum)sT[sec].total+=rs;const c=cfg(sec);setTxt('rt-'+rid,rs?NFL(rs):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('rp-'+rid,revT?PCT(rs,revT):'—');ri++}const sid=`${sk}__${EID(sec)}`,c=cfg(sec);setTxt('ss-'+sid,sT[sec].total?NFL(sT[sec].total):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('sp-'+sid,revT?PCT(sT[sec].total,revT):'—');for(const d of DAYS){const e=$(`sd-${sid}__${d.d}`);if(e){const v=sT[sec].byd[String(d.d)]||0;e.textContent=v?NF(v):''}}}const rbd={};if(secs['收入'])for(const r of secs['收入'])for(const[d,v]of Object.entries(r.daily))rbd[d]=(rbd[d]||0)+v;for(const d of DAYS)setTxt(`dv-${sk}__${d.d}`,rbd[String(d.d)]?NF(rbd[String(d.d)]):'');setTxt('dg-'+sk,revT?NFL(revT):'—','var(--pos)');let incT=0,expT=0;for(const s of so){const c=cfg(s);if(c.exp)expT+=sT[s].total;else incT+=sT[s].total}const ni=incT-expT;const ne=$('ni-'+sk);if(ne){ne.textContent=(ni<0?'▼ ':'▲ ')+NFL(Math.abs(ni));ne.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('nip-'+sk,revT?PCT(ni,revT):'—');const cogs=['支出食材(月結)','支出食/包材(日結)','員工餐'];let cogsT=0;for(const s of cogs)if(sT[s])cogsT+=sT[s].total;const gp=incT-cogsT;let opexT=0;for(const s of so)if(cfg(s).exp&&!cogs.includes(s))opexT+=sT[s].total;const sv=(id,v,c)=>setTxt(id,'$'+NFL(v),c);sv('lv-rev',incT,'var(--pos)');sv('lv-cogs',cogsT,'var(--neg)');setTxt('lk-cogs',PCT(cogsT,incT));sv('lv-gp',gp,gp>=0?'var(--pos)':'var(--neg)');setTxt('lk-gp',PCT(gp,incT));sv('lv-opex',opexT,'var(--neg)');setTxt('lk-opex',PCT(opexT,incT));const nv=$('lv-ni');if(nv){nv.textContent=(ni<0?'▼ ':'▲ ')+'$'+NFL(Math.abs(ni));nv.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('lk-ni',PCT(ni,incT));const nb=$('nb-'+sk);if(nb){nb.textContent=(ni>=0?'▲':'▼')+'$'+NFL(Math.abs(ni));nb.style.color=ni>=0?'#34d399':'#fca5a5'}setTxt('l-foot-r',`收入 $${NFL(incT)} | 支出 $${NFL(expT)} | 淨利 ${ni>=0?'▲':'▼'}$${NFL(Math.abs(ni))}`);
+/* ═══ 台積電商場抽成自動計算：6項收入 × 7% ═══ */
+var MALL_FEE_BASE=['電子支付','夜早金額','自費早餐','紙本補單','臨辦現金','臨辦刷餐'];
+var MALL_FEE_RATE=0.07;
+function _autoMallFee(){
+  var sn='台積電';if(!DATA[sn])return;
+  var base=0;
+  DATA[sn].forEach(function(r){if(r.sec==='收入'&&MALL_FEE_BASE.indexOf(r.name)>=0){for(var k in r.daily)base+=(+r.daily[k]||0)}});
+  var fee=Math.round(base*MALL_FEE_RATE);
+  var feeRow=null;for(var i=0;i<DATA[sn].length;i++){if(DATA[sn][i].sec==='商場抽成'){feeRow=DATA[sn][i];break}}
+  if(!feeRow){feeRow={sec:'商場抽成',name:'商場抽成(含場租)',daily:{},monthly:0};DATA[sn].push(feeRow)}
+  feeRow.auto=true;
+  feeRow.daily={'1':fee};
+  var inp=document.querySelector('input[data-s="ts"][data-sec="商場抽成"][data-day="1"]');
+  if(inp&&document.activeElement!==inp)inp.value=fee||'';
+}
+
+function recalc(sk){const sn=SMAP[sk];if(sk==='ts')_autoMallFee();const rows=DATA[sn],secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let revT=0;if(secs['收入'])for(const r of secs['收入'])if(!r.noSum)revT+=Object.values(r.daily).reduce((a,b)=>a+b,0);const sT={};for(const sec of so){sT[sec]={total:0,byd:{}};let ri=0;for(const row of secs[sec]){const rid=`${sk}__${EID(sec)}__${ri}`;let rs=0;for(const[d,v]of Object.entries(row.daily)){rs+=v;if(!row.noSum)sT[sec].byd[d]=(sT[sec].byd[d]||0)+v}if(!row.noSum)sT[sec].total+=rs;const c=cfg(sec);setTxt('rt-'+rid,rs?NFL(rs):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('rp-'+rid,revT?PCT(rs,revT):'—');ri++}const sid=`${sk}__${EID(sec)}`,c=cfg(sec);setTxt('ss-'+sid,sT[sec].total?NFL(sT[sec].total):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('sp-'+sid,revT?PCT(sT[sec].total,revT):'—');for(const d of DAYS){const e=$(`sd-${sid}__${d.d}`);if(e){const v=sT[sec].byd[String(d.d)]||0;e.textContent=v?NF(v):''}}}const rbd={};if(secs['收入'])for(const r of secs['收入'])for(const[d,v]of Object.entries(r.daily))rbd[d]=(rbd[d]||0)+v;for(const d of DAYS)setTxt(`dv-${sk}__${d.d}`,rbd[String(d.d)]?NF(rbd[String(d.d)]):'');setTxt('dg-'+sk,revT?NFL(revT):'—','var(--pos)');let incT=0,expT=0;for(const s of so){const c=cfg(s);if(c.exp)expT+=sT[s].total;else incT+=sT[s].total}const ni=incT-expT;const ne=$('ni-'+sk);if(ne){ne.textContent=(ni<0?'▼ ':'▲ ')+NFL(Math.abs(ni));ne.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('nip-'+sk,revT?PCT(ni,revT):'—');const cogs=['支出食材(月結)','支出食/包材(日結)','員工餐'];let cogsT=0;for(const s of cogs)if(sT[s])cogsT+=sT[s].total;const gp=incT-cogsT;let opexT=0;for(const s of so)if(cfg(s).exp&&!cogs.includes(s))opexT+=sT[s].total;const sv=(id,v,c)=>setTxt(id,'$'+NFL(v),c);sv('lv-rev',incT,'var(--pos)');sv('lv-cogs',cogsT,'var(--neg)');setTxt('lk-cogs',PCT(cogsT,incT));sv('lv-gp',gp,gp>=0?'var(--pos)':'var(--neg)');setTxt('lk-gp',PCT(gp,incT));sv('lv-opex',opexT,'var(--neg)');setTxt('lk-opex',PCT(opexT,incT));const nv=$('lv-ni');if(nv){nv.textContent=(ni<0?'▼ ':'▲ ')+'$'+NFL(Math.abs(ni));nv.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('lk-ni',PCT(ni,incT));const nb=$('nb-'+sk);if(nb){nb.textContent=(ni>=0?'▲':'▼')+'$'+NFL(Math.abs(ni));nb.style.color=ni>=0?'#34d399':'#fca5a5'}setTxt('l-foot-r',`收入 $${NFL(incT)} | 支出 $${NFL(expT)} | 淨利 ${ni>=0?'▲':'▼'}$${NFL(Math.abs(ni))}`);
 /* Tax summary calculation */
 var taxMonthly=0,taxIncluded=0,taxExempt=0,taxUnmarked=0;
 for(var s2 of so){if(!cfg(s2).exp)continue;for(var r2 of secs[s2]){var rSum=Object.values(r2.daily).reduce(function(a,b){return a+b},0);if(r2.tax==='T')taxMonthly+=rSum;else if(r2.tax==='I')taxIncluded+=rSum;else if(r2.tax==='F')taxExempt+=rSum;else taxUnmarked+=rSum}}
@@ -1644,6 +1667,90 @@ function delInvoice(idx){
   renderTaxCenter();
 }
 
+/* ═══════════ 台積電商場對帳模組 ═══════════ */
+// 結帳區間：每月11日至隔月10日｜抽成7%(營收×7%)｜電子支付手續費1.5%｜三卡租賃3000/月固定｜維修實報
+var MALL_CARD_FEE=3150; // 三卡含稅固定（3000未稅）
+function _mallCalc(r){
+  var gross=Math.round(+r.grossInc||0),epay=Math.round(+r.epay||0),repair=Math.round(+r.repair||0),other=Math.round(+r.other||0);
+  var rentInc=Math.round(gross*0.07);        // 租金含稅 = 營收×7%
+  var rentNet=Math.round(rentInc/1.05);
+  var feeNet=Math.round(epay*0.015);          // 手續費未稅 = 電子支付×1.5%
+  var feeInc=Math.round(feeNet*1.05);
+  var totalFee=rentInc+feeInc+MALL_CARD_FEE+repair+other; // 費用合計(含稅)
+  var payable=gross-totalFee;                 // 應付/應開票(含稅)
+  var invNet=Math.round(payable/1.05);        // 開票未稅
+  var invTax=payable-invNet;                  // 開票稅額
+  return {gross:gross,rentInc:rentInc,rentNet:rentNet,feeNet:feeNet,feeInc:feeInc,card:MALL_CARD_FEE,repair:repair,other:other,totalFee:totalFee,payable:payable,invNet:invNet,invTax:invTax};
+}
+function _loadMallRecon(){var r=[];try{r=JSON.parse(localStorage.getItem('fin_mall_recon'))||[]}catch(e){}return r}
+function _saveMallRecon(recs){
+  try{localStorage.setItem('fin_mall_recon',JSON.stringify(recs))}catch(e){}
+  if(typeof db!=='undefined'&&db){try{db.collection('finance').doc('_mall_recon').set({records:recs,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(){})}catch(e){}}
+}
+function _syncMallReconFromCloud(cb){
+  if(typeof db==='undefined'||!db){cb&&cb();return}
+  db.collection('finance').doc('_mall_recon').get({source:'server'}).then(function(d){
+    if(d.exists&&d.data().records){try{localStorage.setItem('fin_mall_recon',JSON.stringify(d.data().records))}catch(e){}}
+    cb&&cb();
+  }).catch(function(){cb&&cb()});
+}
+function addMallRecon(){
+  var label=prompt('結帳區間標籤（例：115年2期 02/01–03/10）：');if(!label)return;
+  var gross=prompt('營業總收入（含稅，對帳單最下方小計）：');if(gross===null)return;
+  var epay=prompt('電子支付額（對帳單右側「電子支付」，算1.5%手續費用）：','0');if(epay===null)return;
+  var repair=prompt('維修扣款（對帳單，無則 0）：','0');if(repair===null)return;
+  var other=prompt('其他扣款（餐券/罰款/載具等加總，無則 0）：','0');if(other===null)return;
+  var recs=_loadMallRecon();
+  recs.push({id:'m'+Date.now(),label:label,grossInc:+gross,epay:+epay,repair:+repair,other:+other,date:new Date().toISOString().substring(0,10)});
+  _saveMallRecon(recs);renderMallRecon();
+}
+function delMallRecon(id){
+  if(!confirm('確定刪除這期對帳記錄？'))return;
+  var recs=_loadMallRecon().filter(function(r){return r.id!==id});
+  _saveMallRecon(recs);renderMallRecon();
+}
+function renderMallRecon(){
+  var el=$('mall-content');if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:30px;color:#888">載入中…</div>';
+  _syncMallReconFromCloud(function(){_renderMallReconInner(el)});
+}
+function _renderMallReconInner(el){
+  var recs=_loadMallRecon();
+  var sumPay=0,sumInvNet=0,sumInvTax=0;
+  var rows='';
+  recs.forEach(function(r){
+    var c=_mallCalc(r);
+    sumPay+=c.payable;sumInvNet+=c.invNet;sumInvTax+=c.invTax;
+    rows+='<tr style="border-bottom:1px solid #e2e8f0">'
+      +'<td style="padding:8px 10px;font-weight:600">'+r.label+'</td>'
+      +'<td style="padding:8px 10px;text-align:right;font-family:var(--f-num)">'+NFL(c.gross)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right;font-family:var(--f-num);color:#dc2626">'+NFL(c.rentInc)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right;font-family:var(--f-num);color:#dc2626">'+NFL(c.feeInc)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right;font-family:var(--f-num);color:#dc2626">'+NFL(c.card)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right;font-family:var(--f-num);color:#dc2626">'+NFL(c.repair)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right;font-family:var(--f-num);font-weight:700;color:#1e40af">'+NFL(c.payable)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right;font-family:var(--f-num)">'+NFL(c.invNet)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right;font-family:var(--f-num);font-weight:700;color:#7c3aed">'+NFL(c.invTax)+'</td>'
+      +'<td style="padding:8px 10px;text-align:center"><button onclick="delMallRecon(\''+r.id+'\')" style="background:none;border:none;color:#cbd5e1;cursor:pointer;font-size:14px">✕</button></td>'
+      +'</tr>';
+  });
+  var h='<div style="max-width:1100px;margin:0 auto">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h2 style="font-size:20px;font-weight:800;color:#7c3aed;margin:0">🏬 台積電商場對帳（周氏商場）</h2><button onclick="addMallRecon()" style="padding:8px 16px;background:#7c3aed;color:#fff;border:none;border-radius:7px;font-weight:700;cursor:pointer;font-family:inherit">＋ 新增一期</button></div>';
+  h+='<div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:10px 14px;font-size:12px;color:#6b21a8;margin-bottom:16px;line-height:1.7">📋 結帳區間每月 11 日～隔月 10 日｜抽成 7%(營收×7%)｜電子支付手續費 1.5%｜三卡租賃 3,000/月(未稅)｜維修扣款實報<br>※ 此模組為「對商場開票/報稅」用，與左側管理帳(日曆月損益)為兩套獨立數字</div>';
+  if(!recs.length){
+    h+='<div style="text-align:center;padding:40px;color:#a78bfa;background:#faf5ff;border-radius:10px">尚無對帳記錄，點「＋ 新增一期」依商場對帳單輸入</div>';
+  } else {
+    h+='<table style="width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">';
+    h+='<thead><tr style="background:#f5f3ff;color:#5b21b6;font-size:12px"><th style="padding:9px 10px;text-align:left">結帳區間</th><th style="padding:9px 10px;text-align:right">營業總收入</th><th style="padding:9px 10px;text-align:right">租金7%</th><th style="padding:9px 10px;text-align:right">手續費1.5%</th><th style="padding:9px 10px;text-align:right">三卡</th><th style="padding:9px 10px;text-align:right">維修</th><th style="padding:9px 10px;text-align:right">應付/開票(含稅)</th><th style="padding:9px 10px;text-align:right">開票未稅</th><th style="padding:9px 10px;text-align:right">開票稅額</th><th></th></tr></thead><tbody>';
+    h+=rows;
+    h+='<tr style="background:#f5f3ff;font-weight:800;color:#5b21b6"><td style="padding:10px">合計</td><td colspan="5"></td><td style="padding:10px;text-align:right;font-family:var(--f-num)">'+NFL(sumPay)+'</td><td style="padding:10px;text-align:right;font-family:var(--f-num)">'+NFL(sumInvNet)+'</td><td style="padding:10px;text-align:right;font-family:var(--f-num);color:#7c3aed">'+NFL(sumInvTax)+'</td><td></td></tr>';
+    h+='</tbody></table>';
+    h+='<div style="margin-top:16px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:12px 16px;font-size:13px;color:#3730a3">🧾 <b>連動稅務中心</b>：以上各期「開票稅額」合計 <b style="font-family:var(--f-num);font-size:15px">$'+NFL(sumInvTax)+'</b> 為台積電對商場的<b>銷項稅額</b>，申報營業稅時計入銷項。<br><span style="color:#6366f1;font-size:11px">※ 商場結帳週期(11–10)與營業稅申報期(雙月)不同，跨期請依申報期間自行歸集對應期數</span></div>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+}
+
 function renderTaxCenter(){
   var el=$('tax-center-content');if(!el)return;
   var rocY=YEAR-1911;
@@ -1912,6 +2019,10 @@ function renderTaxCenter(){
   h+='</div></div>';
 
   h+='</div>';
+  // 連動：台積電商場對帳銷項稅
+  try{var _mr=_loadMallRecon();if(_mr&&_mr.length){var _mt=0;_mr.forEach(function(r){_mt+=_mallCalc(r).invTax});
+    h+='<div style="max-width:900px;margin:14px auto 0;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:12px 16px;font-size:13px;color:#5b21b6">🏬 <b>台積電商場對帳銷項稅</b>（'+_mr.length+' 期合計）：<b style="font-family:var(--f-num);font-size:15px;color:#7c3aed">$'+NFL(_mt)+'</b><span style="color:#8b5cf6;font-size:11px;margin-left:8px">— 此為對商場開立發票的銷項稅，申報營業稅時計入銷項。明細見「🏬 商場對帳」頁</span></div>';
+  }}catch(e){}
   el.innerHTML=h;
 }
 
