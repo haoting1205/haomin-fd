@@ -804,7 +804,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:2,minor:8,patch:0,build:31,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:2,minor:8,patch:1,build:32,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -838,9 +838,11 @@ const CHANGELOG=[
 {build:27,version:'2.6.7',date:'2026-06-07',author:'Claude + Tim',summary:'3月三表改為動態計算 — 停用115/3靜態快照',changes:[{cat:'MOD',module:'SYSTEM',desc:'停用 115/3 靜態快照 — 3月 P&L/BS/CF 三表改為從匯入的流水帳動態計算，與流水帳完全一致（配合 Excel 完整版資料匯入）。靜態 HTML 容器保留未刪，如需還原快照可改回 isSnapMonth'}]},
 {build:28,version:'2.6.8',date:'2026-06-11',author:'Claude + Tim',summary:'修正月度趨勢/分析顯示舊資料 — 移除 loadMonthData 的 RAW 硬編碼',changes:[{cat:'FIX',module:'DATA',desc:'★移除 loadMonthData 內 3月硬編碼回傳 RAW 的殘留 — 此行讓「3月永遠回傳系統內建舊資料」，導致批次匯入後月度趨勢、營業分析的 3月 仍顯示舊版、且其他月份切換時連帶顯示錯亂。移除後各月一律讀各自的 localStorage（批次匯入後即為正確 Excel 版）'}]},
 {build:29,version:'2.6.9',date:'2026-06-11',author:'Claude + Tim',summary:'修正多分頁警告橫幅遮住 header',changes:[{cat:'FIX',module:'UI',desc:'★多分頁警告橫幅改為佔位推下內容（position:relative + 插入頁首），不再用 fixed 定位蓋住 header — 原本橫幅會遮住版本選單、月份選單與「📊批次匯入」等按鈕，導致無法操作'}]},
-{build:30,version:'2.7.0',date:'2026-06-12',author:'Claude + Tim',summary:'台積電商場抽成自動計算 + 損益表應開票淨額對帳',changes:[{cat:'NEW',module:'LEDGER',desc:'★台積電商場抽成自動計算 — 輸入6項收入(電子支付/夜早金額/自費早餐/紙本補單/臨辦現金/臨辦刷餐)後，系統自動算 ×7% 帶入商場抽成(記於每月1號)，該格設為唯讀(藍底)避免手動誤改'},{cat:'NEW',module:'PNL',desc:'★損益表新增台積電商場對帳條 — 並列「營業毛額(管理帳)」與「應開票淨額(=毛額−商場抽成7%，報稅參考)」，提醒報稅銷售額以淨額/對帳單為準，非管理毛額'}]}
+{build:30,version:'2.7.0',date:'2026-06-12',author:'Claude + Tim',summary:'台積電商場抽成自動計算 + 損益表應開票淨額對帳',changes:[{cat:'NEW',module:'LEDGER',desc:'★台積電商場抽成自動計算 — 輸入6項收入(電子支付/夜早金額/自費早餐/紙本補單/臨辦現金/臨辦刷餐)後，系統自動算 ×7% 帶入商場抽成(記於每月1號)，該格設為唯讀(藍底)避免手動誤改'},{cat:'NEW',module:'PNL',desc:'★損益表新增台積電商場對帳條 — 並列「營業毛額(管理帳)」與「應開票淨額(=毛額−商場抽成7%，報稅參考)」，提醒報稅銷售額以淨額/對帳單為準，非管理毛額'}]},
+{build:31,version:'2.8.0',date:'2026-06-12',author:'Claude + Tim',summary:'台積電周氏商場對帳模組',changes:[{cat:'NEW',module:'LEDGER',desc:'★新增「🏬商場對帳」分頁 — 比對系統營業額與周氏商場月結對帳單（每月11日–隔月10日結帳），5期實測100%吻合；開票稅獨立記錄並連動稅務中心'}]},
+{build:32,version:'2.8.1',date:'2026-06-18',author:'Claude + Tim',summary:'★修正資料刪除後復活 — 徹底解決刪除/清空被雲端舊值補回',changes:[{cat:'FIX',module:'DATA',desc:'★刪除復活根因修正 — _mergeRows 原本「雲端非空格補本機空格」，無法區分「從未填」與「刻意刪除」，導致刪掉的格子（如總公司丸漢堡6/16誤植值）存檔後被雲端舊值補回。改為「只補本機從未設定過的格（hasOwnProperty 判斷）」，本機已設定者（含清空為0）一律以本機為準'},{cat:'FIX',module:'DATA',desc:'清空格子改保留標記 — onCell/批次貼上清空時由 delete key 改為設 0，保留 key 讓系統識別「此格已被使用者清除」，不再被 merge 補回'},{cat:'FIX',module:'DATA',desc:'刪整列防復活 — delRow 記錄已刪列（_deletedRowKeys），merge 時不再把雲端殘留的同名列當「未同步新列」復活；存檔成功後清除標記'},{cat:'FIX',module:'DATA',desc:'清除全店數據防復活 — clearStoreData 改保留 key 設 0，避免清空後被雲端舊值補回'}]}
 ];
-let clExpanded={19:true};
+let clExpanded={32:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -955,7 +957,7 @@ h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">
 
 // ═══ CELL ═══
 let actInp=null;
-function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)delete DATA[sn][idx].daily[day];else DATA[sn][idx].daily[day]=v;inp.parentElement.classList.toggle('hv',v!==0);recalc(s);schedAutoSave()}
+function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)DATA[sn][idx].daily[day]=0;else DATA[sn][idx].daily[day]=v;inp.parentElement.classList.toggle('hv',v!==0);recalc(s);schedAutoSave()}
 function kd(e,inp){if(e.key==='Enter'){e.preventDefault();onCell(inp);inp.select();return}if(e.key==='Tab'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+(e.shiftKey?-1:1)];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowRight'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowLeft'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i-1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowDown'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ntr=tr.nextElementSibling;if(ntr){const ntd=ntr.children[ci];if(ntd){const ni=ntd.querySelector('input[type="number"]');if(ni){ni.focus();ni.select()}}}return}if(e.key==='ArrowUp'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ptr=tr.previousElementSibling;if(ptr){const ptd=ptr.children[ci];if(ptd){const pi=ptd.querySelector('input[type="number"]');if(pi){pi.focus();pi.select()}}}return}if(e.key==='Escape')closeQF()}
 
 function cellNote(e,inp){
@@ -1212,7 +1214,7 @@ if(taxEl){taxEl.innerHTML='<span style="color:#dc2626" title="月結加稅：未
 function addRow(){const sec=$('add-sec').value,nm=$('add-nm').value.trim();if(!nm){$('add-nm').focus();return}pushHistory();DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0});$('add-nm').value='';buildTable(CUR);showSt(CUR);const b=$('l-body');if(b)b.scrollTop=b.scrollHeight;schedAutoSave()}
 function batchAdd(){const lines=$('batch-inp').value.split('\n').map(s=>s.trim()).filter(Boolean);const sec=$('batch-sec').value;if(!lines.length)return;pushHistory();lines.forEach(nm=>{if(nm)DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0})});$('batch-inp').value='';toggleAddPan();buildTable(CUR);showSt(CUR);schedAutoSave()}
 function toggleAddPan(){const p=$('add-pan');p.classList.toggle('show');if(p.classList.contains('show'))$('batch-inp').focus()}
-function clearStoreData(){const sn=SMAP[CUR];if(!confirm('⚠ 確定要清除「'+sn+'」所有數據？\n\n此操作會清空所有日期金額（廠商/科目名稱保留）。\n建議先按 💾 儲存備份。'))return;if(!confirm('🔴 二次確認：「'+sn+'」全部金額將歸零\n\n按「確定」執行清除'))return;pushHistory();for(const row of DATA[sn]){row.daily={};row.monthly=0}buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已清除，請儲存')}
+function clearStoreData(){const sn=SMAP[CUR];if(!confirm('⚠ 確定要清除「'+sn+'」所有數據？\n\n此操作會清空所有日期金額（廠商/科目名稱保留）。\n建議先按 💾 儲存備份。'))return;if(!confirm('🔴 二次確認：「'+sn+'」全部金額將歸零\n\n按「確定」執行清除'))return;pushHistory();for(const row of DATA[sn]){for(const k in row.daily)row.daily[k]=0;row.monthly=0}buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已清除，請儲存')}
 
 function copyFromMonth(){
   var curLabel=(YEAR-1911)+'年'+MONTH+'月';
@@ -1285,7 +1287,7 @@ function doApplyCopy(prevData,prevLabel,curLabel){
   buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
   alert('✅ 已複製「'+prevLabel+'」→「'+curLabel+'」\n\n模式：'+(mode==='1'?'架構（金額清零）':'完整複製'));
 }
-function delRow(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.filter(r=>r.sec===sec);if(ri>=match.length)return;const target=match[ri];if(!confirm('確定刪除「'+target.name+'」？'))return;pushHistory();const idx=rows.indexOf(target);if(idx>=0)rows.splice(idx,1);buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已刪除，請儲存')}
+function delRow(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.filter(r=>r.sec===sec);if(ri>=match.length)return;const target=match[ri];if(!confirm('確定刪除「'+target.name+'」？'))return;pushHistory();const idx=rows.indexOf(target);if(idx>=0)rows.splice(idx,1);_deletedRowKeys[sec+'||'+target.name]=true;buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已刪除，請儲存')}
 function toggleTax(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.filter(r=>r.sec===sec);if(ri>=match.length)return;const target=match[ri];const cycle=['N','T','F','I'];const cur=target.tax||'N';const next=cycle[(cycle.indexOf(cur)+1)%cycle.length];pushHistory();target.tax=next==='N'?'':next;buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave()}
 
 /* ─── Undo / Redo ─────────────────────────────────── */
@@ -1336,7 +1338,7 @@ document.addEventListener('paste',function(e){
       tInp.value=v||'';
       var sn2=SMAP[tInp.dataset.s],idx2=gIdx(sn2,tInp.dataset.sec,+tInp.dataset.ri);
       if(idx2>=0){
-        if(v===0)delete DATA[sn2][idx2].daily[String(tInp.dataset.day)];
+        if(v===0)DATA[sn2][idx2].daily[String(tInp.dataset.day)]=0;
         else DATA[sn2][idx2].daily[String(tInp.dataset.day)]=v;
         tInp.parentElement.classList.toggle('hv',v!==0);
         changed++;filled=true;
@@ -1363,18 +1365,20 @@ function schedAutoSave(){
 
 function updVendor(sk){const dl=$('vend-dl');if(!dl)return;dl.innerHTML=[...new Set(DATA[SMAP[sk]].map(r=>r.name))].map(n=>`<option value="${n}"></option>`).join('')}
 // 合併 source 的非空日期格進 target（target 優先，source 僅補 target 的空格）。回傳是否有變動。
+var _deletedRowKeys={}; // 本 session 內被使用者刪除的列 (sec||name)，防 merge 復活
 function _mergeRows(target,source){
   if(!source||!source.length)return false;
   var changed=false;
   source.forEach(function(sr){
     var tr=null;for(var i=0;i<target.length;i++){if(target[i].sec===sr.sec&&target[i].name===sr.name){tr=target[i];break}}
-    if(!tr){target.push(JSON.parse(JSON.stringify(sr)));changed=true;return}
+    if(!tr){if(_deletedRowKeys[sr.sec+'||'+sr.name])return;target.push(JSON.parse(JSON.stringify(sr)));changed=true;return}
     if(sr.daily){if(!tr.daily)tr.daily={};
       Object.keys(sr.daily).forEach(function(day){
-        var sv=sr.daily[day],tv=tr.daily[day];
-        var tEmpty=(tv===undefined||tv===null||tv==='');
+        var sv=sr.daily[day];
+        // 只補「本機從未設定過」的格（key 不存在）；本機已設定者（含刻意清空為 0）一律以本機為準 → 杜絕刪除復活
+        var tHasKey=Object.prototype.hasOwnProperty.call(tr.daily,day);
         var sHas=(sv!==undefined&&sv!==null&&sv!=='');
-        if(tEmpty&&sHas){tr.daily[day]=sv;changed=true}
+        if(!tHasKey&&sHas){tr.daily[day]=sv;changed=true}
       });
     }
   });
@@ -1396,12 +1400,12 @@ function doSave(){
       }
       var batch=db.batch();
       Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
-      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步'))}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
+      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步'));_deletedRowKeys={}}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
     }).catch(function(){
       // 讀取失敗（離線等）：本機已存，直接寫回避免卡住
       var batch=db.batch();
       Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
-      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步')}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
+      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步');_deletedRowKeys={}}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
     });
   } else {
     var t=new Date();setSyncSt('off','✓ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 本機');
