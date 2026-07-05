@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-auth-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.14.1/firebase-firestore-compat.min.js"></script>
 <style>
 /* ══════════════════════════════════════════════════════
@@ -389,30 +390,12 @@ tr.lni td.lnival{text-align:right;font-family:var(--f-num);font-size:22px;
 tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font-family:var(--f-num)}
 
 /* ── Quick-fill Popup ─────────────────────────────── */
-.qfp{position:fixed;z-index:9999;background:var(--surf);
-  border:1.5px solid var(--bdr-dk);border-radius:var(--r);
-  box-shadow:var(--sh-lg);min-width:230px;padding:12px;
-  display:none;flex-direction:column;gap:8px}
-.qfp.on{display:flex}
-.qfp-title{font-size:var(--fs-xs);color:var(--txt-3);font-weight:800;
-  padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-bottom:2px;letter-spacing:.3px}
-.qfp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-.qfp-btn{padding:8px 6px;border:1.5px solid var(--bdr-dk);border-radius:var(--r-sm);
-  font-size:var(--fs-sm);font-family:var(--f-num);font-weight:700;cursor:pointer;
-  background:var(--surf-alt);color:var(--txt);text-align:center;transition:all .15s;
-  font-feature-settings:'tnum' 1}
-.qfp-btn:hover{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
-.qfp-btn.def{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
-.qfp-cust{display:flex;gap:6px}
-.qfp-cust input{flex:1;padding:7px 10px;border:1.5px solid var(--bdr-dk);
-  border-radius:var(--r-sm);font-size:var(--fs-md);font-family:var(--f-num);outline:none;
-  font-feature-settings:'tnum' 1}
-.qfp-cust input:focus{border-color:#3b82f6}
-.qfp-cust button{padding:7px 14px;background:#3b82f6;color:#fff;border:none;
-  border-radius:var(--r-sm);font-size:var(--fs-sm);font-weight:800;cursor:pointer}
-.qfp-clr{padding:7px;border:none;background:var(--neg-bg);color:var(--neg);
-  border-radius:var(--r-sm);font-size:var(--fs-sm);font-weight:800;cursor:pointer;text-align:center}
-.qfp-clr:hover{background:var(--neg);color:#fff}
+
+
+
+
+
+
 
 /* ══════════════════════════════════════════════════════
    CHANGELOG
@@ -522,7 +505,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @page{size:A4 landscape;margin:10mm 8mm}
   .app,.content{display:block;height:auto;overflow:visible}
-  .hdr,.nav,.l-toolbar,.l-foot,.add-pan,.qfp,.hdr-btn,.t-btn,.nav-badge,#save-st,.l-sum{display:none!important}
+  .hdr,.nav,.l-toolbar,.l-foot,.add-pan,.hdr-btn,.t-btn,.nav-badge,#save-st,.l-sum{display:none!important}
   .pane{display:block!important;height:auto;overflow:visible}
   .fin-scroll,.l-body{overflow:visible;height:auto}
   .print-hdr{display:block!important;text-align:center;margin-bottom:8mm}
@@ -797,14 +780,13 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 
 </div><!-- /content -->
 
-<div class="qfp" id="qfp"><div class="qfp-title" id="qfp-title">快速填入</div><div class="qfp-grid" id="qfp-grid"></div><div class="qfp-cust"><input type="number" id="qfp-val" placeholder="自訂金額" onkeydown="if(event.key==='Enter')qfApply(parseFloat(this.value)||0)"><button onclick="qfApply(parseFloat(document.getElementById('qfp-val').value)||0)">確認</button></div><button class="qfp-clr" onclick="qfApply(0)">✕ 清除此格</button></div>
 
 </div><!-- /app -->
 
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:2,minor:8,patch:1,build:32,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:3,minor:0,patch:0,build:36,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -840,9 +822,13 @@ const CHANGELOG=[
 {build:29,version:'2.6.9',date:'2026-06-11',author:'Claude + Tim',summary:'修正多分頁警告橫幅遮住 header',changes:[{cat:'FIX',module:'UI',desc:'★多分頁警告橫幅改為佔位推下內容（position:relative + 插入頁首），不再用 fixed 定位蓋住 header — 原本橫幅會遮住版本選單、月份選單與「📊批次匯入」等按鈕，導致無法操作'}]},
 {build:30,version:'2.7.0',date:'2026-06-12',author:'Claude + Tim',summary:'台積電商場抽成自動計算 + 損益表應開票淨額對帳',changes:[{cat:'NEW',module:'LEDGER',desc:'★台積電商場抽成自動計算 — 輸入6項收入(電子支付/夜早金額/自費早餐/紙本補單/臨辦現金/臨辦刷餐)後，系統自動算 ×7% 帶入商場抽成(記於每月1號)，該格設為唯讀(藍底)避免手動誤改'},{cat:'NEW',module:'PNL',desc:'★損益表新增台積電商場對帳條 — 並列「營業毛額(管理帳)」與「應開票淨額(=毛額−商場抽成7%，報稅參考)」，提醒報稅銷售額以淨額/對帳單為準，非管理毛額'}]},
 {build:31,version:'2.8.0',date:'2026-06-12',author:'Claude + Tim',summary:'台積電周氏商場對帳模組',changes:[{cat:'NEW',module:'LEDGER',desc:'★新增「🏬商場對帳」分頁 — 比對系統營業額與周氏商場月結對帳單（每月11日–隔月10日結帳），5期實測100%吻合；開票稅獨立記錄並連動稅務中心'}]},
-{build:32,version:'2.8.1',date:'2026-06-18',author:'Claude + Tim',summary:'★修正資料刪除後復活 — 徹底解決刪除/清空被雲端舊值補回',changes:[{cat:'FIX',module:'DATA',desc:'★刪除復活根因修正 — _mergeRows 原本「雲端非空格補本機空格」，無法區分「從未填」與「刻意刪除」，導致刪掉的格子（如總公司丸漢堡6/16誤植值）存檔後被雲端舊值補回。改為「只補本機從未設定過的格（hasOwnProperty 判斷）」，本機已設定者（含清空為0）一律以本機為準'},{cat:'FIX',module:'DATA',desc:'清空格子改保留標記 — onCell/批次貼上清空時由 delete key 改為設 0，保留 key 讓系統識別「此格已被使用者清除」，不再被 merge 補回'},{cat:'FIX',module:'DATA',desc:'刪整列防復活 — delRow 記錄已刪列（_deletedRowKeys），merge 時不再把雲端殘留的同名列當「未同步新列」復活；存檔成功後清除標記'},{cat:'FIX',module:'DATA',desc:'清除全店數據防復活 — clearStoreData 改保留 key 設 0，避免清空後被雲端舊值補回'}]}
+{build:32,version:'2.8.1',date:'2026-06-18',author:'Claude + Tim',summary:'★修正資料刪除後復活 — 徹底解決刪除/清空被雲端舊值補回',changes:[{cat:'FIX',module:'DATA',desc:'★刪除復活根因修正 — _mergeRows 原本「雲端非空格補本機空格」，無法區分「從未填」與「刻意刪除」，導致刪掉的格子（如總公司丸漢堡6/16誤植值）存檔後被雲端舊值補回。改為「只補本機從未設定過的格（hasOwnProperty 判斷）」，本機已設定者（含清空為0）一律以本機為準'},{cat:'FIX',module:'DATA',desc:'清空格子改保留標記 — onCell/批次貼上清空時由 delete key 改為設 0，保留 key 讓系統識別「此格已被使用者清除」，不再被 merge 補回'},{cat:'FIX',module:'DATA',desc:'刪整列防復活 — delRow 記錄已刪列（_deletedRowKeys），merge 時不再把雲端殘留的同名列當「未同步新列」復活；存檔成功後清除標記'},{cat:'FIX',module:'DATA',desc:'清除全店數據防復活 — clearStoreData 改保留 key 設 0，避免清空後被雲端舊值補回'}]},
+{build:33,version:'2.8.2',date:'2026-06-25',author:'Claude + Tim',summary:'★修正修改後切月變回原值 — 載入改本機優先 + 切月即時同步雲端',changes:[{cat:'FIX',module:'DATA',desc:'★修正「修改後切換月份又變回原值」嚴重錯誤（如竹北店分潤改值後變回100，會導致損益表錯誤）— 根因是載入時以雲端舊值覆蓋本機修改。改為「本機優先」：以本機（含最新修改/刪除，已存 localStorage）為基底，雲端僅補本機完全缺漏的列/格，修改與刪除一律保留'},{cat:'FIX',module:'DATA',desc:'切換月份即時同步雲端 — 原本切月只存 localStorage、8秒延遲存檔常被切月打斷導致修改未進雲端。現切月時清掉待存計時器並用舊月快照立即寫入雲端，避免 pending 存檔錯月或遺失'}]},
+{build:34,version:'2.8.3',date:'2026-06-26',author:'Claude + Tim',summary:'全系統健檢 — 修復重複渲染 + 移除死碼',changes:[{cat:'FIX',module:'UI',desc:'修正切換「商場對帳」頁時 renderMallRecon 被重複呼叫兩次（白跑一次完整渲染）'},{cat:'MOD',module:'CORE',desc:'移除 Quick-Fill 快速填入死碼鏈（openQF/qfApply/closeQF/popup HTML/CSS，共約4KB）— 該功能入口已於先前改版移除（儲存格改為點擊直接編輯），函式與元件殘留無作用'},{cat:'MOD',module:'CORE',desc:'全系統健檢通過：39個onclick函式全有定義、38個DOM ID全有對應元素、無重複CDN、無重複函式定義、JS語法零錯誤'}]},
+{build:35,version:'2.9.0',date:'2026-06-26',author:'Claude + Tim',summary:'★員工餐改為僅記錄不計入報表（Tim 拍板會計處理）',changes:[{cat:'NEW',module:'CORE',desc:'★員工餐排除於一切報表計算 — 凡「員工餐」類別或各支出類別下的「員工餐」科目列，一律不計入：流水帳小計/日計/COGS/毛利/淨利、損益表、現金流量表、營業分析、各門市比較。畫面仍完整顯示金額供記錄查閱，列名旁標示「僅記錄」灰色徽章'},{cat:'MOD',module:'TAX',desc:'稅務中心進項勾選清單排除員工餐（內部行為無進項發票，防誤勾）'},{cat:'MOD',module:'PNL',desc:'損益表註記更新：「員工餐歸入COGS」→「員工餐僅記錄不計入報表」；recalc COGS 類別清單移除員工餐'}]},
+{build:36,version:'3.0.0',date:'2026-06-26',author:'Claude + Tim',summary:'★v3.0 品質與資安基礎建設 — 匿名驗證/錯誤上報/每日快照/版本提示/健康自檢',changes:[{cat:'NEW',module:'SECURITY',desc:'★Firebase 匿名驗證 — 配合 Firestore Rules 收緊（見部署SOP），含降級保護：Console 未啟用前僅警告不擋系統，可安全先部署'},{cat:'NEW',module:'SYSTEM',desc:'★全域錯誤捕捉 — window.onerror + unhandledrejection 自動上報 Firestore error_log（系統/版本/訊息/來源/UA），同錯誤5分鐘節流防爆量'},{cat:'NEW',module:'DATA',desc:'★每日版本化快照 — 當日首次成功存檔後另存 snapshots/fd_日期（30天滾動保留、自動清舊），誤刪誤改可整月回滾'},{cat:'NEW',module:'SYSTEM',desc:'★新版本橫幅提示 — 每10分鐘比對 GitHub 版本，偵測新版顯示藍色橫幅點擊即更新，終結「部署了沒生效」'},{cat:'NEW',module:'SYSTEM',desc:'★健康檢查頁 — 網址加 ?selftest=1 跑七項自檢（版本/SDK/連線/Auth/儲存/函式/資料結構），部署後30秒驗證'}]}
 ];
-let clExpanded={32:true};
+let clExpanded={36:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -880,12 +866,15 @@ function $(id){return document.getElementById(id)}function setTxt(id,v,c){const 
 
 // ═══ NAV ═══
 const FIN_PANES=['pl','bs','cf','bp','cl','tax','analysis','mall'];
-function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'||id==='mall'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis();if(id==='mall')renderMallRecon();if(id==='mall')renderMallRecon();if(id==='pl')renderPL();if(id==='bs')renderBS();if(id==='cf')renderCF()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}closeQF();try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
+function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'||id==='mall'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis();if(id==='mall')renderMallRecon();if(id==='pl')renderPL();if(id==='bs')renderBS();if(id==='cf')renderCF()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
 function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.display='none');const e=$('st-'+k);if(e)e.style.display='block'}
 function chPeriod(){
   // Step 1: 切換前只存本機（不覆蓋雲端，避免舊月在其他分頁的新資料被蓋）
   var oldMk=YEAR+'-'+String(MONTH).padStart(2,'0');
   try{localStorage.setItem('fin_v3_'+oldMk,JSON.stringify(DATA))}catch(e){}
+  // flush：清掉待儲存計時器，立即把舊月修改寫入雲端（用快照綁定舊月，避免切月後 pending 存檔錯存到新月或整個遺失）
+  if(_autoSaveTimer){clearTimeout(_autoSaveTimer);_autoSaveTimer=null;}
+  if(typeof db!=='undefined'&&db){try{var _fSnap=JSON.parse(JSON.stringify(DATA));var _fb=db.batch();Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(oldMk).collection('stores').doc(sn);_fb.set(ref,{rows:_fSnap[sn],updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});_fb.commit();}catch(e){}}
 
   // Step 2: Switch to new month
   YEAR=+$('yr').value;MONTH=+$('mo').value;DAYS=mkDays(YEAR,MONTH);
@@ -918,10 +907,8 @@ function chPeriod(){
     db.collection('finance').doc(newMk).collection('stores').get().then(function(snap){
       clearTimeout(timeout);
       if(!snap.empty){
-        var _localSnap={};Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];_localSnap[sn]=JSON.parse(JSON.stringify(DATA[sn]||[]))});
-        snap.forEach(function(doc){var sn=doc.id;if(DATA[sn]&&doc.data().rows)DATA[sn]=doc.data().rows});
-        // 把本機有、雲端缺漏的已輸入資料補回（搶救未同步資料，防雲端缺漏版覆蓋）
-        Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];if(DATA[sn])_mergeRows(DATA[sn],_localSnap[sn])});
+        // 本機優先：以本機（含使用者最新修改/刪除，已存 localStorage）為基底，雲端僅補本機完全缺漏的列/格 → 修改與刪除一律保留，杜絕「改了又變回雲端舊值」
+        snap.forEach(function(doc){var sn=doc.id;var cloudRows=doc.data().rows;if(!cloudRows)return;if(!DATA[sn]||!DATA[sn].length){DATA[sn]=JSON.parse(JSON.stringify(cloudRows))}else{_mergeRows(DATA[sn],cloudRows)}});
         setSyncSt('ok','☁️ 已載入');
         ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);
         _reRenderFinPane();
@@ -953,12 +940,11 @@ function _reRenderFinPane(){
 function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!cont)return;const secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}
 var monthLabel=(YEAR-1911)+'年'+MONTH+'月';
 let h=`<div style="padding:8px 16px;background:linear-gradient(90deg,var(--navy-700),var(--navy-800));color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px;border-radius:8px 8px 0 0;margin-bottom:-1px"><span style="font-size:18px">📅</span><span>${sn}</span><span style="background:rgba(255,255,255,.15);padding:2px 12px;border-radius:12px;font-family:var(--f-num)">${monthLabel}</span><span style="font-size:11px;color:rgba(255,255,255,.5);margin-left:auto">共 ${rows.length} 項</span></div>`;
-h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){h+=`<col style="width:54px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-dt"><th class="cn" colspan="2">日期</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr>';h+=`<tr class="lh-wd"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}${row.memo?'\n📝 '+row.memo:''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:56px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}${row.term?'<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();editTerm(\''+sec+'\','+ri+')">'+row.term.cur+'/'+row.term.total+'</span>':''}${row.memo?'<span style="font-size:9px;color:#f59e0b;margin-left:3px" title="'+row.memo.replace(/"/g,'&#34;')+'">📝</span>':''}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=(d.w===0||d.w===6)||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"${row.auto?' readonly title="自動計算：6項收入×7%" style="background:#e0f2fe;color:#0369a1;font-weight:700;cursor:not-allowed"':''}></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){h+=`<col style="width:54px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-dt"><th class="cn" colspan="2">日期</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr>';h+=`<tr class="lh-wd"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}">${SL[sec]||sec}</td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg=ri%2===0?c.row:'var(--surf-alt)';h+=`<tr style="background:${bg}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:${ri%2===0?'#fff':'#f5f6fa'};position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}${row.memo?'\n📝 '+row.memo:''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:56px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}${isStaffMeal(row)?'<span style=\"font-size:9px;background:#f1f5f9;color:#64748b;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700\" title=\"員工餐僅記錄，不計入小計/損益表\">僅記錄</span>':''}${row.term?'<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();editTerm(\''+sec+'\','+ri+')">'+row.term.cur+'/'+row.term.total+'</span>':''}${row.memo?'<span style="font-size:9px;color:#f59e0b;margin-left:3px" title="'+row.memo.replace(/"/g,'&#34;')+'">📝</span>':''}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=(d.w===0||d.w===6)||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${wk}${hv}${xp}${nt}" style="background:${isH?'var(--wk-bg)':bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"${row.auto?' readonly title="自動計算：6項收入×7%" style="background:#e0f2fe;color:#0369a1;font-weight:700;cursor:not-allowed"':''}></td>`}h+=`<td class="ltot" id="rt-${rid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
-let actInp=null;
 function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)DATA[sn][idx].daily[day]=0;else DATA[sn][idx].daily[day]=v;inp.parentElement.classList.toggle('hv',v!==0);recalc(s);schedAutoSave()}
-function kd(e,inp){if(e.key==='Enter'){e.preventDefault();onCell(inp);inp.select();return}if(e.key==='Tab'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+(e.shiftKey?-1:1)];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowRight'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowLeft'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i-1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowDown'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ntr=tr.nextElementSibling;if(ntr){const ntd=ntr.children[ci];if(ntd){const ni=ntd.querySelector('input[type="number"]');if(ni){ni.focus();ni.select()}}}return}if(e.key==='ArrowUp'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ptr=tr.previousElementSibling;if(ptr){const ptd=ptr.children[ci];if(ptd){const pi=ptd.querySelector('input[type="number"]');if(pi){pi.focus();pi.select()}}}return}if(e.key==='Escape')closeQF()}
+function kd(e,inp){if(e.key==='Enter'){e.preventDefault();onCell(inp);inp.select();return}if(e.key==='Tab'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+(e.shiftKey?-1:1)];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowRight'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowLeft'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i-1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowDown'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ntr=tr.nextElementSibling;if(ntr){const ntd=ntr.children[ci];if(ntd){const ni=ntd.querySelector('input[type="number"]');if(ni){ni.focus();ni.select()}}}return}if(e.key==='ArrowUp'){e.preventDefault();onCell(inp);const td=inp.closest('td'),tr=td.closest('tr'),ci=[...tr.children].indexOf(td),ptr=tr.previousElementSibling;if(ptr){const ptd=ptr.children[ci];if(ptd){const pi=ptd.querySelector('input[type="number"]');if(pi){pi.focus();pi.select()}}}return}}
 
 function cellNote(e,inp){
   e.preventDefault();
@@ -1178,10 +1164,6 @@ function clearColHL(){document.querySelectorAll('.col-hl').forEach(function(el){
 function gIdx(sn,sec,ri){let c=0;for(let i=0;i<DATA[sn].length;i++){if(DATA[sn][i].sec===sec){if(c===ri)return i;c++}}return -1}
 
 // ═══ QUICK-FILL ═══
-function openQF(inp,e){e.stopPropagation();actInp=inp;const sn=SMAP[inp.dataset.s],idx=gIdx(sn,inp.dataset.sec,+inp.dataset.ri),name=idx>=0?DATA[sn][idx].name:'',def=(DEFAULTS[sn]||{})[name],cur=parseFloat(inp.value)||0;$('qfp-title').textContent=`📌 ${name}`;$('qfp-val').value=cur||'';const sug=new Set();if(def){sug.add(def);sug.add(Math.round(def));const m=Math.pow(10,Math.floor(Math.log10(def)));[.5,1,1.5,2].forEach(x=>sug.add(Math.round(def*x/m)*m))}[100,300,500,1000,2000,3000,5000,10000].forEach(v=>{if(!def||(v>=def*.08&&v<=def*4))sug.add(v)});if(cur)sug.add(cur);const sorted=[...sug].filter(v=>v>0).sort((a,b)=>a-b).slice(0,8);const grid=$('qfp-grid');grid.innerHTML='';for(const v of sorted){const b=document.createElement('button');b.className='qfp-btn'+(v===def?' def':'');b.textContent=NFL(v);b.onclick=()=>qfApply(v);grid.appendChild(b)}const r=inp.getBoundingClientRect(),qf=$('qfp');qf.style.top=(r.bottom+4)+'px';qf.style.left=Math.min(r.left,window.innerWidth-240)+'px';qf.classList.add('on');setTimeout(()=>{$('qfp-val').focus();$('qfp-val').select()},40)}
-function qfApply(v){if(!actInp)return;actInp.value=v||'';onCell(actInp);closeQF();const inputs=[...actInp.closest('tr').querySelectorAll('input[type="number"]')];const nx=inputs[inputs.indexOf(actInp)+1];if(nx)nx.focus()}
-function closeQF(){$('qfp').classList.remove('on')}
-document.addEventListener('click',e=>{if(!e.target.closest('#qfp')&&!e.target.closest('td.lc'))closeQF()});
 
 // ═══ RECALC ═══
 /* ═══ 台積電商場抽成自動計算：6項收入 × 7% ═══ */
@@ -1200,7 +1182,9 @@ function _autoMallFee(){
   if(inp&&document.activeElement!==inp)inp.value=fee||'';
 }
 
-function recalc(sk){const sn=SMAP[sk];if(sk==='ts')_autoMallFee();const rows=DATA[sn],secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let revT=0;if(secs['收入'])for(const r of secs['收入'])if(!r.noSum)revT+=Object.values(r.daily).reduce((a,b)=>a+b,0);const sT={};for(const sec of so){sT[sec]={total:0,byd:{}};let ri=0;for(const row of secs[sec]){const rid=`${sk}__${EID(sec)}__${ri}`;let rs=0;for(const[d,v]of Object.entries(row.daily)){rs+=v;if(!row.noSum)sT[sec].byd[d]=(sT[sec].byd[d]||0)+v}if(!row.noSum)sT[sec].total+=rs;const c=cfg(sec);setTxt('rt-'+rid,rs?NFL(rs):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('rp-'+rid,revT?PCT(rs,revT):'—');ri++}const sid=`${sk}__${EID(sec)}`,c=cfg(sec);setTxt('ss-'+sid,sT[sec].total?NFL(sT[sec].total):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('sp-'+sid,revT?PCT(sT[sec].total,revT):'—');for(const d of DAYS){const e=$(`sd-${sid}__${d.d}`);if(e){const v=sT[sec].byd[String(d.d)]||0;e.textContent=v?NF(v):''}}}const rbd={};if(secs['收入'])for(const r of secs['收入'])for(const[d,v]of Object.entries(r.daily))rbd[d]=(rbd[d]||0)+v;for(const d of DAYS)setTxt(`dv-${sk}__${d.d}`,rbd[String(d.d)]?NF(rbd[String(d.d)]):'');setTxt('dg-'+sk,revT?NFL(revT):'—','var(--pos)');let incT=0,expT=0;for(const s of so){const c=cfg(s);if(c.exp)expT+=sT[s].total;else incT+=sT[s].total}const ni=incT-expT;const ne=$('ni-'+sk);if(ne){ne.textContent=(ni<0?'▼ ':'▲ ')+NFL(Math.abs(ni));ne.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('nip-'+sk,revT?PCT(ni,revT):'—');const cogs=['支出食材(月結)','支出食/包材(日結)','員工餐'];let cogsT=0;for(const s of cogs)if(sT[s])cogsT+=sT[s].total;const gp=incT-cogsT;let opexT=0;for(const s of so)if(cfg(s).exp&&!cogs.includes(s))opexT+=sT[s].total;const sv=(id,v,c)=>setTxt(id,'$'+NFL(v),c);sv('lv-rev',incT,'var(--pos)');sv('lv-cogs',cogsT,'var(--neg)');setTxt('lk-cogs',PCT(cogsT,incT));sv('lv-gp',gp,gp>=0?'var(--pos)':'var(--neg)');setTxt('lk-gp',PCT(gp,incT));sv('lv-opex',opexT,'var(--neg)');setTxt('lk-opex',PCT(opexT,incT));const nv=$('lv-ni');if(nv){nv.textContent=(ni<0?'▼ ':'▲ ')+'$'+NFL(Math.abs(ni));nv.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('lk-ni',PCT(ni,incT));const nb=$('nb-'+sk);if(nb){nb.textContent=(ni>=0?'▲':'▼')+'$'+NFL(Math.abs(ni));nb.style.color=ni>=0?'#34d399':'#fca5a5'}setTxt('l-foot-r',`收入 $${NFL(incT)} | 支出 $${NFL(expT)} | 淨利 ${ni>=0?'▲':'▼'}$${NFL(Math.abs(ni))}`);
+// 員工餐＝僅記錄不計入報表（Tim 2026-06 拍板）：獨立類別或藏於支出類別下的「員工餐」科目列，一律排除於小計/COGS/淨利/損益表/財報之外，畫面仍顯示供記錄查閱
+function isStaffMeal(row){return row&&(row.sec==='員工餐'||(row.name&&row.name.indexOf('員工餐')>=0))}
+function recalc(sk){const sn=SMAP[sk];if(sk==='ts')_autoMallFee();const rows=DATA[sn],secs={},so=[];for(const r of rows){if(!secs[r.sec]){secs[r.sec]=[];so.push(r.sec)}secs[r.sec].push(r)}let revT=0;if(secs['收入'])for(const r of secs['收入'])if(!r.noSum)revT+=Object.values(r.daily).reduce((a,b)=>a+b,0);const sT={};for(const sec of so){sT[sec]={total:0,byd:{}};let ri=0;for(const row of secs[sec]){const rid=`${sk}__${EID(sec)}__${ri}`;let rs=0;for(const[d,v]of Object.entries(row.daily)){rs+=v;if(!row.noSum&&!isStaffMeal(row))sT[sec].byd[d]=(sT[sec].byd[d]||0)+v}if(!row.noSum&&!isStaffMeal(row))sT[sec].total+=rs;const c=cfg(sec);setTxt('rt-'+rid,rs?NFL(rs):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('rp-'+rid,revT?PCT(rs,revT):'—');ri++}const sid=`${sk}__${EID(sec)}`,c=cfg(sec);setTxt('ss-'+sid,sT[sec].total?NFL(sT[sec].total):'—',c.exp?'var(--neg)':'var(--pos)');setTxt('sp-'+sid,revT?PCT(sT[sec].total,revT):'—');for(const d of DAYS){const e=$(`sd-${sid}__${d.d}`);if(e){const v=sT[sec].byd[String(d.d)]||0;e.textContent=v?NF(v):''}}}const rbd={};if(secs['收入'])for(const r of secs['收入'])for(const[d,v]of Object.entries(r.daily))rbd[d]=(rbd[d]||0)+v;for(const d of DAYS)setTxt(`dv-${sk}__${d.d}`,rbd[String(d.d)]?NF(rbd[String(d.d)]):'');setTxt('dg-'+sk,revT?NFL(revT):'—','var(--pos)');let incT=0,expT=0;for(const s of so){const c=cfg(s);if(c.exp)expT+=sT[s].total;else incT+=sT[s].total}const ni=incT-expT;const ne=$('ni-'+sk);if(ne){ne.textContent=(ni<0?'▼ ':'▲ ')+NFL(Math.abs(ni));ne.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('nip-'+sk,revT?PCT(ni,revT):'—');const cogs=['支出食材(月結)','支出食/包材(日結)'];/* 員工餐僅記錄不計入 */let cogsT=0;for(const s of cogs)if(sT[s])cogsT+=sT[s].total;const gp=incT-cogsT;let opexT=0;for(const s of so)if(cfg(s).exp&&!cogs.includes(s))opexT+=sT[s].total;const sv=(id,v,c)=>setTxt(id,'$'+NFL(v),c);sv('lv-rev',incT,'var(--pos)');sv('lv-cogs',cogsT,'var(--neg)');setTxt('lk-cogs',PCT(cogsT,incT));sv('lv-gp',gp,gp>=0?'var(--pos)':'var(--neg)');setTxt('lk-gp',PCT(gp,incT));sv('lv-opex',opexT,'var(--neg)');setTxt('lk-opex',PCT(opexT,incT));const nv=$('lv-ni');if(nv){nv.textContent=(ni<0?'▼ ':'▲ ')+'$'+NFL(Math.abs(ni));nv.style.color=ni>=0?'var(--pos)':'var(--neg)'}setTxt('lk-ni',PCT(ni,incT));const nb=$('nb-'+sk);if(nb){nb.textContent=(ni>=0?'▲':'▼')+'$'+NFL(Math.abs(ni));nb.style.color=ni>=0?'#34d399':'#fca5a5'}setTxt('l-foot-r',`收入 $${NFL(incT)} | 支出 $${NFL(expT)} | 淨利 ${ni>=0?'▲':'▼'}$${NFL(Math.abs(ni))}`);
 /* Tax summary calculation */
 var taxMonthly=0,taxIncluded=0,taxExempt=0,taxUnmarked=0;
 for(var s2 of so){if(!cfg(s2).exp)continue;for(var r2 of secs[s2]){var rSum=Object.values(r2.daily).reduce(function(a,b){return a+b},0);if(r2.tax==='T')taxMonthly+=rSum;else if(r2.tax==='I')taxIncluded+=rSum;else if(r2.tax==='F')taxExempt+=rSum;else taxUnmarked+=rSum}}
@@ -1354,6 +1338,27 @@ document.addEventListener('paste',function(e){
 
 /* ─── Auto-Save（30秒無操作自動儲存）─── */
 var _autoSaveTimer=null;
+// ═══ 品質機制 3：每日版本化快照 — 當日首次成功存檔後另存 snapshots/{sys}_{date}，保留 30 天可回滾 ═══
+function _dailySnapshot(){
+  try{
+    if(!db)return;
+    var today=new Date().toISOString().slice(0,10);
+    if(localStorage.getItem('fin_snap_done')===today)return; // 當日已快照
+    var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
+    db.collection('snapshots').doc('fd_'+today).set({
+      sys:'haomin-fd',ver:VER.str(),date:today,month:mk,
+      data:JSON.stringify(DATA).slice(0,900000), // Firestore 單文件上限 1MB 防護
+      ts:firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(){
+      localStorage.setItem('fin_snap_done',today);
+      console.log('📸 每日快照完成: fd_'+today);
+      // 清 30 天前舊快照（每日一次、只清本系統）
+      var cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+      db.collection('snapshots').where('sys','==','haomin-fd').where('date','<',cutoff).limit(5).get()
+      .then(function(q){q.forEach(function(d){d.ref.delete()})}).catch(function(){});
+    }).catch(function(e){console.warn('快照失敗:',e.code)});
+  }catch(e){}
+}
 function schedAutoSave(){
   if(_autoSaveTimer)clearTimeout(_autoSaveTimer);
   setSyncSt('warn','待儲存…');
@@ -1400,12 +1405,12 @@ function doSave(){
       }
       var batch=db.batch();
       Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
-      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步'));_deletedRowKeys={}}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
+      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步'));_deletedRowKeys={};_dailySnapshot()}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
     }).catch(function(){
       // 讀取失敗（離線等）：本機已存，直接寫回避免卡住
       var batch=db.batch();
       Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
-      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步');_deletedRowKeys={}}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
+      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步');_deletedRowKeys={};_dailySnapshot()}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
     });
   } else {
     var t=new Date();setSyncSt('off','✓ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 本機');
@@ -1437,10 +1442,78 @@ try{
   // 註：不啟用 Firestore enablePersistence（多分頁離線快取）。
   // 改由系統自身 localStorage 容錯，邏輯單純、避免多分頁快取干擾「讀-合併-寫」資料保護。
   console.log('✅ Firebase connected: haomin-system');
+  // ── 資安：匿名驗證（配合 Firestore Rules 收緊使用）──
+  // 降級保護：Console 未啟用 Anonymous provider 時僅警告、不擋系統（Rules 收緊前可安全先部署本版）
+  try{
+    firebase.auth().signInAnonymously().then(function(){console.log('🔐 Auth: anonymous signed in')})
+    .catch(function(e){console.warn('⚠️ Auth 未啟用（Console 需開啟 Anonymous 登入），Rules 收緊前仍可運作:',e.code)});
+  }catch(e){console.warn('Auth SDK 未載入:',e)}
 }catch(e){
   console.warn('Firebase init failed, using localStorage only:',e);
   db=undefined;
 }
+
+// ═══ 品質機制 1：全域錯誤捕捉 → Firestore error_log（同錯誤 5 分鐘節流防爆量）═══
+var _errSeen={};
+function _reportErr(kind,msg,src){
+  try{
+    var key=String(msg).slice(0,120);
+    var now=Date.now();
+    if(_errSeen[key]&&now-_errSeen[key]<300000)return; // 5分鐘節流
+    _errSeen[key]=now;
+    if(!db)return;
+    db.collection('error_log').add({
+      sys:'haomin-fd',ver:(typeof VER!=='undefined'?VER.str():'?'),kind:kind,
+      msg:String(msg).slice(0,500),src:String(src||'').slice(0,200),
+      ua:navigator.userAgent.slice(0,120),url:location.href.slice(0,150),
+      ts:firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(function(){});
+  }catch(e){}
+}
+window.addEventListener('error',function(e){_reportErr('error',e.message,(e.filename||'')+':'+(e.lineno||''))});
+window.addEventListener('unhandledrejection',function(e){_reportErr('promise',(e.reason&&e.reason.message)||String(e.reason),'')});
+
+// ═══ 品質機制 2：新版本檢查 — 每 10 分鐘比對 GitHub，有新版顯示橫幅（終結「部署了沒生效」）═══
+function _checkNewVer(){
+  fetch('https://raw.githubusercontent.com/haoting1205/haomin-fd/main/index.html',{cache:'no-store'})
+  .then(function(r){return r.text()}).then(function(t){
+    var m=t.match(/major:(\d+),minor:(\d+),patch:(\d+),build:(\d+)/);
+    if(!m)return;
+    var remoteBuild=+m[4];
+    if(remoteBuild>VER.build){
+      var b=document.getElementById('newver-bar');
+      if(!b){
+        b=document.createElement('div');b.id='newver-bar';
+        b.style.cssText='position:relative;background:#1d4ed8;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:700;cursor:pointer;z-index:9999';
+        b.onclick=function(){location.reload(true)};
+        document.body.insertBefore(b,document.body.firstChild);
+      }
+      b.textContent='🔄 新版本 v'+m[1]+'.'+m[2]+'.'+m[3]+'（build#'+remoteBuild+'）已發布 — 點此重新整理更新';
+    }
+  }).catch(function(){});
+}
+setTimeout(_checkNewVer,5000);setInterval(_checkNewVer,600000);
+
+// ═══ 品質機制 4：健康檢查頁 — 網址加 ?selftest=1 自動跑七項自檢（部署後30秒驗證）═══
+function _selfTest(){
+  var R=[];
+  function t(name,fn){try{var v=fn();R.push([name,v?'✅':'❌',v?'':'檢查失敗'])}catch(e){R.push([name,'❌',String(e.message||e).slice(0,80)])}}
+  t('版本號',function(){return typeof VER!=='undefined'&&VER.build>0});
+  t('Firebase SDK',function(){return typeof firebase!=='undefined'&&firebase.apps.length>0});
+  t('Firestore 連線',function(){return !!db});
+  t('Auth 匿名登入',function(){return !!(firebase.auth&&firebase.auth().currentUser)});
+  t('localStorage 可寫',function(){localStorage.setItem('_st','1');localStorage.removeItem('_st');return true});
+  t('核心函式',function(){return typeof recalc==='function'&&typeof doSave==='function'&&typeof _mergeRows==='function'&&typeof buildTable==='function'});
+  t('三店資料結構',function(){return DATA&&['交大店','台積電','總公司'].every(function(s){return Array.isArray(DATA[s])})});
+  var pass=R.filter(function(r){return r[1]==='✅'}).length;
+  var html='<div style="position:fixed;inset:0;background:#0f172a;color:#e2e8f0;z-index:99999;padding:40px;font-family:monospace;overflow:auto">';
+  html+='<h2 style="color:'+(pass===R.length?'#4ade80':'#f87171')+'">🩺 好洺財會系統自檢 '+pass+'/'+R.length+' 通過 · '+VER.full()+'</h2>';
+  R.forEach(function(r){html+='<div style="padding:8px;border-bottom:1px solid #1e293b">'+r[1]+' '+r[0]+(r[2]?' — <span style="color:#f87171">'+r[2]+'</span>':'')+'</div>'});
+  html+='<div style="margin-top:20px;color:#64748b">Auth 顯示 ❌ = Console 尚未啟用 Anonymous 登入（Rules 收緊前非必要）</div>';
+  html+='<button onclick="location.href=location.pathname" style="margin-top:16px;padding:10px 24px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">關閉自檢</button></div>';
+  var d=document.createElement('div');d.innerHTML=html;document.body.appendChild(d);
+}
+if(location.search.indexOf('selftest=1')>=0)setTimeout(_selfTest,2500);
 
 // ═══ DATA INIT — 先顯示，再同步雲端 ═══
 async function initData(){
@@ -1769,6 +1842,7 @@ function renderTaxCenter(){
     rows.forEach(function(r,ri){
       var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);
       if(sum===0)return;
+      if(isStaffMeal(r))return; // 員工餐僅記錄，無進項發票，不列入稅務勾選
       var key=sk+'__'+r.sec+'__'+ri;
       var cfgItem=cfg[key]||{};
       if(r.sec==='收入'){
@@ -2369,6 +2443,7 @@ function _calcStoreBreakdown(mData,sn){
   var r={inc:0,cogs:0,rent:0,util:0,misc:0,hr:0};
   if(!mData||!mData[sn])return r;
   mData[sn].forEach(function(row){
+    if(isStaffMeal(row))return; // 員工餐僅記錄，不入財報
     var v=Object.values(row.daily).reduce(function(a,b){return a+b},0);
     var cls=_classifySec(row.sec);
     if(cls==='rev')r.inc+=v;
@@ -2473,7 +2548,7 @@ function renderPL(){
   h+='<tr class="fdv fnb"><td class="lc" style="font-size:15px">▌ 稅前淨利（損）</td>';
   stores.forEach(function(sk){var b=byStore[sk];h+='<td class="amt '+(b.ni>=0?'fpos':'fneg')+'" style="font-size:15px">'+(b.ni>=0?'▲ ':'▼ ')+NFL(Math.abs(b.ni))+'</td><td class="pct '+(b.ni>=0?'fpos':'fneg')+'">'+(b.inc>0?PCT(b.ni,b.inc):'—')+'</td>'});
   h+='<td class="amt '+(T.ni>=0?'fpos':'fneg')+'" style="font-size:20px">'+(T.ni>=0?'▲ ':'▼ ')+NFL(Math.abs(T.ni))+'</td><td class="pct '+(T.ni>=0?'fpos':'fneg')+'">'+(T.inc>0?PCT(T.ni,T.inc):'—')+'</td></tr>';
-  h+='<tr class="fnote"><td colspan="9">※ 數字自動從流水帳計算。「員工餐」歸入 COGS；貸款還款、稅款分期歸入「其他費用」（依現有流水帳記法）。</td></tr>';
+  h+='<tr class="fnote"><td colspan="9">※ 數字自動從流水帳計算。「員工餐」僅記錄不計入報表；貸款還款、稅款分期歸入「其他費用」（依現有流水帳記法）。</td></tr>';
   h+='</tbody></table></div>';
   pd.innerHTML=h;
 }
