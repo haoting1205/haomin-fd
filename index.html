@@ -521,6 +521,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 /* 付款註記狀態（月合計欄色條）：黃=已對帳 綠=已匯款 紅=匯款後金額變動 */
 .ltot.pck{box-shadow:inset 4px 0 0 #f59e0b;background:#fffbeb!important}
 .ltot.ppd{box-shadow:inset 4px 0 0 #10b981;background:#ecfdf5!important}
+.ltot.pin{box-shadow:inset 4px 0 0 #3b82f6;background:#eff6ff!important}
 .ltot.pwn{box-shadow:inset 4px 0 0 #ef4444;background:#fef2f2!important}
 .ltot.payable{cursor:pointer}
 .ltot.payable:hover{outline:2px solid #93c5fd;outline-offset:-2px}
@@ -793,7 +794,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:3,minor:2,patch:0,build:38,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:3,minor:2,patch:2,build:40,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -835,9 +836,11 @@ const CHANGELOG=[
 {build:35,version:'2.9.0',date:'2026-06-26',author:'Claude + Tim',summary:'★員工餐改為僅記錄不計入報表（Tim 拍板會計處理）',changes:[{cat:'NEW',module:'CORE',desc:'★員工餐排除於一切報表計算 — 凡「員工餐」類別或各支出類別下的「員工餐」科目列，一律不計入：流水帳小計/日計/COGS/毛利/淨利、損益表、現金流量表、營業分析、各門市比較。畫面仍完整顯示金額供記錄查閱，列名旁標示「僅記錄」灰色徽章'},{cat:'MOD',module:'TAX',desc:'稅務中心進項勾選清單排除員工餐（內部行為無進項發票，防誤勾）'},{cat:'MOD',module:'PNL',desc:'損益表註記更新：「員工餐歸入COGS」→「員工餐僅記錄不計入報表」；recalc COGS 類別清單移除員工餐'}]},
 {build:36,version:'3.0.0',date:'2026-06-26',author:'Claude + Tim',summary:'★v3.0 品質與資安基礎建設 — 匿名驗證/錯誤上報/每日快照/版本提示/健康自檢',changes:[{cat:'NEW',module:'SECURITY',desc:'★Firebase 匿名驗證 — 配合 Firestore Rules 收緊（見部署SOP），含降級保護：Console 未啟用前僅警告不擋系統，可安全先部署'},{cat:'NEW',module:'SYSTEM',desc:'★全域錯誤捕捉 — window.onerror + unhandledrejection 自動上報 Firestore error_log（系統/版本/訊息/來源/UA），同錯誤5分鐘節流防爆量'},{cat:'NEW',module:'DATA',desc:'★每日版本化快照 — 當日首次成功存檔後另存 snapshots/fd_日期（30天滾動保留、自動清舊），誤刪誤改可整月回滾'},{cat:'NEW',module:'SYSTEM',desc:'★新版本橫幅提示 — 每10分鐘比對 GitHub 版本，偵測新版顯示藍色橫幅點擊即更新，終結「部署了沒生效」'},{cat:'NEW',module:'SYSTEM',desc:'★健康檢查頁 — 網址加 ?selftest=1 跑七項自檢（版本/SDK/連線/Auth/儲存/函式/資料結構），部署後30秒驗證'}]},
 {build:37,version:'3.1.0',date:'2026-07-06',author:'Claude + Tim',summary:'★共用帳號登入 — 使用人資系統帳號＋系統存取矩陣',changes:[{cat:'NEW',module:'SECURITY',desc:'★登入頁上線 — 使用人資系統帳號（工號/boss）登入，驗證讀取 prod_hrdata/accounts（與 HR 同款 hashPass 雜湊），需 access.fd 權限或老闆角色才放行。權限由人資「帳號管理」統一控管，離職停用即全系統斷線'},{cat:'NEW',module:'SECURITY',desc:'登入 session 7 天效期存本機；header 新增🚪登出按鈕；老闆角色永遠可進（防呆避免誤關權限鎖死自己）'}]},
-{build:38,version:'3.2.0',date:'2026-07-07',author:'Claude + Tim',summary:'★應付帳款追蹤 — 月結對帳/匯款註記（含租金等單筆付款）',changes:[{cat:'NEW',module:'LEDGER',desc:'★對帳/匯款註記 — 點擊任何支出列的「月合計」欄開啟註記視窗：☑已與廠商核對金額(+日期)、☑已完成匯款(+日期)、備註（匯款帳戶/發票號）。適用月結廠商與租金等單筆付款，通用全部支出列'},{cat:'NEW',module:'LEDGER',desc:'狀態色條一目瞭然 — 月合計欄左側色條：🟡黃=已對帳、🟢綠=已匯款、🔴紅=匯款後金額有變動（防呆：匯款時自動快照金額，之後數字被改會警示並顯示差異），滑鼠停留顯示完整狀態'},{cat:'NEW',module:'LEDGER',desc:'列選單（⋯）新增「💰對帳/匯款註記」入口；註記隨月份資料儲存雲端＋本機'}]}
+{build:38,version:'3.2.0',date:'2026-07-07',author:'Claude + Tim',summary:'★應付帳款追蹤 — 月結對帳/匯款註記（含租金等單筆付款）',changes:[{cat:'NEW',module:'LEDGER',desc:'★對帳/匯款註記 — 點擊任何支出列的「月合計」欄開啟註記視窗：☑已與廠商核對金額(+日期)、☑已完成匯款(+日期)、備註（匯款帳戶/發票號）。適用月結廠商與租金等單筆付款，通用全部支出列'},{cat:'NEW',module:'LEDGER',desc:'狀態色條一目瞭然 — 月合計欄左側色條：🟡黃=已對帳、🟢綠=已匯款、🔴紅=匯款後金額有變動（防呆：匯款時自動快照金額，之後數字被改會警示並顯示差異），滑鼠停留顯示完整狀態'},{cat:'NEW',module:'LEDGER',desc:'列選單（⋯）新增「💰對帳/匯款註記」入口；註記隨月份資料儲存雲端＋本機'}]},
+{build:39,version:'3.2.1',date:'2026-07-07',author:'Claude + Tim',summary:'對帳/匯款註記新增「已收到發票」確認（進項憑證追蹤）',changes:[{cat:'NEW',module:'LEDGER',desc:'★註記視窗新增🧾「已收到發票」勾選＋日期（進項憑證，月結廠商與稅金結算適用）— 排列依實務順序：對帳→收發票→匯款'},{cat:'MOD',module:'LEDGER',desc:'色條升級四色：🟡黃=已對帳、🔵藍=已匯款但發票未到（追蹤中）、🟢綠=匯款+發票齊全（完結）、🔴紅=匯款後金額變動。免稅無發票廠商可不勾發票，自行以藍/綠區分習慣即可；滑鼠停留顯示「已匯款但尚未收到發票」提醒'}]},
+{build:40,version:'3.2.2',date:'2026-07-07',author:'Claude + Tim',summary:'登入畫面顯示版本編號',changes:[{cat:'MOD',module:'UI',desc:'登入畫面顯示版本+build編號，登入前即可驗證部署版本（配合全系統圈登入頁版本顯示規範）'}]}
 ];
-let clExpanded={38:true};
+let clExpanded={40:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -1200,15 +1203,20 @@ function _rowSum(row){var s=0;for(var k in row.daily)s+=(+row.daily[k]||0);retur
 function payCls(row){
   if(!row.pay)return'';
   var p=row.pay;
-  if(p.pd){return(p.pda!==undefined&&p.pda!==_rowSum(row))?' pwn':' ppd'} // 匯款後金額變動→警示
-  if(p.ck)return' pck';
+  if(p.pd){
+    if(p.pda!==undefined&&p.pda!==_rowSum(row))return' pwn'; // 匯款後金額變動→紅警
+    return p.inv?' ppd':' pin'; // 綠=匯款+發票齊全；藍=已匯款、發票未到（追蹤中）
+  }
+  if(p.ck||p.inv)return' pck';
   return'';
 }
 function payTitle(row){
   if(!row.pay)return'點擊記錄 對帳/匯款';
   var p=row.pay,t=[];
   if(p.ck)t.push('✓ 已對帳 '+(p.ckd||''));
+  if(p.inv)t.push('🧾 已收發票 '+(p.invd||''));
   if(p.pd)t.push('💰 已匯款 '+(p.pdd||'')+(p.pda!==undefined?' $'+p.pda.toLocaleString():''));
+  if(p.pd&&!p.inv)t.push('⚠ 已匯款但尚未收到發票');
   if(p.pd&&p.pda!==undefined&&p.pda!==_rowSum(row))t.push('⚠ 匯款後金額有變動！匯款時 $'+p.pda.toLocaleString()+' → 目前 $'+_rowSum(row).toLocaleString());
   if(p.note)t.push('📝 '+p.note);
   return t.join('\n')||'點擊記錄 對帳/匯款';
@@ -1227,6 +1235,9 @@ function payDialog(sec,ri){
     +'<label style="display:flex;align-items:center;gap:8px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;margin-bottom:8px;cursor:pointer">'
     +'<input type="checkbox" id="pay-ck" '+(p.ck?'checked':'')+' style="width:17px;height:17px"><span style="font-size:13.5px;font-weight:700;color:#92400e;flex:1">已與廠商核對金額</span>'
     +'<input id="pay-ckd" value="'+(p.ckd||_todayMD())+'" placeholder="月/日" style="width:56px;padding:5px;border:1px solid #fde68a;border-radius:6px;font-size:12px;text-align:center"></label>'
+    +'<label style="display:flex;align-items:center;gap:8px;padding:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;margin-bottom:8px;cursor:pointer">'
+    +'<input type="checkbox" id="pay-inv" '+(p.inv?'checked':'')+' style="width:17px;height:17px"><span style="font-size:13.5px;font-weight:700;color:#1e40af;flex:1">已收到發票<span style="font-weight:400;font-size:11px;color:#60a5fa">（進項憑證）</span></span>'
+    +'<input id="pay-invd" value="'+(p.invd||_todayMD())+'" placeholder="月/日" style="width:56px;padding:5px;border:1px solid #bfdbfe;border-radius:6px;font-size:12px;text-align:center"></label>'
     +'<label style="display:flex;align-items:center;gap:8px;padding:10px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;margin-bottom:8px;cursor:pointer">'
     +'<input type="checkbox" id="pay-pd" '+(p.pd?'checked':'')+' style="width:17px;height:17px"><span style="font-size:13.5px;font-weight:700;color:#065f46;flex:1">已完成匯款</span>'
     +'<input id="pay-pdd" value="'+(p.pdd||_todayMD())+'" placeholder="月/日" style="width:56px;padding:5px;border:1px solid #a7f3d0;border-radius:6px;font-size:12px;text-align:center"></label>'
@@ -1247,11 +1258,13 @@ function savePay(sec,ri){
   var ck=document.getElementById('pay-ck').checked,pd=document.getElementById('pay-pd').checked;
   var p={};
   if(ck){p.ck=1;p.ckd=document.getElementById('pay-ckd').value.trim()||_todayMD()}
+  var inv=document.getElementById('pay-inv').checked;
+  if(inv){p.inv=1;p.invd=document.getElementById('pay-invd').value.trim()||_todayMD()}
   if(pd){p.pd=1;p.pdd=document.getElementById('pay-pdd').value.trim()||_todayMD();
     // 金額快照：首次勾匯款時記錄，之後保留原快照（防呆比對基準）
     p.pda=(row.pay&&row.pay.pd&&row.pay.pda!==undefined)?row.pay.pda:_rowSum(row)}
   var note=document.getElementById('pay-note').value.trim();if(note)p.note=note;
-  if(p.ck||p.pd||p.note)row.pay=p;else delete row.pay;
+  if(p.ck||p.pd||p.inv||p.note)row.pay=p;else delete row.pay;
   document.getElementById('pay-modal').remove();
   _refreshPayCell(sec,ri,row);
   schedAutoSave();
@@ -1617,7 +1630,8 @@ function _fdShowLogin(){
   ov.style.cssText='position:fixed;inset:0;background:#0f172a;z-index:99998;display:flex;align-items:center;justify-content:center';
   ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:36px 32px;width:340px;box-shadow:0 20px 60px rgba(0,0,0,.4)">'
     +'<div style="font-size:22px;font-weight:900;color:#0f172a;margin-bottom:4px">🔐 好洺財會系統</div>'
-    +'<div style="font-size:12px;color:#64748b;margin-bottom:22px">使用人資系統帳號登入（工號或 boss）</div>'
+    +'<div style="font-size:12px;color:#64748b;margin-bottom:4px">使用人資系統帳號登入（工號或 boss）</div>'
+    +'<div style="font-size:11px;color:#94a3b8;margin-bottom:20px">'+VER.str()+' · build#'+VER.build+'</div>'
     +'<input id="fd-lg-u" placeholder="帳號" autocomplete="username" style="width:100%;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;margin-bottom:10px;box-sizing:border-box">'
     +'<input id="fd-lg-p" type="password" placeholder="密碼" autocomplete="current-password" style="width:100%;padding:12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;margin-bottom:6px;box-sizing:border-box">'
     +'<div id="fd-lg-err" style="min-height:18px;font-size:12px;color:#dc2626;margin-bottom:8px"></div>'
