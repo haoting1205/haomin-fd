@@ -794,7 +794,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:3,minor:3,patch:0,build:41,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:3,minor:3,patch:1,build:42,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -839,9 +839,10 @@ const CHANGELOG=[
 {build:38,version:'3.2.0',date:'2026-07-07',author:'Claude + Tim',summary:'★應付帳款追蹤 — 月結對帳/匯款註記（含租金等單筆付款）',changes:[{cat:'NEW',module:'LEDGER',desc:'★對帳/匯款註記 — 點擊任何支出列的「月合計」欄開啟註記視窗：☑已與廠商核對金額(+日期)、☑已完成匯款(+日期)、備註（匯款帳戶/發票號）。適用月結廠商與租金等單筆付款，通用全部支出列'},{cat:'NEW',module:'LEDGER',desc:'狀態色條一目瞭然 — 月合計欄左側色條：🟡黃=已對帳、🟢綠=已匯款、🔴紅=匯款後金額有變動（防呆：匯款時自動快照金額，之後數字被改會警示並顯示差異），滑鼠停留顯示完整狀態'},{cat:'NEW',module:'LEDGER',desc:'列選單（⋯）新增「💰對帳/匯款註記」入口；註記隨月份資料儲存雲端＋本機'}]},
 {build:39,version:'3.2.1',date:'2026-07-07',author:'Claude + Tim',summary:'對帳/匯款註記新增「已收到發票」確認（進項憑證追蹤）',changes:[{cat:'NEW',module:'LEDGER',desc:'★註記視窗新增🧾「已收到發票」勾選＋日期（進項憑證，月結廠商與稅金結算適用）— 排列依實務順序：對帳→收發票→匯款'},{cat:'MOD',module:'LEDGER',desc:'色條升級四色：🟡黃=已對帳、🔵藍=已匯款但發票未到（追蹤中）、🟢綠=匯款+發票齊全（完結）、🔴紅=匯款後金額變動。免稅無發票廠商可不勾發票，自行以藍/綠區分習慣即可；滑鼠停留顯示「已匯款但尚未收到發票」提醒'}]},
 {build:40,version:'3.2.2',date:'2026-07-07',author:'Claude + Tim',summary:'登入畫面顯示版本編號',changes:[{cat:'MOD',module:'UI',desc:'登入畫面顯示版本+build編號，登入前即可驗證部署版本（配合全系統圈登入頁版本顯示規範）'}]},
-{build:41,version:'3.3.0',date:'2026-07-14',author:'Claude + Tim',summary:'★墓碑機制 — 根治刪除復活（彥頡借款案）：刪除標記持久化＋跨裝置同步',changes:[{cat:'FIX',module:'DATA',desc:'★根治「刪除後又出現」（本次案例：總公司彥頡借款11/25期）— v2.8.1 的刪除標記只存記憶體，兩條復活路徑未堵：①刪除後8秒自動存檔前關頁/重整→標記消失→雲端殘留列被補回；②多裝置：A裝置刪除存檔後，B裝置(另一台電腦/手機)的本機殘留在「本機優先」下把該列帶回並寫回雲端'},{cat:'NEW',module:'DATA',desc:'★墓碑系統（tombstone）— 刪除標記改為三層持久化：本機 localStorage（fin_tomb_月份）＋雲端隨每店文件 tombstones 欄位同步＋載入/存檔時合併雙向墓碑。任何裝置任何時間點的殘留資料都無法讓已刪列復活'},{cat:'MOD',module:'DATA',desc:'墓碑生命週期 — 隨月份永久保留；手動重新新增同名科目時自動解除墓碑（視為使用者意圖恢復）；批次匯入視為權威資料，清空該月墓碑'},{cat:'FIX',module:'DATA',desc:'墓碑清掃（sweep）— 載入/存檔/開啟時掃描本機資料，移除命中墓碑的殘留列：確保 B 裝置「本機優先」載入的殘留舊列也會被墓碑移除，而非僅擋住雲端補列'}]}
+{build:41,version:'3.3.0',date:'2026-07-14',author:'Claude + Tim',summary:'★墓碑機制 — 根治刪除復活（彥頡借款案）：刪除標記持久化＋跨裝置同步',changes:[{cat:'FIX',module:'DATA',desc:'★根治「刪除後又出現」（本次案例：總公司彥頡借款11/25期）— v2.8.1 的刪除標記只存記憶體，兩條復活路徑未堵：①刪除後8秒自動存檔前關頁/重整→標記消失→雲端殘留列被補回；②多裝置：A裝置刪除存檔後，B裝置(另一台電腦/手機)的本機殘留在「本機優先」下把該列帶回並寫回雲端'},{cat:'NEW',module:'DATA',desc:'★墓碑系統（tombstone）— 刪除標記改為三層持久化：本機 localStorage（fin_tomb_月份）＋雲端隨每店文件 tombstones 欄位同步＋載入/存檔時合併雙向墓碑。任何裝置任何時間點的殘留資料都無法讓已刪列復活'},{cat:'MOD',module:'DATA',desc:'墓碑生命週期 — 隨月份永久保留；手動重新新增同名科目時自動解除墓碑（視為使用者意圖恢復）；批次匯入視為權威資料，清空該月墓碑'},{cat:'FIX',module:'DATA',desc:'墓碑清掃（sweep）— 載入/存檔/開啟時掃描本機資料，移除命中墓碑的殘留列：確保 B 裝置「本機優先」載入的殘留舊列也會被墓碑移除，而非僅擋住雲端補列'}]},
+{build:42,version:'3.3.1',date:'2026-07-15',author:'Claude + Tim',summary:'★修正「修改備註馬上變回」— 開頁雲端載入整包覆蓋漏網路徑＋undo/還原與墓碑的連帶問題',changes:[{cat:'FIX',module:'DATA',desc:'★根因：開頁(initData)的雲端載入仍是舊版「整包覆蓋」— 先前改本機優先時只改到切月路徑，開頁路徑漏網。開啟系統後、雲端返回前(數秒)的任何修改(備註/金額/刪除/付款註記)都會被雲端舊資料整包蓋掉並重繪→「修改完馬上變回原本」。已改為與切月一致的本機優先merge＋墓碑過濾＋sweep'},{cat:'FIX',module:'DATA',desc:'undo/redo 快照納入墓碑 — 原本復原刪除操作後，列雖回來但墓碑仍在，下次載入/存檔的墓碑清掃會把它再度刪除；現在 Ctrl+Z 連墓碑一起還原'},{cat:'FIX',module:'DATA',desc:'還原備份清空墓碑 — 備份為權威資料，避免殘留墓碑把剛還原的科目列清掉'}]}
 ];
-let clExpanded={41:true};
+let clExpanded={42:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -1375,9 +1376,9 @@ function toggleTax(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.fil
 
 /* ─── Undo / Redo ─────────────────────────────────── */
 var _hUndo=[],_hRedo=[],_H_MAX=30;
-function pushHistory(){_hUndo.push(JSON.parse(JSON.stringify(DATA)));if(_hUndo.length>_H_MAX)_hUndo.shift();_hRedo=[];updUndoBtn()}
-function undo(){if(!_hUndo.length)return;_hRedo.push(JSON.parse(JSON.stringify(DATA)));var snap=_hUndo.pop();for(var k in snap)DATA[k]=snap[k];['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);updUndoBtn();setSyncSt('warn','已復原')}
-function redo(){if(!_hRedo.length)return;_hUndo.push(JSON.parse(JSON.stringify(DATA)));var snap=_hRedo.pop();for(var k in snap)DATA[k]=snap[k];['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);updUndoBtn();setSyncSt('warn','已重做')}
+function pushHistory(){_hUndo.push({d:JSON.parse(JSON.stringify(DATA)),t:JSON.parse(JSON.stringify(_tomb))});if(_hUndo.length>_H_MAX)_hUndo.shift();_hRedo=[];updUndoBtn()}
+function undo(){if(!_hUndo.length)return;_hRedo.push({d:JSON.parse(JSON.stringify(DATA)),t:JSON.parse(JSON.stringify(_tomb))});var snap=_hUndo.pop();var sd=snap.d||snap;for(var k in sd)DATA[k]=sd[k];if(snap.t){_tomb=snap.t;_tombPersist()}['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);updUndoBtn();setSyncSt('warn','已復原')}
+function redo(){if(!_hRedo.length)return;_hUndo.push({d:JSON.parse(JSON.stringify(DATA)),t:JSON.parse(JSON.stringify(_tomb))});var snap=_hRedo.pop();var sd=snap.d||snap;for(var k in sd)DATA[k]=sd[k];if(snap.t){_tomb=snap.t;_tombPersist()}['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);updUndoBtn();setSyncSt('warn','已重做')}
 function updUndoBtn(){var u=$('btn-undo'),r=$('btn-redo');if(u)u.disabled=!_hUndo.length;if(r)r.disabled=!_hRedo.length}
 document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo()}if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo()}})
 
@@ -1723,8 +1724,14 @@ async function initData(){
       if(!snap.empty){
         snap.forEach(doc=>{
           const sn=doc.id;
-          if(DATA[sn]&&doc.data().rows){DATA[sn]=doc.data().rows}
+          // 本機優先（與切月載入一致）：雲端僅補本機缺漏＋墓碑過濾 — 修正「開頁後幾秒內的修改被雲端返回整包蓋掉（馬上變回原值）」
+          _tombMergeCloud(sn,doc.data().tombstones);
+          const cloudRows=doc.data().rows;
+          if(!cloudRows)return;
+          if(!DATA[sn]||!DATA[sn].length){DATA[sn]=JSON.parse(JSON.stringify(cloudRows)).filter(r=>!_tombHas(sn,r.sec,r.name))}
+          else{_mergeRows(DATA[sn],cloudRows,sn)}
         });
+        _tombSweep();
         setSyncSt('ok','☁️ 雲端已連線');
         ['jd','ts','hq'].forEach(k=>buildTable(k));
         recalc('jd');recalc('ts');recalc('hq');
@@ -1856,7 +1863,7 @@ function importBackup(){
           '月份：'+(backup.year-1911)+'年'+backup.month+'月\n\n'+
           '⚠ 將覆蓋目前「'+(YEAR-1911)+'年'+MONTH+'月」的資料'))return;
         pushHistory();
-        Object.entries(backup.stores).forEach(function(e){if(DATA[e[0]])DATA[e[0]]=e[1]});
+        Object.entries(backup.stores).forEach(function(e){if(DATA[e[0]])DATA[e[0]]=e[1]});_tomb={};_tombPersist(); /* 還原備份=權威資料，清墓碑防 sweep 誤刪還原列 */
         // Also restore all months if available
         if(backup.allMonths){
           Object.entries(backup.allMonths).forEach(function(e){
