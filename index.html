@@ -796,7 +796,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:3,minor:9,patch:1,build:55,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:0,patch:0,build:56,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -855,9 +855,10 @@ const CHANGELOG=[
 {build:52,version:'3.7.1',date:'2026-07-17',author:'Claude + Tim',summary:'★游標/滑鼠欄位高亮偏移一欄根治（15亮成16）',changes:[{cat:'FIX',module:'UI',desc:'★根治滑鼠與游標的「欄位高亮偏移一欄」（滑鼠在7/15、表頭亮7/16）— 根因：表頭「廠商/科目」為合併欄佔1個節點、資料列同位置佔2個節點，以欄序號跨列對位必偏移1欄。滑鼠hover與游標focus的欄高亮全部改為 data-day 屬性直接對位（與鍵盤導航同一套根治法），表頭日期同步標記 data-day，數學上不可能再錯位'}]},
 {build:53,version:'3.8.0',date:'2026-07-17',author:'Claude + Tim',summary:'★新增稅別「據」（收據）— 憑證分類＋進項防呆鎖定',changes:[{cat:'NEW',module:'TAX',desc:'★第五種稅別「據」（收據）— 供無統一發票的小規模廠商使用（黃褐色標籤）。稅別循環：?→月→免→含→據。月合計不加稅、稅務計算與免稅相同，憑證語意分開：免=有發票之免稅品項、據=僅收據無發票'},{cat:'NEW',module:'TAX',desc:'★進項防呆鎖定 — 標「據」的科目在稅務中心進項勾選清單自動鎖定（灰化不可勾＋「據·鎖定」標示），杜絕收據誤列進項扣抵；原已誤勾者改標「據」後自動解除'},{cat:'MOD',module:'TAX',desc:'流水帳底部稅務摘要新增「收據 $X」分類 — 憑證整理發票類/收據類一目瞭然'}]},
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
-{build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]}
+{build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
+{build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]}
 ];
-let clExpanded={55:true};
+let clExpanded={56:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -900,10 +901,10 @@ function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.disp
 function chPeriod(){
   // Step 1: 切換前只存本機（不覆蓋雲端，避免舊月在其他分頁的新資料被蓋）
   var oldMk=YEAR+'-'+String(MONTH).padStart(2,'0');
-  try{localStorage.setItem('fin_v3_'+oldMk,JSON.stringify(DATA));_markLocalSaved(oldMk)}catch(e){}
+  try{localStorage.setItem('fin_v3_'+oldMk,JSON.stringify(DATA));_markLocalSaved(oldMk)}catch(e){console.error('本機儲存失敗:',e);_reportErr('quota',oldMk+' localStorage: '+(e.name||e),'chPeriod');alert('⚠️ 本機儲存空間不足，'+oldMk+' 的變更可能無法保留。\n\n建議：按「💾 儲存」確認雲端同步，或清理瀏覽器資料後重試。')}
   // flush：清掉待儲存計時器，立即把舊月修改寫入雲端（用快照綁定舊月，避免切月後 pending 存檔錯存到新月或整個遺失）
   if(_autoSaveTimer){clearTimeout(_autoSaveTimer);_autoSaveTimer=null;}
-  if(typeof db!=='undefined'&&db){try{var _fSnap=JSON.parse(JSON.stringify(DATA));var _fb=db.batch();Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(oldMk).collection('stores').doc(sn);_fb.set(ref,{rows:_fSnap[sn],tombstones:_tombOfStore(sn),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});_fb.commit();}catch(e){}}
+  if(typeof db!=='undefined'&&db){try{var _fSnap=JSON.parse(JSON.stringify(DATA));var _fb=db.batch();Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(oldMk).collection('stores').doc(sn);_fb.set(ref,{rows:_fSnap[sn],tombstones:_tombOfStore(sn),srev:_getSrev(oldMk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});_fb.commit().catch(function(err){console.warn('切月 flush 失敗:',err);_reportErr('flush',oldMk+' '+(err.code||err.message||err),'chPeriod');setSyncSt('err','⚠️ '+oldMk+' 雲端同步失敗（本機已存）')});}catch(e){_reportErr('flush',String(e),'chPeriod')}}
 
   // Step 2: Switch to new month
   YEAR=+$('yr').value;MONTH=+$('mo').value;DAYS=mkDays(YEAR,MONTH);_tombLoad(YEAR+'-'+String(MONTH).padStart(2,'0'));
@@ -938,7 +939,7 @@ function chPeriod(){
       clearTimeout(timeout);
       if(!snap.empty){
         // 本機優先：以本機（含使用者最新修改/刪除，已存 localStorage）為基底，雲端僅補本機完全缺漏的列/格 → 修改與刪除一律保留，杜絕「改了又變回雲端舊值」
-        var _cin2=_cloudNewerThanLocal(newMk,snap);snap.forEach(function(doc){var sn=doc.id;_tombMergeCloud(sn,doc.data().tombstones);_loadStoreRows(sn,doc.data().rows,_cin2)});_tombSweep();
+        var _cin2=_cloudNewerThanLocal(newMk,snap);snap.forEach(function(doc){var sn=doc.id;_tombMergeCloud(sn,doc.data().tombstones);_loadStoreRows(sn,doc.data().rows,_cin2,doc.data().srev,newMk)});_tombSweep();
         setSyncSt('ok','☁️ 已載入');
         ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);
         _reRenderFinPane();
@@ -1012,7 +1013,7 @@ function editName(sec,ri){
   var target=match[ri];
   var newName=prompt('修改科目名稱：',target.name);
   if(!newName||newName.trim()===''||newName.trim()===target.name)return;
-  pushHistory();target.name=newName.trim();
+  pushHistory();_tombRemove(sn,sec,newName.trim());target.name=newName.trim();_bumpSrev(sn);
   buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
 }
 
@@ -1091,6 +1092,7 @@ function dropDrag(e,sec,ri){
   var newToIdx=rows.indexOf(fromMatch[ri>_dragRi?ri-1:ri]);
   if(ri>_dragRi)rows.splice(newToIdx+1,0,item);
   else rows.splice(newToIdx,0,item);
+  _bumpSrev(sn);
   buildTable(_dragSk);showSt(CUR);recalc(_dragSk);schedAutoSave();
   _dragRow=null;
 }
@@ -1382,8 +1384,8 @@ var taxEl=$('tax-summary-'+sk);
 if(taxEl){taxEl.innerHTML='<span style="color:#dc2626" title="月結加稅：未稅總額 $'+NFL(taxMonthly)+' × 5%">月稅 $'+NF(taxDue)+'</span> + <span style="color:#2563eb" title="逐筆含稅：含稅總額 $'+NFL(taxIncluded)+' 中已含稅">含稅 $'+NF(taxInside)+'</span> + <span style="color:#16a34a" title="有發票之免稅品項">免稅 $'+NF(taxExempt)+'</span>'+(taxReceipt>0?' + <span style="color:#92400e" title="收據類：無發票不可扣抵">收據 $'+NF(taxReceipt)+'</span>':'')+(taxUnmarked>0?' + <span style="color:#94a3b8" title="未標記稅別">未標 $'+NF(taxUnmarked)+'</span>':'')+'<span style="margin-left:8px;font-weight:900;color:var(--navy-700)">稅金合計 $'+NF(taxTotal)+'</span>'}}
 
 // ═══ ADD/SAVE/EXPORT ═══
-function addRow(){const sec=$('add-sec').value,nm=$('add-nm').value.trim();if(!nm){$('add-nm').focus();return}pushHistory();_tombRemove(SMAP[CUR],sec,nm);DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0});$('add-nm').value='';buildTable(CUR);showSt(CUR);const b=$('l-body');if(b)b.scrollTop=b.scrollHeight;schedAutoSave()}
-function batchAdd(){const lines=$('batch-inp').value.split('\n').map(s=>s.trim()).filter(Boolean);const sec=$('batch-sec').value;if(!lines.length)return;pushHistory();lines.forEach(nm=>{if(nm)DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0})});$('batch-inp').value='';toggleAddPan();buildTable(CUR);showSt(CUR);schedAutoSave()}
+function addRow(){const sec=$('add-sec').value,nm=$('add-nm').value.trim();if(!nm){$('add-nm').focus();return}pushHistory();_tombRemove(SMAP[CUR],sec,nm);DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0});_bumpSrev(SMAP[CUR]);$('add-nm').value='';buildTable(CUR);showSt(CUR);const b=$('l-body');if(b)b.scrollTop=b.scrollHeight;schedAutoSave()}
+function batchAdd(){const lines=$('batch-inp').value.split('\n').map(s=>s.trim()).filter(Boolean);const sec=$('batch-sec').value;if(!lines.length)return;pushHistory();lines.forEach(nm=>{if(nm)DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0})});_bumpSrev(SMAP[CUR]);$('batch-inp').value='';toggleAddPan();buildTable(CUR);showSt(CUR);schedAutoSave()}
 function toggleAddPan(){const p=$('add-pan');p.classList.toggle('show');if(p.classList.contains('show'))$('batch-inp').focus()}
 function clearStoreData(){const sn=SMAP[CUR];if(!confirm('⚠ 確定要清除「'+sn+'」所有數據？\n\n此操作會清空所有日期金額（廠商/科目名稱保留）。\n建議先按 💾 儲存備份。'))return;if(!confirm('🔴 二次確認：「'+sn+'」全部金額將歸零\n\n按「確定」執行清除'))return;pushHistory();for(const row of DATA[sn]){for(const k in row.daily)row.daily[k]=0;row.monthly=0}buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已清除，請儲存')}
 
@@ -1483,11 +1485,11 @@ function moveSec(sec,dir){
   pushHistory();
   var tmp=so[i];so[i]=so[j];so[j]=tmp;
   var out=[];so.forEach(function(s){rows.forEach(function(r){if(r.sec===s)out.push(r)})});
-  DATA[sn]=out;
+  DATA[sn]=out;_bumpSrev(sn);
   buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
   setSyncSt('warn','「'+sec+'」已'+(dir<0?'上移':'下移')+'，請儲存');
 }
-function delRow(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.filter(r=>r.sec===sec);if(ri>=match.length)return;const target=match[ri];if(!confirm('確定刪除「'+target.name+'」？'))return;pushHistory();const idx=rows.indexOf(target);if(idx>=0)rows.splice(idx,1);_tombAdd(sn,sec,target.name);buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已刪除，請儲存')}
+function delRow(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.filter(r=>r.sec===sec);if(ri>=match.length)return;const target=match[ri];if(!confirm('確定刪除「'+target.name+'」？'))return;pushHistory();const idx=rows.indexOf(target);if(idx>=0)rows.splice(idx,1);_tombAdd(sn,sec,target.name);_bumpSrev(sn);buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已刪除，請儲存')}
 function toggleTax(sec,ri){const sn=SMAP[CUR],rows=DATA[sn];const match=rows.filter(r=>r.sec===sec);if(ri>=match.length)return;const target=match[ri];const cycle=['N','T','F','I','R'];const cur=target.tax||'N';const next=cycle[(cycle.indexOf(cur)+1)%cycle.length];pushHistory();target.tax=next==='N'?'':next;buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave()}
 
 /* ─── Undo / Redo ─────────────────────────────────── */
@@ -1597,6 +1599,15 @@ function _tombRemove(sn,sec,name){delete _tomb[sn+'||'+sec+'||'+name];_tombPersi
 function _tombHas(sn,sec,name){return !!_tomb[sn+'||'+sec+'||'+name]}
 function _tombOfStore(sn){var o={};Object.keys(_tomb).forEach(function(k){if(k.indexOf(sn+'||')===0)o[k.slice(sn.length+2)]=_tomb[k]});return o}
 function _tombMergeCloud(sn,cloudTombs){if(!cloudTombs)return;Object.keys(cloudTombs).forEach(function(k){var full=sn+'||'+k;if(!_tomb[full]||cloudTombs[k]>_tomb[full])_tomb[full]=cloudTombs[k]});_tombPersist()}
+/* ═══ 結構版本號 srev（不依賴任何時鐘）═══
+   每次「結構性變更」（新增/刪除/改名/拖曳排序/移動類別）遞增。載入時比對本機 vs 雲端 srev：
+   - 雲端 srev 較大 → 其他裝置改過結構且比本機新 → 採用雲端結構（防陳舊裝置把舊結構倒退回雲端）
+   - 否則 → 本機結構為權威（保排序、保刪除）→ 根治「切月後刪除復活 / 排序跑回原位」*/
+function _srevKey(mk,sn){return 'fin_srev_'+mk+'_'+sn}
+function _getSrev(mk,sn){try{return +localStorage.getItem(_srevKey(mk,sn))||0}catch(e){return 0}}
+function _setSrev(mk,sn,v){try{localStorage.setItem(_srevKey(mk,sn),String(v))}catch(e){}}
+function _curMk(){return YEAR+'-'+String(MONTH).padStart(2,'0')}
+function _bumpSrev(sn){var mk=_curMk();var v=_getSrev(mk,sn)+1;_setSrev(mk,sn,v);return v}
 function _tombSweep(){var swept=false;Object.values(SMAP).forEach(function(sn){if(!DATA[sn])return;for(var i=DATA[sn].length-1;i>=0;i--){var r=DATA[sn][i];if(_tombHas(sn,r.sec,r.name)){DATA[sn].splice(i,1);swept=true}}});return swept}
 // ═══ 時間戳仲裁：防「陳舊裝置」以本機優先把舊資料倒退回雲端 ═══
 function _markLocalSaved(mk){try{localStorage.setItem('fin_savedAt_'+mk,String(Date.now()))}catch(e){}}
@@ -1605,19 +1616,39 @@ function _cloudNewerThanLocal(mk,snap){
   // 雲端任一店 updatedAt 晚於本機最後存檔 60 秒以上 → 有其他裝置在本機之後存過檔 → 本機視為陳舊
   var localTs=_localSavedAt(mk);if(!localTs)return true; // 本機從未存過 → 雲端為準
   var cloudMax=0;
-  snap.forEach(function(doc){var u=doc.data().updatedAt;var ms=u&&u.toMillis?u.toMillis():0;if(ms>cloudMax)cloudMax=ms});
+  // 用 savedAtClient（寫入端的 client 時鐘）比較，避免 Firestore 伺服器時鐘 vs 本機時鐘偏移造成誤判
+  // （同一台裝置離開/回到同月份時，兩者為同一時鐘 → 永不誤判為雲端較新）
+  snap.forEach(function(doc){var d=doc.data();var ms=d.savedAtClient||0;if(!ms){var u=d.updatedAt;ms=(u&&u.toMillis)?u.toMillis():0}if(ms>cloudMax)cloudMax=ms});
   return cloudMax>localTs+60000;
 }
-function _loadStoreRows(sn,cloudRows,cloudIsNewer){
-  // 統一載入決策：新鮮本機=本機優先(補缺)；陳舊本機=雲端基底+本機補缺（兩邊不丟、衝突以雲端為準）
+function _loadStoreRows(sn,cloudRows,cloudIsNewer,cloudSrev,mk){
+  /* ═══ 載入決策（build#56 重構）═══
+     ★結構主權原則：「哪些列存在、什麼順序」永遠以本機為權威（配合墓碑），雲端只能提供「金額/欄位值」。
+     修正 build#55 以前：雲端較新時整個陣列被雲端取代 → 本機的排序被打回、已刪列可能回來
+     （且觸發條件 _cloudNewerThanLocal 會因客戶端/伺服器時鐘偏移或本機存檔失敗而誤判 → 每次切月都復原）*/
   if(!cloudRows)return;
-  if(!DATA[sn]||!DATA[sn].length){DATA[sn]=JSON.parse(JSON.stringify(cloudRows)).filter(function(r){return !_tombHas(sn,r.sec,r.name)});return}
-  if(cloudIsNewer){
-    var localSnap=DATA[sn];
+  // 本機完全無資料 → 採用雲端（濾墓碑）
+  if(!DATA[sn]||!DATA[sn].length){DATA[sn]=JSON.parse(JSON.stringify(cloudRows)).filter(function(r){return !_tombHas(sn,r.sec,r.name)});if(cloudSrev)_setSrev(mk||_curMk(),sn,cloudSrev);return}
+  // ★結構仲裁（srev，不依賴時鐘）：雲端結構版本較新 → 其他裝置改過結構且比本機新 → 採用雲端結構順序
+  var localSrev=_getSrev(mk||_curMk(),sn);
+  if(cloudSrev&&cloudSrev>localSrev){
+    var _lsnap=DATA[sn];
     DATA[sn]=JSON.parse(JSON.stringify(cloudRows)).filter(function(r){return !_tombHas(sn,r.sec,r.name)});
-    _mergeRows(DATA[sn],localSnap,sn); // 本機獨有列/格補回（雲端有的格以雲端為準）
+    _mergeRows(DATA[sn],_lsnap,sn); // 本機獨有列/未同步格補回
+    _setSrev(mk||_curMk(),sn,cloudSrev);
+    return;
+  }
+  if(cloudIsNewer){
+    // 雲端金額較新但結構不比本機新：本機陣列維持不動（保排序、保刪除），僅逐列更新金額欄位；雲端獨有列補尾端
+    cloudRows.forEach(function(cr){
+      if(_tombHas(sn,cr.sec,cr.name))return; // 已刪列不補回
+      var lr=null;for(var i=0;i<DATA[sn].length;i++){if(DATA[sn][i].sec===cr.sec&&DATA[sn][i].name===cr.name){lr=DATA[sn][i];break}}
+      if(!lr){DATA[sn].push(JSON.parse(JSON.stringify(cr)));return}
+      if(cr.daily){if(!lr.daily)lr.daily={};Object.keys(cr.daily).forEach(function(d){lr.daily[d]=cr.daily[d]})}
+      ['pay','memo','term','notes','tax','noSum','ovr'].forEach(function(f){if(cr[f]!==undefined&&cr[f]!==null&&cr[f]!=='')lr[f]=JSON.parse(JSON.stringify(cr[f]))});
+    });
   }else{
-    _mergeRows(DATA[sn],cloudRows,sn); // 現行：本機優先
+    _mergeRows(DATA[sn],cloudRows,sn); // 本機優先：金額也以本機為準，雲端僅補從未填過的格
   }
 }
 function _mergeRows(target,source,sn){
@@ -1657,12 +1688,12 @@ function doSave(){
         ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);if(typeof _reRenderFinPane==='function')_reRenderFinPane();
       }
       var batch=db.batch();
-      Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
+      Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),srev:_getSrev(mk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
       batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步'));_markLocalSaved(mk);_dailySnapshot()}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
     }).catch(function(){
       // 讀取失敗（離線等）：本機已存，直接寫回避免卡住
       var batch=db.batch();
-      Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
+      Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),srev:_getSrev(mk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
       batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步');_markLocalSaved(mk);_dailySnapshot()}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
     });
   } else {
@@ -1865,7 +1896,7 @@ async function initData(){
         snap.forEach(doc=>{
           const sn=doc.id;
           _tombMergeCloud(sn,doc.data().tombstones);
-          _loadStoreRows(sn,doc.data().rows,_cin); // 時間戳仲裁：本機新鮮→本機優先；本機陳舊→雲端基底+本機補缺
+          _loadStoreRows(sn,doc.data().rows,_cin,doc.data().srev,key); // 仲裁：結構用srev、金額用時間戳
         });
         _tombSweep();
         setSyncSt('ok','☁️ 雲端已連線');
@@ -1977,7 +2008,7 @@ function _doBatchImport(months,mks,idx,okCount){
   try{localStorage.setItem('fin_v3_'+mk,JSON.stringify(md))}catch(e){}
   if(typeof db!=='undefined'&&db){
     var batch=db.batch();
-    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];if(md[sn]){var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:md[sn],tombstones:{},updatedAt:firebase.firestore.FieldValue.serverTimestamp()})}});
+    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];if(md[sn]){var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:md[sn],tombstones:{},savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})}});
     batch.commit().then(function(){console.log('✅ '+mk+' 已匯入（本機+雲端）');_doBatchImport(months,mks,idx+1,okCount+1)}).catch(function(err){
       if(confirm('⚠ '+mk+' 雲端寫入失敗：'+(err&&err.message||err)+'\n（本機已存）\n\n要繼續匯入下一個月嗎？')) _doBatchImport(months,mks,idx+1,okCount);
       else _doBatchImport(months,mks,mks.length,okCount);
