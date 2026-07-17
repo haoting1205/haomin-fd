@@ -796,7 +796,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:3,minor:9,patch:0,build:54,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:3,minor:9,patch:1,build:55,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -854,9 +854,10 @@ const CHANGELOG=[
 {build:51,version:'3.7.0',date:'2026-07-17',author:'Claude + Tim',summary:'★類別收合功能 + 移動按鈕修正到可視位置',changes:[{cat:'NEW',module:'UI',desc:'★類別收合/展開 — 點擊類別標題（如「▼ 人事費用」）即收合該類別所有科目列，只保留小計列顯示總額；再點展開。圖示 ▼(展開中)/▷(已收合)＋顯示收合科目數，狀態記憶本機、各店各類別獨立'},{cat:'FIX',module:'UI',desc:'★移動類別▲▼按鈕修正 — v3.6.0 按鈕誤置於表格最右端（水平捲動範圍外，畫面上看不到）。現移至類別標題文字旁，且整組標題+按鈕改為 sticky 黏在可視區左側，水平捲動時不再跑掉'}]},
 {build:52,version:'3.7.1',date:'2026-07-17',author:'Claude + Tim',summary:'★游標/滑鼠欄位高亮偏移一欄根治（15亮成16）',changes:[{cat:'FIX',module:'UI',desc:'★根治滑鼠與游標的「欄位高亮偏移一欄」（滑鼠在7/15、表頭亮7/16）— 根因：表頭「廠商/科目」為合併欄佔1個節點、資料列同位置佔2個節點，以欄序號跨列對位必偏移1欄。滑鼠hover與游標focus的欄高亮全部改為 data-day 屬性直接對位（與鍵盤導航同一套根治法），表頭日期同步標記 data-day，數學上不可能再錯位'}]},
 {build:53,version:'3.8.0',date:'2026-07-17',author:'Claude + Tim',summary:'★新增稅別「據」（收據）— 憑證分類＋進項防呆鎖定',changes:[{cat:'NEW',module:'TAX',desc:'★第五種稅別「據」（收據）— 供無統一發票的小規模廠商使用（黃褐色標籤）。稅別循環：?→月→免→含→據。月合計不加稅、稅務計算與免稅相同，憑證語意分開：免=有發票之免稅品項、據=僅收據無發票'},{cat:'NEW',module:'TAX',desc:'★進項防呆鎖定 — 標「據」的科目在稅務中心進項勾選清單自動鎖定（灰化不可勾＋「據·鎖定」標示），杜絕收據誤列進項扣抵；原已誤勾者改標「據」後自動解除'},{cat:'MOD',module:'TAX',desc:'流水帳底部稅務摘要新增「收據 $X」分類 — 憑證整理發票類/收據類一目瞭然'}]},
-{build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]}
+{build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
+{build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]}
 ];
-let clExpanded={54:true};
+let clExpanded={55:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -956,13 +957,22 @@ function chPeriod(){
   _reRenderFinPane();
 }
 
-// 切換月份後，若當前在三表 pane，自動重新渲染
+// 切換月份後，自動重新渲染當前所在的「月份相依」頁面（表驅動：新增頁籤時在此註冊即可，避免再漏）
+// 修正 build#55：原僅涵蓋 pl/bs/cf，導致停在 經營儀表板/稅務中心/商場對帳 時切月仍顯示「上一個月的數字」
+var FIN_RENDER={
+  'pane-pl':function(){renderPL()},
+  'pane-bs':function(){renderBS()},
+  'pane-cf':function(){renderCF()},
+  'pane-analysis':function(){renderAnalysis()},
+  'pane-tax':function(){renderTaxCenter()},
+  'pane-mall':function(){renderMallRecon()}
+  // pane-bp(系統藍圖)/pane-cl(版本紀錄) 與月份無關，不需重繪
+};
 function _reRenderFinPane(){
   var curPane=document.querySelector('.pane.active');
   if(!curPane)return;
-  if(curPane.id==='pane-pl')renderPL();
-  else if(curPane.id==='pane-bs')renderBS();
-  else if(curPane.id==='pane-cf')renderCF();
+  var fn=FIN_RENDER[curPane.id];
+  if(fn){try{fn()}catch(e){console.warn('重繪失敗 '+curPane.id,e);_reportErr('render',curPane.id+': '+(e.message||e),'_reRenderFinPane')}}
 }
 
 // ═══ BUILD TABLE ═══
