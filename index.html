@@ -796,7 +796,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:0,patch:0,build:56,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:0,patch:1,build:57,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -856,9 +856,10 @@ const CHANGELOG=[
 {build:53,version:'3.8.0',date:'2026-07-17',author:'Claude + Tim',summary:'★新增稅別「據」（收據）— 憑證分類＋進項防呆鎖定',changes:[{cat:'NEW',module:'TAX',desc:'★第五種稅別「據」（收據）— 供無統一發票的小規模廠商使用（黃褐色標籤）。稅別循環：?→月→免→含→據。月合計不加稅、稅務計算與免稅相同，憑證語意分開：免=有發票之免稅品項、據=僅收據無發票'},{cat:'NEW',module:'TAX',desc:'★進項防呆鎖定 — 標「據」的科目在稅務中心進項勾選清單自動鎖定（灰化不可勾＋「據·鎖定」標示），杜絕收據誤列進項扣抵；原已誤勾者改標「據」後自動解除'},{cat:'MOD',module:'TAX',desc:'流水帳底部稅務摘要新增「收據 $X」分類 — 憑證整理發票類/收據類一目瞭然'}]},
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
 {build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
-{build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]}
+{build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]},
+{build:57,version:'4.0.1',date:'2026-07-17',author:'Claude + Tim',summary:'★本機儲存空間管理 — 修復配額用盡（結構回退的元兇之一）',changes:[{cat:'FIX',module:'DATA',desc:'★移除每月資料的重複儲存 — 原本每次存檔同時寫入 fin_v3_{月份} 與完全重複的 fin_v3 副本（歷史遺留，4處），等於每月資料佔用雙倍空間。已全數移除（讀取端仍相容舊鍵）'},{cat:'NEW',module:'DATA',desc:'★空間不足自動修復 — 新增 _lsSafeSet：寫入失敗時自動清理僅保留最近4個月的本機快取並重試（雲端 finance/{月} 與每日快照完整保留，切到舊月會自動從雲端載回），不再直接失敗導致結構回退'},{cat:'NEW',module:'DATA',desc:'開機自動瘦身 — 啟動4秒後自動清理6個月前的本機月快取，避免長期累積'},{cat:'NEW',module:'SYSTEM',desc:'★用量檢視 — ?selftest=1 新增「本機儲存用量」：總用量/各系統佔用/財會月份快取清單＋手動清理鈕。⚠️架構事實：GitHub Pages 全系統共用網域 haoting1205.github.io，瀏覽器 localStorage 約5MB配額由 財會/人資/生管ERP/POS/員工APP 共同分享'}]}
 ];
-let clExpanded={56:true};
+let clExpanded={57:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -901,7 +902,7 @@ function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.disp
 function chPeriod(){
   // Step 1: 切換前只存本機（不覆蓋雲端，避免舊月在其他分頁的新資料被蓋）
   var oldMk=YEAR+'-'+String(MONTH).padStart(2,'0');
-  try{localStorage.setItem('fin_v3_'+oldMk,JSON.stringify(DATA));_markLocalSaved(oldMk)}catch(e){console.error('本機儲存失敗:',e);_reportErr('quota',oldMk+' localStorage: '+(e.name||e),'chPeriod');alert('⚠️ 本機儲存空間不足，'+oldMk+' 的變更可能無法保留。\n\n建議：按「💾 儲存」確認雲端同步，或清理瀏覽器資料後重試。')}
+  if(_lsSafeSet('fin_v3_'+oldMk,JSON.stringify(DATA))){_markLocalSaved(oldMk)}else{alert('⚠️ 本機儲存空間不足且自動清理後仍無法寫入。\n\n'+oldMk+' 的變更已排入雲端同步，但建議立即按「💾 儲存」確認。\n\n（全系統共用瀏覽器 5MB 配額，可於 ?selftest=1 查看用量）')}
   // flush：清掉待儲存計時器，立即把舊月修改寫入雲端（用快照綁定舊月，避免切月後 pending 存檔錯存到新月或整個遺失）
   if(_autoSaveTimer){clearTimeout(_autoSaveTimer);_autoSaveTimer=null;}
   if(typeof db!=='undefined'&&db){try{var _fSnap=JSON.parse(JSON.stringify(DATA));var _fb=db.batch();Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(oldMk).collection('stores').doc(sn);_fb.set(ref,{rows:_fSnap[sn],tombstones:_tombOfStore(sn),srev:_getSrev(oldMk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});_fb.commit().catch(function(err){console.warn('切月 flush 失敗:',err);_reportErr('flush',oldMk+' '+(err.code||err.message||err),'chPeriod');setSyncSt('err','⚠️ '+oldMk+' 雲端同步失敗（本機已存）')});}catch(e){_reportErr('flush',String(e),'chPeriod')}}
@@ -1599,6 +1600,42 @@ function _tombRemove(sn,sec,name){delete _tomb[sn+'||'+sec+'||'+name];_tombPersi
 function _tombHas(sn,sec,name){return !!_tomb[sn+'||'+sec+'||'+name]}
 function _tombOfStore(sn){var o={};Object.keys(_tomb).forEach(function(k){if(k.indexOf(sn+'||')===0)o[k.slice(sn.length+2)]=_tomb[k]});return o}
 function _tombMergeCloud(sn,cloudTombs){if(!cloudTombs)return;Object.keys(cloudTombs).forEach(function(k){var full=sn+'||'+k;if(!_tomb[full]||cloudTombs[k]>_tomb[full])_tomb[full]=cloudTombs[k]});_tombPersist()}
+/* ═══ 本機儲存空間管理（build#57）═══
+   ⚠️ 架構事實：GitHub Pages 全系統共用網域 haoting1205.github.io，localStorage 配額(約5MB)由
+   財會/人資/生管ERP/POS/員工APP 共同分享。故財會需自我約束用量，並在不足時自動修復。*/
+function _lsUsage(){
+  var total=0,by={};
+  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);var v=localStorage.getItem(k)||'';var sz=(k.length+v.length)*2;total+=sz;
+    var g=/^fin_|^fd_/.test(k)?'財會':(/^hr_|^hm_/.test(k)?'人資/APP':(/^erp_|^haoming/.test(k)?'生管ERP':(/^pos_/.test(k)?'POS':'其他')));
+    by[g]=(by[g]||0)+sz}}catch(e){}
+  return{total:total,by:by};
+}
+function _lsMonths(){var a=[];try{for(var i=0;i<localStorage.length;i++){var m=/^fin_v3_(\d{4}-\d{2})$/.exec(localStorage.key(i));if(m)a.push(m[1])}}catch(e){}return a.sort().reverse()}
+function _lsPruneMonths(keep){
+  // 只清「舊月份的本機快取」：雲端 finance/{月} 與每日快照仍完整保有，切到該月會自動從雲端載回
+  var months=_lsMonths(),drop=months.slice(keep),freed=0,dropped=[];
+  drop.forEach(function(mk){
+    var keys=['fin_v3_'+mk,'fin_savedAt_'+mk];
+    try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('fin_srev_'+mk+'_')===0)keys.push(k)}}catch(e){}
+    keys.forEach(function(k){var v=localStorage.getItem(k);if(v!==null){freed+=(k.length+v.length)*2;localStorage.removeItem(k)}});
+    dropped.push(mk); // 註：墓碑(fin_tomb_)極小且為刪除保護，永不清除
+  });
+  return{dropped:dropped,freed:freed};
+}
+function _lsSafeSet(k,v){
+  try{localStorage.setItem(k,v);return true}catch(e){
+    var p=_lsPruneMonths(4); // 空間不足 → 自動清理只保留最近4個月本機快取後重試
+    if(p.dropped.length){
+      try{localStorage.setItem(k,v);
+        console.warn('本機空間不足，已自動清理舊月快取（雲端完整保留）：'+p.dropped.join(', '));
+        setSyncSt('warn','已自動清理舊月快取 '+Math.round(p.freed/1024)+'KB');
+        return true;
+      }catch(e2){}
+    }
+    _reportErr('quota',k+' 寫入失敗: '+(e.name||e)+'｜用量'+Math.round(_lsUsage().total/1024)+'KB','_lsSafeSet');
+    return false;
+  }
+}
 /* ═══ 結構版本號 srev（不依賴任何時鐘）═══
    每次「結構性變更」（新增/刪除/改名/拖曳排序/移動類別）遞增。載入時比對本機 vs 雲端 srev：
    - 雲端 srev 較大 → 其他裝置改過結構且比本機新 → 採用雲端結構（防陳舊裝置把舊結構倒退回雲端）
@@ -1676,7 +1713,7 @@ function _mergeRows(target,source,sn){
 
 function doSave(){
   var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
-  try{localStorage.setItem('fin_v3_'+mk,JSON.stringify(DATA));localStorage.setItem('fin_v3',JSON.stringify(DATA));localStorage.setItem('fin_v3_last',mk)}catch(e){}
+  try{_lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));localStorage.setItem('fin_v3_last',mk)}catch(e){}
   if(typeof db!=='undefined'&&db){
     setSyncSt('sync','同步中…');
     // 讀-合併-寫：先抓雲端最新，把雲端有而本分頁沒有的非空格合併進來，再寫回 → 杜絕舊分頁覆蓋新資料
@@ -1684,7 +1721,7 @@ function doSave(){
       var merged=false;
       if(!snap.empty){snap.forEach(function(doc){var sn=doc.id;_tombMergeCloud(sn,doc.data().tombstones);if(DATA[sn]&&doc.data().rows){if(_mergeRows(DATA[sn],doc.data().rows,sn))merged=true}})}if(_tombSweep())merged=true;
       if(merged){
-        try{localStorage.setItem('fin_v3_'+mk,JSON.stringify(DATA));localStorage.setItem('fin_v3',JSON.stringify(DATA))}catch(e){}
+        _lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));
         ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);if(typeof _reRenderFinPane==='function')_reRenderFinPane();
       }
       var batch=db.batch();
@@ -1779,6 +1816,8 @@ function _checkNewVer(){
 setTimeout(_checkNewVer,5000);setInterval(_checkNewVer,600000);
 
 // ═══ 品質機制 4：健康檢查頁 — 網址加 ?selftest=1 自動跑七項自檢（部署後30秒驗證）═══
+// 開機自動瘦身：本機只留最近6個月快取（雲端完整保留），避免長期累積壓爆全系統共用配額
+setTimeout(function(){try{var p=_lsPruneMonths(6);if(p.dropped.length)console.log('🧹 已清理舊月本機快取（雲端保留）:',p.dropped.join(', '),Math.round(p.freed/1024)+'KB')}catch(e){}},4000);
 function _selfTest(){
   var R=[];
   function t(name,fn){try{var v=fn();R.push([name,v?'✅':'❌',v?'':'檢查失敗'])}catch(e){R.push([name,'❌',String(e.message||e).slice(0,80)])}}
@@ -1794,6 +1833,16 @@ function _selfTest(){
   html+='<h2 style="color:'+(pass===R.length?'#4ade80':'#f87171')+'">🩺 好洺財會系統自檢 '+pass+'/'+R.length+' 通過 · '+VER.full()+'</h2>';
   R.forEach(function(r){html+='<div style="padding:8px;border-bottom:1px solid #1e293b">'+r[1]+' '+r[0]+(r[2]?' — <span style="color:#f87171">'+r[2]+'</span>':'')+'</div>'});
   html+='<div style="margin-top:20px;color:#64748b">Auth 顯示 ❌ = Console 尚未啟用 Anonymous 登入（Rules 收緊前非必要）</div>';
+  try{
+    var u=_lsUsage(),ms=_lsMonths();
+    html+='<h3 style="margin-top:26px;color:#e2e8f0">💾 本機儲存用量（全系統共用約 5MB 配額）</h3>';
+    html+='<div style="padding:8px 0;color:'+(u.total>4000000?'#f87171':(u.total>3000000?'#fbbf24':'#4ade80'))+'">總用量 '+Math.round(u.total/1024)+' KB / 約 5120 KB</div>';
+    Object.keys(u.by).sort(function(a,b){return u.by[b]-u.by[a]}).forEach(function(g){
+      html+='<div style="padding:4px 0 4px 12px;color:#94a3b8">'+g+'：'+Math.round(u.by[g]/1024)+' KB</div>';
+    });
+    html+='<div style="padding:8px 0;color:#64748b">財會本機月份快取：'+(ms.length?ms.join(', '):'無')+'（開機自動只留最近6個月，雲端完整保留）</div>';
+    html+='<button onclick="var p=_lsPruneMonths(2);alert(p.dropped.length?(\'已清理 \'+p.dropped.join(\', \')+\'，釋放 \'+Math.round(p.freed/1024)+\' KB\'):\'無可清理的舊月份\');location.reload()" style="margin-top:8px;padding:8px 16px;background:#dc2626;color:#fff;border:none;border-radius:6px;cursor:pointer">🧹 立即清理（只留最近2個月本機快取）</button>';
+  }catch(e){}
   html+='<button onclick="location.href=location.pathname" style="margin-top:16px;padding:10px 24px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">關閉自檢</button></div>';
   var d=document.createElement('div');d.innerHTML=html;document.body.appendChild(d);
 }
@@ -1922,8 +1971,7 @@ initData();
 window.addEventListener('beforeunload',function(){
   var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
   try{
-    localStorage.setItem('fin_v3_'+mk,JSON.stringify(DATA));
-    localStorage.setItem('fin_v3',JSON.stringify(DATA));
+    _lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));
     localStorage.setItem('fin_v3_last',mk);
     var ap=document.querySelector('.pane.active');
     var pid=ap?ap.id.replace('pane-',''):'pl';
@@ -1938,8 +1986,7 @@ document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='hidden'){
     var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
     try{
-      localStorage.setItem('fin_v3_'+mk,JSON.stringify(DATA));
-      localStorage.setItem('fin_v3',JSON.stringify(DATA));
+      _lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));
       localStorage.setItem('fin_v3_last',mk);
     }catch(e){}
   }
