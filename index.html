@@ -571,6 +571,8 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
   <div class="nav-tab" onclick="sw('tax',this)" style="color:#dc2626"><span>🧾</span> 稅務中心</div>
   <div class="nav-tab" onclick="sw('analysis',this)" style="color:#0369a1"><span>📊</span> 經營儀表板</div>
   <div class="nav-tab" onclick="sw('mall',this)" style="color:#7c3aed"><span>🏬</span> 商場對帳</div>
+  <div class="nav-tab" onclick="sw('qty',this)" style="color:#0d9488"><span>📝</span> 數量錄入</div>
+  <div class="nav-tab cost-only" onclick="sw('recon',this)" style="color:#be123c"><span>🔍</span> 勾稽分析</div>
   <div class="nav-tab changelog" onclick="sw('cl',this)"><span>📜</span> 版本紀錄 <span class="nav-badge" id="nb-cl" style="background:rgba(245,158,11,.15);color:#f59e0b">v2.5.0</span></div>
 </div>
 
@@ -757,6 +759,9 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="mall-content">載入中...</div>
 </div>
 
+<div class="pane" id="pane-qty" style="display:none;overflow:auto"></div>
+<div class="pane" id="pane-recon" style="display:none;overflow:auto"></div>
+
 <div class="pane" id="pane-bp" style="display:none;overflow:auto">
 <div class="bp"><div class="page">
 <div class="pg-hdr"><div><div style="font-size:var(--fs-sm);color:#93c5fd;margin-bottom:5px;letter-spacing:.5px">好洺餐飲</div><h1>🏗️ 企業數位化整合系統架構藍圖</h1><p>Finance · ERP · CRM · POS 四大系統整合規劃</p></div><div style="text-align:right"><div class="v-badge">v1.0 規劃版</div><div style="font-size:var(--fs-sm);color:var(--slate-500);margin-top:8px">民國 115年 4月</div></div></div>
@@ -796,7 +801,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:0,patch:1,build:57,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:1,patch:0,build:58,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -857,6 +862,7 @@ const CHANGELOG=[
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
 {build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
 {build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]},
+{build:58,version:'4.1.0',date:'2026-07-26',author:'Claude + Tim',summary:'★新增銷售數量勾稽模組 — 紙本數量進系統，反推消失成本',changes:[{cat:'NEW',module:'CORE',desc:'★勾稽引擎 HaomingRecon v1.0.0 — 純函式、config 驅動通路規則（CHANNEL_RULES），新門市/加盟只改設定不動邏輯。核心：短少數量 = 取餐 − 銷售 − 報廢 − 員餐；消失成本 = 短少 × 單位成本'},{cat:'NEW',module:'UI',desc:'★數量錄入頁 — 鏡像紙本版面（臨辦4欄/櫃位3欄），行動端優先、大按鈕數字鍵盤；即時守恆防呆：銷售+報廢+員餐>取餐 立即紅框並阻擋儲存；店長覆核後鎖定（lockedAt）'},{cat:'NEW',module:'UI',desc:'★勾稽儀表板 — 理論營收 vs 財會實收差距、耗損金額、員工餐金額、消失成本、隱形損失合計；自動警示旗標（帳務差距>2%、報廢率>5%、短少率>2%）＋報廢/消失成本 TOP5 排行'},{cat:'NEW',module:'DATA',desc:'資料模型 — catalog/products（售價層）與 catalog/costs（成本層）實體隔離，Rules 才能只擋成本不擋售價；salesQty/{日期} 存數量、recon/{日期} 存勾稽結果並記錄 costRevUsed（成本會改版，事後重算會對不上原判斷）'},{cat:'NEW',module:'DATA',desc:'台積電通路對應 — 臨辦=臨辦現金+臨辦刷餐（可算短少）；櫃位=電子支付+夜早金額+自費早餐+紙本補單+夜早現金（無取餐數量，不算短少）'},{cat:'NEW',module:'SYSTEM',desc:'成本權限 _fdCost — 老闆恆真，其餘須 HR 開通 access.fdCost；無權限者勾稽頁顯示「權限不足」且不下載成本資料。⚠️目前為匿名驗證，前端隱藏非真資安，須配合 Cloud Function fdLogin + Custom Token 才能由 Firestore Rules 真正擋住'},{cat:'NEW',module:'DATA',desc:'品項主檔 90 項（含售價與單位成本）— 全菜單平均食材成本率 41.9%，10 項 ≥48%'},{cat:'DOC',module:'SYSTEM',desc:'已知限制：飯糰未計入6兩袋包材、未含3-5%製程損耗、櫃位無取餐數量故無法推算消失成本、紙本雞塊售價35需更正為30'}]},
 {build:57,version:'4.0.1',date:'2026-07-17',author:'Claude + Tim',summary:'★本機儲存空間管理 — 修復配額用盡（結構回退的元兇之一）',changes:[{cat:'FIX',module:'DATA',desc:'★移除每月資料的重複儲存 — 原本每次存檔同時寫入 fin_v3_{月份} 與完全重複的 fin_v3 副本（歷史遺留，4處），等於每月資料佔用雙倍空間。已全數移除（讀取端仍相容舊鍵）'},{cat:'NEW',module:'DATA',desc:'★空間不足自動修復 — 新增 _lsSafeSet：寫入失敗時自動清理僅保留最近4個月的本機快取並重試（雲端 finance/{月} 與每日快照完整保留，切到舊月會自動從雲端載回），不再直接失敗導致結構回退'},{cat:'NEW',module:'DATA',desc:'開機自動瘦身 — 啟動4秒後自動清理6個月前的本機月快取，避免長期累積'},{cat:'NEW',module:'SYSTEM',desc:'★用量檢視 — ?selftest=1 新增「本機儲存用量」：總用量/各系統佔用/財會月份快取清單＋手動清理鈕。⚠️架構事實：GitHub Pages 全系統共用網域 haoting1205.github.io，瀏覽器 localStorage 約5MB配額由 財會/人資/生管ERP/POS/員工APP 共同分享'}]}
 ];
 let clExpanded={57:true};
@@ -896,8 +902,8 @@ const NF=v=>v?Number(v).toLocaleString('zh-TW',{maximumFractionDigits:0}):'';con
 function $(id){return document.getElementById(id)}function setTxt(id,v,c){const e=$(id);if(e){e.textContent=v;if(c)e.style.color=c}}
 
 // ═══ NAV ═══
-const FIN_PANES=['pl','bs','cf','bp','cl','tax','analysis','mall'];
-function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'||id==='mall'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis();if(id==='mall')renderMallRecon();if(id==='pl')renderPL();if(id==='bs')renderBS();if(id==='cf')renderCF()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
+const FIN_PANES=['pl','bs','cf','bp','cl','tax','analysis','mall','qty','recon'];
+function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'||id==='mall'||id==='qty'||id==='recon'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis();if(id==='mall')renderMallRecon();if(id==='qty')HaomingReconUI.renderEntry();if(id==='recon')HaomingReconUI.renderDash();if(id==='pl')renderPL();if(id==='bs')renderBS();if(id==='cf')renderCF()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
 function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.display='none');const e=$('st-'+k);if(e)e.style.display='block'}
 function chPeriod(){
   // Step 1: 切換前只存本機（不覆蓋雲端，避免舊月在其他分頁的新資料被蓋）
@@ -1887,8 +1893,8 @@ function _fdShowLogin(){
       if(!a){err.textContent='帳號不存在';return}
       if(!verifyPass(p,a.pass)){err.textContent='密碼錯誤';return}
       if(!_fdAccessOf(a)){err.textContent='此帳號無財會系統權限（請洽管理者於人資系統開通）';return}
-      _fdUser={user:a.user,role:a.role};
-      try{localStorage.setItem('fd_session',JSON.stringify({user:a.user,role:a.role,ts:Date.now()}))}catch(e){}
+      _fdUser={user:a.user,role:a.role};window._fdCost=(a.role==='老闆')||!!(a.access&&a.access.fdCost);_fdApplyCostVis();
+      try{localStorage.setItem('fd_session',JSON.stringify({user:a.user,role:a.role,fdCost:window._fdCost,ts:Date.now()}))}catch(e){}
       ov.remove();
       console.log('🔓 登入: '+a.user+' ('+a.role+')');
     }).catch(function(e){err.textContent='驗證失敗：'+(e.code||e.message)});
@@ -1897,11 +1903,12 @@ function _fdShowLogin(){
   document.getElementById('fd-lg-p').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
   setTimeout(function(){document.getElementById('fd-lg-u').focus()},100);
 }
+function _fdApplyCostVis(){try{document.querySelectorAll('.cost-only').forEach(function(el){el.style.display=window._fdCost?'':'none'})}catch(e){}}
 function fdLogout(){try{localStorage.removeItem('fd_session')}catch(e){}location.reload()}
 // 啟動檢查：有效 session 直接放行；否則顯示登入
 (function(){
   var s=_fdSession();
-  if(s){_fdUser=s;console.log('🔓 Session: '+s.user)}
+  if(s){_fdUser=s;window._fdCost=(s.role==='老闆')||!!s.fdCost;_fdApplyCostVis();console.log('🔓 Session: '+s.user+' 成本權限='+window._fdCost)}
   else{
     // 等 DOM ready 後顯示登入遮罩
     if(document.body)_fdShowLogin();
@@ -3521,6 +3528,585 @@ function bootstrapFinDefaults(){
 bootstrapFinDefaults();
 
 // ═══ END Phase 2 模組 ═══
+</script>
+
+<!-- ═══════════ 勾稽模組 v1.0.0 ═══════════ -->
+<script>
+/*!
+ * HaomingRecon — 好洺餐飲 銷售數量勾稽引擎
+ * v1.0.0 | 2026-07-26
+ * 純函式模組，無 DOM 依賴、無副作用 → 可單元測試、可跨系統共用
+ * 用途：以紙本銷售數量推算理論營收，與財會實收勾稽，並反推消失成本
+ */
+(function (root) {
+  'use strict';
+
+  var SYS_VERSION = '1.0.0';           // 單一真實來源，勿於他處重複宣告
+
+  /* ─────────────────────────────────────────────────────────
+   * 通路規則（config 驅動；新門市/加盟只改此處，不動邏輯）
+   *   hasPick : 是否有「取餐/上架數量」→ 決定能否算短少與消失成本
+   *   accts   : 對應財會該通路的收入科目
+   * ───────────────────────────────────────────────────────── */
+  var CHANNEL_RULES = {
+    '台積電': {
+      '臨辦': { hasPick: true,  accts: ['臨辦現金', '臨辦刷餐'] },
+      '櫃位': { hasPick: false, accts: ['電子支付', '夜早金額', '自費早餐', '紙本補單', '夜早現金'] }
+    }
+    // '交大店': { ... }  ← 依相同格式擴充
+    // '總公司': { ... }
+  };
+
+  /* 警戒閾值（可由呼叫端覆寫） */
+  var THRESHOLD = {
+    scrapRate: 0.05,   // 報廢率 >5% 示警
+    diffRate: 0.02,    // 帳務差距 >2% 示警
+    shortRate: 0.02    // 短少率 >2% 示警
+  };
+
+  var n = function (v) { return (typeof v === 'number' && isFinite(v)) ? v : 0; };
+  var r2 = function (v) { return Math.round(v * 100) / 100; };
+
+  /* ─────────────────────────────────────────────────────────
+   * validate — 守恆防呆（錄入頁即時檢核用）
+   * 回傳 { ok, errors:[{idx,sku,msg}] }
+   * ───────────────────────────────────────────────────────── */
+  function validate(items, store) {
+    var rules = CHANNEL_RULES[store] || {};
+    var errors = [];
+    (items || []).forEach(function (it, i) {
+      var rule = rules[it.ch];
+      if (!rule) { errors.push({ idx: i, sku: it.sku, msg: '未定義的通路：' + it.ch }); return; }
+      var sold = n(it.sold), scrap = n(it.scrap), staff = n(it.staff), pick = n(it.pick);
+      if (sold < 0 || scrap < 0 || staff < 0 || pick < 0) {
+        errors.push({ idx: i, sku: it.sku, msg: '數量不可為負' });
+      }
+      if (rule.hasPick && (sold + scrap + staff) > pick) {
+        errors.push({
+          idx: i, sku: it.sku,
+          msg: '流向不守恆：銷售+報廢+員餐(' + (sold + scrap + staff) + ') > 取餐(' + pick + ')'
+        });
+      }
+    });
+    return { ok: errors.length === 0, errors: errors };
+  }
+
+  /* ─────────────────────────────────────────────────────────
+   * calc — 勾稽主引擎
+   * @param {Object} p
+   *   p.store    門市名（對應 CHANNEL_RULES）
+   *   p.date     YYYY-MM-DD
+   *   p.items    [{sku,ch,pick,sold,scrap,staff}]
+   *   p.products {sku:{name,cat,price}}
+   *   p.costs    {sku:{cost,costRev}}
+   *   p.income   {科目名:金額}  ← 財會當日各收入科目實收
+   *   p.threshold 可選，覆寫警戒值
+   * ───────────────────────────────────────────────────────── */
+  function calc(p) {
+    p = p || {};
+    var store = p.store, rules = CHANNEL_RULES[store];
+    if (!rules) throw new Error('HaomingRecon: 未定義門市通路規則 → ' + store);
+
+    var items = p.items || [], products = p.products || {},
+        costs = p.costs || {}, income = p.income || {},
+        TH = Object.assign({}, THRESHOLD, p.threshold || {});
+
+    var ch = {}, byItem = [], missingCost = [], costRevUsed = 0;
+
+    Object.keys(rules).forEach(function (name) {
+      ch[name] = {
+        theo: 0, actual: 0, diff: 0, diffRate: 0,
+        soldQty: 0, scrapQty: 0, scrapAmt: 0, staffQty: 0, staffAmt: 0,
+        shortQty: 0, shortAmt: 0, pickQty: 0,
+        hasPick: rules[name].hasPick, accts: rules[name].accts.slice()
+      };
+    });
+
+    /* 逐品項計算 */
+    items.forEach(function (it) {
+      var rule = rules[it.ch]; if (!rule) return;
+      var acc = ch[it.ch];
+      var prod = products[it.sku] || {};
+      var price = n(prod.price);
+      var cRec = costs[it.sku];
+      var cost = cRec ? n(cRec.cost) : null;
+      if (cRec && n(cRec.costRev) > costRevUsed) costRevUsed = n(cRec.costRev);
+      if (cost === null) missingCost.push(it.sku);
+
+      var sold = n(it.sold), scrap = n(it.scrap), staff = n(it.staff), pick = n(it.pick);
+      var short = rule.hasPick ? Math.max(0, pick - sold - scrap - staff) : 0;
+
+      var theo = sold * price;
+      var scrapAmt = scrap * n(cost);
+      var staffAmt = staff * n(cost);
+      var shortAmt = short * n(cost);
+
+      acc.theo += theo; acc.soldQty += sold; acc.pickQty += pick;
+      acc.scrapQty += scrap; acc.scrapAmt += scrapAmt;
+      acc.staffQty += staff; acc.staffAmt += staffAmt;
+      acc.shortQty += short; acc.shortAmt += shortAmt;
+
+      byItem.push({
+        sku: it.sku, ch: it.ch, name: prod.name || it.sku, cat: prod.cat || '',
+        price: price, cost: cost, sold: sold, pick: pick,
+        scrap: scrap, staff: staff, short: short,
+        theo: r2(theo), scrapAmt: r2(scrapAmt), staffAmt: r2(staffAmt), shortAmt: r2(shortAmt),
+        scrapRate: (sold + scrap) > 0 ? r2(scrap / (sold + scrap) * 1000) / 1000 : 0
+      });
+    });
+
+    /* 通路彙總 + 對財會實收 */
+    var flags = [], hiddenLoss = 0, totTheo = 0, totActual = 0;
+    Object.keys(ch).forEach(function (name) {
+      var a = ch[name];
+      a.actual = a.accts.reduce(function (s, k) { return s + n(income[k]); }, 0);
+      a.diff = a.actual - a.theo;
+      a.diffRate = a.theo > 0 ? a.diff / a.theo : 0;
+
+      ['theo', 'actual', 'diff', 'scrapAmt', 'staffAmt', 'shortAmt'].forEach(function (k) { a[k] = r2(a[k]); });
+      a.diffRate = r2(a.diffRate * 1000) / 1000;
+
+      hiddenLoss += a.scrapAmt + a.staffAmt + a.shortAmt;
+      totTheo += a.theo; totActual += a.actual;
+
+      if (Math.abs(a.diffRate) > TH.diffRate) {
+        flags.push({ lv: 'warn', ch: name, code: 'DIFF', msg: name + ' 帳務差距 ' + (a.diffRate * 100).toFixed(1) + '%（' + a.diff + ' 元）' });
+      }
+      var sr = (a.soldQty + a.scrapQty) > 0 ? a.scrapQty / (a.soldQty + a.scrapQty) : 0;
+      if (sr > TH.scrapRate) {
+        flags.push({ lv: 'warn', ch: name, code: 'SCRAP', msg: name + ' 報廢率 ' + (sr * 100).toFixed(1) + '%' });
+      }
+      if (a.hasPick && a.pickQty > 0) {
+        var shr = a.shortQty / a.pickQty;
+        if (shr > TH.shortRate) {
+          flags.push({ lv: 'alert', ch: name, code: 'SHORT', msg: name + ' 短少率 ' + (shr * 100).toFixed(1) + '%，消失成本 ' + a.shortAmt + ' 元' });
+        }
+      }
+    });
+
+    if (missingCost.length) {
+      flags.push({ lv: 'alert', code: 'NOCOST', msg: '缺單位成本 ' + missingCost.length + ' 項，耗損/消失成本低估：' + missingCost.slice(0, 5).join(',') });
+    }
+
+    /* 排行：指出該查哪個品項 */
+    var topScrap = byItem.filter(function (x) { return x.scrapAmt > 0; })
+                         .sort(function (a, b) { return b.scrapAmt - a.scrapAmt; }).slice(0, 5);
+    var topShort = byItem.filter(function (x) { return x.shortAmt > 0; })
+                         .sort(function (a, b) { return b.shortAmt - a.shortAmt; }).slice(0, 5);
+
+    return {
+      engine: SYS_VERSION,
+      store: store, date: p.date || null,
+      costRevUsed: costRevUsed,
+      ch: ch,
+      total: {
+        theo: r2(totTheo), actual: r2(totActual), diff: r2(totActual - totTheo),
+        scrapAmt: r2(Object.keys(ch).reduce(function (s, k) { return s + ch[k].scrapAmt; }, 0)),
+        staffAmt: r2(Object.keys(ch).reduce(function (s, k) { return s + ch[k].staffAmt; }, 0)),
+        shortAmt: r2(Object.keys(ch).reduce(function (s, k) { return s + ch[k].shortAmt; }, 0)),
+        hiddenLoss: r2(hiddenLoss)
+      },
+      topScrap: topScrap, topShort: topShort,
+      byItem: byItem, flags: flags, missingCost: missingCost,
+      calcAt: new Date().toISOString()
+    };
+  }
+
+  root.HaomingRecon = {
+    VERSION: SYS_VERSION,
+    CHANNEL_RULES: CHANNEL_RULES,
+    THRESHOLD: THRESHOLD,
+    validate: validate,
+    calc: calc
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+if (typeof module !== 'undefined' && module.exports) module.exports = globalThis.HaomingRecon;
+
+</script>
+<script>
+/*!
+ * HaomingReconUI — 數量錄入頁 + 勾稽儀表板
+ * v1.0.0 | 2026-07-26
+ * 相依：HaomingRecon（勾稽引擎）、firebase(db)、_fdCost（成本權限旗標）
+ */
+(function (W) {
+  'use strict';
+  var UI_VERSION = '1.0.0';
+
+  var S = {                       // 模組狀態
+    store: '台積電', date: '', ch: '臨辦',
+    products: {}, costs: {}, qty: {}, locked: false, loaded: false
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
+  var NF = function (v) { return Number(v || 0).toLocaleString('zh-TW', { maximumFractionDigits: 0 }); };
+  var NF1 = function (v) { return Number(v || 0).toLocaleString('zh-TW', { maximumFractionDigits: 1 }); };
+  var today = function () { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  var ymOf = function (d) { return (d || '').slice(0, 7); };
+  var hasCost = function () { return typeof W._fdCost !== 'undefined' ? !!W._fdCost : true; };
+
+  /* ═══ 資料載入 ═══════════════════════════════════════════ */
+  function loadCatalog(cb) {
+    if (S.loaded) { cb(); return; }
+    if (!W.db) { cb(new Error('雲端未連線')); return; }
+    W.db.collection('catalog').doc('products').get().then(function (d) {
+      var list = (d.exists && d.data().items) || [];
+      list.forEach(function (p) { S.products[p.sku] = p; });
+      if (!hasCost()) { S.loaded = true; cb(); return; }   // 無成本權限就不撈成本
+      return W.db.collection('catalog').doc('costs').get().then(function (c) {
+        var cl = (c.exists && c.data().items) || [];
+        cl.forEach(function (x) { S.costs[x.sku] = x; });
+        S.loaded = true; cb();
+      });
+    }).catch(function (e) { cb(e); });
+  }
+
+  function qtyRef() {
+    return W.db.collection('finance').doc(ymOf(S.date))
+      .collection('stores').doc(S.store)
+      .collection('salesQty').doc(S.date);
+  }
+
+  function loadQty(cb) {
+    S.qty = {}; S.locked = false;
+    if (!W.db) { cb(); return; }
+    qtyRef().get().then(function (d) {
+      if (d.exists) {
+        var v = d.data();
+        (v.items || []).forEach(function (it) { S.qty[it.ch + '|' + it.sku] = it; });
+        S.locked = !!v.lockedAt;
+      }
+      cb();
+    }).catch(function () { cb(); });
+  }
+
+  /* ═══ 錄入頁 ═════════════════════════════════════════════ */
+  function rule() { return (W.HaomingRecon.CHANNEL_RULES[S.store] || {})[S.ch] || { hasPick: false }; }
+
+  function renderEntry() {
+    var host = $('pane-qty'); if (!host) return;
+    if (!S.date) S.date = today();
+    host.innerHTML = '<div style="padding:20px;color:#64748b">載入中…</div>';
+
+    loadCatalog(function (err) {
+      if (err) { host.innerHTML = '<div style="padding:20px;color:#dc2626">載入失敗：' + esc(err.message) + '</div>'; return; }
+      loadQty(function () { paintEntry(); });
+    });
+  }
+
+  function paintEntry() {
+    var host = $('pane-qty'); var r = rule(); var hp = r.hasPick;
+    var chs = Object.keys(W.HaomingRecon.CHANNEL_RULES[S.store] || {});
+
+    var h = '<div style="padding:14px 16px;max-width:1100px;margin:0 auto">';
+    /* 控制列 */
+    h += '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">'
+      + '<b style="font-size:18px">📝 銷售數量錄入</b>'
+      + '<input type="date" id="rq-date" value="' + S.date + '" style="padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
+      + '<select id="rq-store" style="padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
+      + Object.keys(W.HaomingRecon.CHANNEL_RULES).map(function (s) { return '<option' + (s === S.store ? ' selected' : '') + '>' + esc(s) + '</option>'; }).join('')
+      + '</select>';
+    if (S.locked) h += '<span style="background:#fee2e2;color:#b91c1c;padding:6px 12px;border-radius:20px;font-size:13px;font-weight:700">🔒 已覆核鎖定</span>';
+    h += '</div>';
+
+    /* 通路切換 */
+    h += '<div style="display:flex;gap:8px;margin-bottom:12px">';
+    chs.forEach(function (c) {
+      var on = c === S.ch;
+      h += '<button onclick="HaomingReconUI.setCh(\'' + c + '\')" style="flex:1;padding:12px;border:2px solid ' + (on ? '#1d4ed8' : '#e2e8f0') + ';background:' + (on ? '#1d4ed8' : '#fff') + ';color:' + (on ? '#fff' : '#334155') + ';border-radius:10px;font-size:16px;font-weight:800;cursor:pointer">' + esc(c) + '</button>';
+    });
+    h += '</div>';
+
+    h += '<div style="font-size:12px;color:#64748b;margin-bottom:8px">'
+      + (hp ? '此通路需填「取餐數量」，系統會自動計算短少：取餐 − 銷售 − 報廢 − 員餐' : '此通路無取餐數量，不計算短少')
+      + '</div>';
+
+    /* 表格 */
+    h += '<div style="overflow:auto;border:1px solid #e2e8f0;border-radius:10px">'
+      + '<table id="rq-tb" style="width:100%;border-collapse:separate;border-spacing:0;font-size:15px">'
+      + '<thead><tr style="background:#0f172a;color:#fff">'
+      + '<th style="padding:10px;text-align:left;position:sticky;left:0;background:#0f172a;min-width:130px">品項</th>'
+      + '<th style="padding:10px;width:60px">售價</th>'
+      + (hp ? '<th style="padding:10px;width:80px">取餐</th>' : '')
+      + '<th style="padding:10px;width:80px">銷售</th>'
+      + '<th style="padding:10px;width:80px">報廢</th>'
+      + '<th style="padding:10px;width:80px">員餐</th>'
+      + (hp ? '<th style="padding:10px;width:70px">短少</th>' : '')
+      + '</tr></thead><tbody>';
+
+    var cat = null, list = Object.keys(S.products).map(function (k) { return S.products[k]; })
+      .filter(function (p) { return p.active !== false; });
+
+    list.forEach(function (p) {
+      if (p.cat !== cat) {
+        cat = p.cat;
+        h += '<tr><td colspan="' + (hp ? 7 : 5) + '" style="background:#e0f2fe;font-weight:800;padding:8px 10px;color:#0c4a6e">' + esc(cat) + '</td></tr>';
+      }
+      var k = S.ch + '|' + p.sku, v = S.qty[k] || {};
+      var dis = S.locked ? ' disabled' : '';
+      var ic = 'width:100%;padding:9px 4px;border:1.5px solid #cbd5e1;border-radius:7px;text-align:center;font-size:17px;box-sizing:border-box';
+      h += '<tr data-sku="' + p.sku + '">'
+        + '<td style="padding:6px 10px;position:sticky;left:0;background:#fff;border-bottom:1px solid #f1f5f9">' + esc(p.name) + '</td>'
+        + '<td style="text-align:center;color:#64748b;border-bottom:1px solid #f1f5f9">' + p.price + '</td>';
+      if (hp) h += '<td style="padding:4px;border-bottom:1px solid #f1f5f9"><input type="number" inputmode="numeric" min="0" data-f="pick" value="' + (v.pick != null ? v.pick : '') + '" style="' + ic + '"' + dis + '></td>';
+      ['sold', 'scrap', 'staff'].forEach(function (f) {
+        h += '<td style="padding:4px;border-bottom:1px solid #f1f5f9"><input type="number" inputmode="numeric" min="0" data-f="' + f + '" value="' + (v[f] != null ? v[f] : '') + '" style="' + ic + '"' + dis + '></td>';
+      });
+      if (hp) h += '<td class="rq-short" style="text-align:center;font-weight:800;border-bottom:1px solid #f1f5f9">—</td>';
+      h += '</tr>';
+    });
+    h += '</tbody></table></div>';
+
+    /* 摘要 + 動作 */
+    h += '<div id="rq-sum" style="margin-top:12px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;font-size:15px"></div>';
+    h += '<div id="rq-err" style="margin-top:8px;color:#b91c1c;font-size:14px;font-weight:700"></div>';
+    h += '<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">'
+      + '<button onclick="HaomingReconUI.save(0)" style="flex:1;min-width:140px;padding:14px;background:#1d4ed8;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:800;cursor:pointer"' + (S.locked ? ' disabled' : '') + '>💾 儲存</button>'
+      + '<button onclick="HaomingReconUI.save(1)" style="flex:1;min-width:140px;padding:14px;background:#059669;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:800;cursor:pointer"' + (S.locked ? ' disabled' : '') + '>✅ 店長覆核並鎖定</button>'
+      + '</div></div>';
+
+    host.innerHTML = h;
+
+    host.querySelectorAll('input[type=number]').forEach(function (el) {
+      el.addEventListener('input', recalcEntry);
+      el.addEventListener('focus', function () { el.select(); });
+    });
+    $('rq-date').addEventListener('change', function () { S.date = this.value; renderEntry(); });
+    $('rq-store').addEventListener('change', function () { S.store = this.value; S.ch = Object.keys(W.HaomingRecon.CHANNEL_RULES[S.store])[0]; renderEntry(); });
+    recalcEntry();
+  }
+
+  function collect() {
+    var out = [], hp = rule().hasPick;
+    document.querySelectorAll('#rq-tb tbody tr[data-sku]').forEach(function (tr) {
+      var o = { sku: tr.getAttribute('data-sku'), ch: S.ch };
+      var any = false;
+      tr.querySelectorAll('input[data-f]').forEach(function (i) {
+        var v = i.value === '' ? null : Number(i.value);
+        if (v != null) { o[i.getAttribute('data-f')] = v; any = true; }
+      });
+      if (any) { if (hp && o.pick == null) o.pick = 0; out.push(o); }
+    });
+    return out;
+  }
+
+  function recalcEntry() {
+    var hp = rule().hasPick, items = collect();
+    var v = W.HaomingRecon.validate(items, S.store);
+    var bad = {}; v.errors.forEach(function (e) { bad[e.sku] = e.msg; });
+
+    var tSold = 0, tScrap = 0, tStaff = 0, tShort = 0, tTheo = 0;
+    document.querySelectorAll('#rq-tb tbody tr[data-sku]').forEach(function (tr) {
+      var sku = tr.getAttribute('data-sku'), p = S.products[sku] || {};
+      var g = function (f) { var e = tr.querySelector('input[data-f=' + f + ']'); return e && e.value !== '' ? Number(e.value) : 0; };
+      var sold = g('sold'), scrap = g('scrap'), staff = g('staff'), pick = hp ? g('pick') : 0;
+      var err = bad[sku];
+      tr.querySelectorAll('input[data-f]').forEach(function (i) { i.style.borderColor = err ? '#dc2626' : '#cbd5e1'; });
+      tr.style.background = err ? '#fef2f2' : '';
+      if (hp) {
+        var sc = tr.querySelector('.rq-short');
+        var sh = Math.max(0, pick - sold - scrap - staff);
+        if (sc) {
+          var show = (pick || sold || scrap || staff);
+          sc.textContent = show ? sh : '—';
+          sc.style.color = sh > 0 ? '#dc2626' : '#94a3b8';
+        }
+        tShort += sh;
+      }
+      tSold += sold; tScrap += scrap; tStaff += staff; tTheo += sold * (p.price || 0);
+    });
+
+    var s = $('rq-sum');
+    if (s) {
+      s.innerHTML = '<div style="display:flex;gap:20px;flex-wrap:wrap">'
+        + '<div><span style="color:#64748b">銷售</span> <b style="font-size:19px">' + NF(tSold) + '</b> 份</div>'
+        + '<div><span style="color:#64748b">報廢</span> <b style="font-size:19px;color:#ea580c">' + NF(tScrap) + '</b></div>'
+        + '<div><span style="color:#64748b">員餐檢體</span> <b style="font-size:19px">' + NF(tStaff) + '</b></div>'
+        + (rule().hasPick ? '<div><span style="color:#64748b">短少</span> <b style="font-size:19px;color:' + (tShort > 0 ? '#dc2626' : '#059669') + '">' + NF(tShort) + '</b></div>' : '')
+        + '<div style="margin-left:auto"><span style="color:#64748b">理論營收</span> <b style="font-size:21px;color:#1d4ed8">$' + NF(tTheo) + '</b></div>'
+        + '</div>';
+    }
+    var e = $('rq-err');
+    if (e) e.innerHTML = v.ok ? '' : '⚠ ' + v.errors.length + ' 筆流向不守恆（紅框處）：' + esc(v.errors[0].msg);
+    return v;
+  }
+
+  function save(lock) {
+    var v = recalcEntry();
+    if (!v.ok) { alert('無法儲存：有 ' + v.errors.length + ' 筆數量不守恆，請先修正紅框品項。\n\n' + v.errors[0].msg); return; }
+    if (lock && !confirm('覆核後將鎖定，店員無法再修改。確定？')) return;
+    if (!W.db) { alert('雲端未連線，無法儲存'); return; }
+
+    var items = collect();
+    /* 保留另一通路已存在的資料，只覆寫目前通路 */
+    Object.keys(S.qty).forEach(function (k) { if (k.indexOf(S.ch + '|') !== 0) items.push(S.qty[k]); });
+
+    var payload = {
+      store: S.store, date: S.date, items: items,
+      srev: (Date.now()),
+      filledBy: (W._fdUser && W._fdUser.user) || '',
+      updatedAt: new Date().toISOString()
+    };
+    if (lock) { payload.lockedAt = new Date().toISOString(); payload.approvedBy = (W._fdUser && W._fdUser.user) || ''; }
+
+    qtyRef().set(payload, { merge: true }).then(function () {
+      /* 稽核軌跡 */
+      try {
+        W.db.collection('finance').doc(ymOf(S.date)).collection('stores').doc(S.store)
+          .collection('auditLog').add({
+            act: lock ? 'LOCK' : 'SAVE', date: S.date, ch: S.ch,
+            by: (W._fdUser && W._fdUser.user) || '', at: new Date().toISOString(), cnt: items.length
+          });
+      } catch (e) {}
+      alert(lock ? '✅ 已覆核鎖定' : '✅ 已儲存');
+      renderEntry();
+    }).catch(function (e) { alert('儲存失敗：' + (e.code || e.message)); });
+  }
+
+  /* ═══ 勾稽儀表板 ═════════════════════════════════════════ */
+  function renderDash() {
+    var host = $('pane-recon'); if (!host) return;
+    if (!hasCost()) {
+      host.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b"><div style="font-size:44px">🔒</div><div style="font-size:17px;font-weight:700;margin-top:10px">權限不足</div><div style="font-size:14px;margin-top:6px">成本與勾稽資料僅限老闆／財會人員檢視</div></div>';
+      return;
+    }
+    if (!S.date) S.date = today();
+    host.innerHTML = '<div style="padding:20px;color:#64748b">計算中…</div>';
+
+    loadCatalog(function (err) {
+      if (err) { host.innerHTML = '<div style="padding:20px;color:#dc2626">' + esc(err.message) + '</div>'; return; }
+      loadQty(function () {
+        loadIncome(function (income) { paintDash(income); });
+      });
+    });
+  }
+
+  /* 由財會月份文件取當日各收入科目金額 */
+  function loadIncome(cb) {
+    if (!W.db) { cb({}); return; }
+    var day = String(Number(S.date.slice(8, 10)));
+    W.db.collection('finance').doc(ymOf(S.date)).collection('stores').doc(S.store).get()
+      .then(function (d) {
+        var inc = {};
+        if (d.exists) {
+          (d.data().rows || []).forEach(function (r) {
+            if (r && r.sec === '收入' && r.daily) inc[r.name] = Number(r.daily[day] || 0);
+          });
+        }
+        cb(inc);
+      }).catch(function () { cb({}); });
+  }
+
+  function paintDash(income) {
+    var items = Object.keys(S.qty).map(function (k) { return S.qty[k]; });
+    var res;
+    try {
+      res = W.HaomingRecon.calc({
+        store: S.store, date: S.date, items: items,
+        products: S.products, costs: S.costs, income: income
+      });
+    } catch (e) {
+      $('pane-recon').innerHTML = '<div style="padding:20px;color:#dc2626">' + esc(e.message) + '</div>'; return;
+    }
+
+    var card = function (t, v, c, sub) {
+      return '<div style="flex:1;min-width:165px;background:#fff;border:1px solid #e2e8f0;border-left:4px solid ' + c + ';border-radius:10px;padding:13px 15px">'
+        + '<div style="font-size:12px;color:#64748b;font-weight:700">' + t + '</div>'
+        + '<div style="font-size:25px;font-weight:900;color:' + c + ';margin-top:3px">' + v + '</div>'
+        + (sub ? '<div style="font-size:11px;color:#94a3b8;margin-top:2px">' + sub + '</div>' : '') + '</div>';
+    };
+
+    var T = res.total;
+    var diffC = Math.abs(T.diff) < 1 ? '#059669' : (T.diff < 0 ? '#dc2626' : '#d97706');
+
+    var h = '<div style="padding:14px 16px;max-width:1200px;margin:0 auto">';
+    h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">'
+      + '<b style="font-size:18px">🔍 勾稽分析</b>'
+      + '<input type="date" id="rd-date" value="' + S.date + '" style="padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
+      + '<span style="color:#64748b;font-size:13px">' + esc(S.store) + '</span></div>';
+
+    h += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'
+      + card('理論營收', '$' + NF(T.theo), '#1d4ed8', '銷售數量 × 售價')
+      + card('財會實收', '$' + NF(T.actual), '#0891b2', '收入科目加總')
+      + card('帳務差距', (T.diff >= 0 ? '+' : '') + '$' + NF(T.diff), diffC, T.theo ? (T.diff / T.theo * 100).toFixed(1) + '%' : '')
+      + card('耗損金額', '$' + NF1(T.scrapAmt), '#ea580c', '報廢 × 成本')
+      + card('員工餐', '$' + NF1(T.staffAmt), '#7c3aed', '員餐檢體 × 成本')
+      + card('消失成本', '$' + NF1(T.shortAmt), '#dc2626', '短少 × 成本（僅臨辦）')
+      + '</div>';
+
+    h += '<div style="background:#fef2f2;border:2px solid #fca5a5;border-radius:10px;padding:14px 16px;margin-bottom:14px">'
+      + '<div style="font-size:13px;color:#7f1d1d;font-weight:800">當日隱形損失合計</div>'
+      + '<div style="font-size:32px;font-weight:900;color:#b91c1c">$' + NF1(T.hiddenLoss) + '</div>'
+      + '<div style="font-size:12px;color:#991b1b">耗損 + 員工餐 + 消失成本</div></div>';
+
+    /* 警示 */
+    if (res.flags.length) {
+      h += '<div style="margin-bottom:14px">';
+      res.flags.forEach(function (f) {
+        var al = f.lv === 'alert';
+        h += '<div style="background:' + (al ? '#fee2e2' : '#fef9c3') + ';border-left:4px solid ' + (al ? '#dc2626' : '#ca8a04') + ';padding:9px 13px;border-radius:7px;margin-bottom:6px;font-size:14px;color:' + (al ? '#991b1b' : '#854d0e') + ';font-weight:600">'
+          + (al ? '🔴 ' : '🟡 ') + esc(f.msg) + '</div>';
+      });
+      h += '</div>';
+    }
+
+    /* 通路明細 */
+    h += '<table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px">'
+      + '<thead><tr style="background:#0f172a;color:#fff"><th style="padding:9px;text-align:left">通路</th><th style="padding:9px">理論營收</th><th style="padding:9px">實收</th><th style="padding:9px">差距</th><th style="padding:9px">報廢</th><th style="padding:9px">員餐</th><th style="padding:9px">短少</th><th style="padding:9px">消失成本</th></tr></thead><tbody>';
+    Object.keys(res.ch).forEach(function (name) {
+      var a = res.ch[name];
+      h += '<tr style="border-bottom:1px solid #e2e8f0">'
+        + '<td style="padding:9px;font-weight:800">' + esc(name) + '</td>'
+        + '<td style="padding:9px;text-align:right">$' + NF(a.theo) + '</td>'
+        + '<td style="padding:9px;text-align:right">$' + NF(a.actual) + '</td>'
+        + '<td style="padding:9px;text-align:right;font-weight:800;color:' + (Math.abs(a.diff) < 1 ? '#059669' : '#dc2626') + '">' + (a.diff >= 0 ? '+' : '') + NF(a.diff) + '</td>'
+        + '<td style="padding:9px;text-align:right">' + a.scrapQty + '</td>'
+        + '<td style="padding:9px;text-align:right">' + a.staffQty + '</td>'
+        + '<td style="padding:9px;text-align:right">' + (a.hasPick ? a.shortQty : '—') + '</td>'
+        + '<td style="padding:9px;text-align:right;color:#dc2626;font-weight:800">' + (a.hasPick ? '$' + NF1(a.shortAmt) : '—') + '</td></tr>';
+    });
+    h += '</tbody></table>';
+
+    /* TOP5 */
+    var top = function (title, arr, key, color) {
+      if (!arr.length) return '';
+      var s = '<div style="flex:1;min-width:280px"><div style="font-weight:800;margin-bottom:6px;color:' + color + '">' + title + '</div><table style="width:100%;font-size:13px;border-collapse:collapse">';
+      arr.forEach(function (x) {
+        s += '<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:6px">' + esc(x.name) + '<span style="color:#94a3b8;font-size:11px"> ' + esc(x.ch) + '</span></td>'
+          + '<td style="padding:6px;text-align:right">' + (key === 'scrapAmt' ? x.scrap : x.short) + ' 份</td>'
+          + '<td style="padding:6px;text-align:right;font-weight:800;color:' + color + '">$' + NF1(x[key]) + '</td></tr>';
+      });
+      return s + '</table></div>';
+    };
+    h += '<div style="display:flex;gap:20px;flex-wrap:wrap">'
+      + top('🔥 報廢金額 TOP5', res.topScrap, 'scrapAmt', '#ea580c')
+      + top('❗ 消失成本 TOP5', res.topShort, 'shortAmt', '#dc2626') + '</div>';
+
+    h += '<div style="margin-top:16px;font-size:11px;color:#94a3b8">引擎 v' + res.engine + '｜成本版本 ' + res.costRevUsed + '｜計算於 ' + res.calcAt.slice(0, 19).replace('T', ' ') + '</div>';
+    h += '</div>';
+
+    $('pane-recon').innerHTML = h;
+    $('rd-date').addEventListener('change', function () { S.date = this.value; renderDash(); });
+
+    /* 落地留痕（成本會改版，事後重算會對不上，必須存當下結果） */
+    try {
+      W.db.collection('finance').doc(ymOf(S.date)).collection('stores').doc(S.store)
+        .collection('recon').doc(S.date).set(res, { merge: true });
+    } catch (e) {}
+  }
+
+  W.HaomingReconUI = {
+    VERSION: UI_VERSION,
+    state: S,
+    renderEntry: renderEntry,
+    renderDash: renderDash,
+    save: save,
+    setCh: function (c) { S.ch = c; paintEntry(); }
+  };
+})(window);
+
 </script>
 </body>
 </html>
