@@ -801,7 +801,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:2,patch:0,build:61,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:3,patch:0,build:62,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -862,6 +862,7 @@ const CHANGELOG=[
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
 {build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
 {build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]},
+{build:62,version:'4.3.0',date:'2026-07-27',author:'Claude + Tim',summary:'數量錄入長表格可讀性 —— 類別歸併、售價排序、表頭與品項欄鎖定',changes:[{cat:'FIX',module:'UI',desc:'★同一類別被拆成兩塊：品項主檔是陸續新增的陣列（蛋餅後來補了6個口味、荷包蛋補在最尾端），原本照陣列順序渲染，導致「蛋餅」「點心」各出現兩次。改為先依類別分組再渲染，類別順序與紙本銷售表一致（手作飯糰→虎咬豬→燒餅→蛋餅→河粉蛋餅→蔥油餅→炒麵→中式小點→點心→飲品），降低對照轉錄的出錯率'},{cat:'NEW',module:'UI',desc:'類別內品項改依售價由小到大排序（同價再依品名），與紙本閱讀習慣一致'},{cat:'NEW',module:'UI',desc:'表頭列鎖定（sticky top）—— 往下捲動時「取餐/銷售/員餐檢體/報廢」欄位名稱仍可見，不會不知道正在填哪一欄'},{cat:'NEW',module:'UI',desc:'類別列黏在表頭正下方 —— 捲到哪一類就顯示哪一類'},{cat:'NEW',module:'UI',desc:'品項欄雙向鎖定（左右捲動鎖左、上下捲動表頭鎖上），長表格不會迷失位置'},{cat:'FIX',module:'UI',desc:'表格容器原為 overflow:auto（雙向捲動），會讓 sticky 相對於容器而非視窗、鎖定失效；改為僅橫向捲動'}]},
 {build:61,version:'4.2.0',date:'2026-07-27',author:'Claude + Tim',summary:'數量錄入支援鍵盤方向鍵移動 —— 大量填表不再需要滑鼠',changes:[{cat:'NEW',module:'UI',desc:'數量錄入格支援鍵盤操作：← → 左右移動、↑ ↓ 上下跨列、Enter 往下一列。欄位取得焦點時自動全選，直接重打即可修改。臨辦每列4格、櫃位每列3格，上下移動會自動依通路調整跨距'},{cat:'FIX',module:'UI',desc:'★避開瀏覽器陷阱：<input type=\"number\"> 存取 selectionStart/selectionEnd 會拋 InvalidStateError（規範明定數字輸入框不支援選取範圍 API）。初版原以游標位置判斷是否跳格，實測會導致每次按左右鍵都出錯 —— 改為 Excel 式方向鍵一律移動'}]},
 {build:60,version:'4.1.2',date:'2026-07-27',author:'Claude + Tim',summary:'數量錄入欄位順序調整 —「員餐/檢體」移至「報廢」之前',changes:[{cat:'MOD',module:'UI',desc:'「員餐」更名為「員餐/檢體」— 與紙本表單用語一致，避免店員混淆員工用餐與留樣檢體'},{cat:'MOD',module:'UI',desc:'欄位順序改為 取餐 → 銷售 → 員餐/檢體 → 報廢 → 短少（原為 報廢 在 員餐 之前）。錄入頁表頭、輸入欄、摘要列、勾稽儀表板明細表四處同步調整，避免任一處未改造成對錯欄'},{cat:'FIX',module:'SYSTEM',desc:'勾稽模組原宣告 SYS_VERSION，與專案其他系統的系統版本號同名（雖封閉於 IIFE 不致衝突，但日後搜尋易誤判）→ 更名為 RECON_VERSION'}]},
 {build:59,version:'4.1.1',date:'2026-07-26',author:'Claude + Tim',summary:'★修復：勾稽模組誤報「雲端未連線」— let 宣告不掛 window 的作用域問題',changes:[{cat:'FIX',module:'CORE',desc:'★根因：Firestore 實例以 `let db` 宣告，script 頂層的 let/const 只存在於「全域詞法環境」，不會成為 window 的屬性 → 勾稽模組讀 window.db 恆為 undefined，數量錄入頁一律顯示「載入失敗：雲端未連線」（但 header 同時顯示「雲端已連線」，症狀矛盾極易誤判為網路或權限問題）'},{cat:'FIX',module:'CORE',desc:'解法：模組改用 DB() 動態解析 — 先取詞法作用域的 db，取不到再退回 window.db。刻意不改 index.html 既有宣告方式：若改成 window.db 別名，當 Firebase 初始化失敗把 db 設為 undefined 時，別名會變成陳舊參照'},{cat:'DOC',module:'SYSTEM',desc:'⚠同類風險：日後任何獨立 script 區塊若要取用主程式變數，該變數以 let/const 宣告時不可用 window.x 存取。新增模組時務必個別確認'}]},
@@ -3533,7 +3534,7 @@ bootstrapFinDefaults();
 // ═══ END Phase 2 模組 ═══
 </script>
 
-<!-- ═══════════ 勾稽模組 引擎v1.0.0 / 介面v1.2.0 ═══════════ -->
+<!-- ═══════════ 勾稽模組 引擎v1.0.0 / 介面v1.3.0 ═══════════ -->
 <script>
 /*!
  * HaomingRecon — 好洺餐飲 銷售數量勾稽引擎
@@ -3736,7 +3737,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
  */
 (function (W) {
   'use strict';
-  var UI_VERSION = '1.2.0';
+  var UI_VERSION = '1.3.0';
 
   var S = {                       // 模組狀態
     store: '台積電', date: '', ch: '臨辦',
@@ -3757,6 +3758,46 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
   var today = function () { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   var ymOf = function (d) { return (d || '').slice(0, 7); };
   var hasCost = function () { return typeof W._fdCost !== 'undefined' ? !!W._fdCost : true; };
+
+  var HDR_H = 41;   // 表頭列高（類別列要黏在它下方）
+
+  /* 類別顯示順序：與紙本銷售表一致，降低店員對照轉錄時的出錯率。
+     未列於此的類別依原順序接在最後。 */
+  var CAT_ORDER = ['手作飯糰', '虎咬豬', '燒餅', '蛋餅', '河粉蛋餅', '蔥油餅',
+                   '炒麵', '中式小點', '點心', '飲品'];
+
+  /* 品項主檔是「陸續新增」的陣列（例如蛋餅後來補了 6 個口味、荷包蛋補在最尾端），
+     若直接照陣列順序渲染，同一類別會被拆成兩塊。此處重新分組，
+     並在類別內依售價由小到大排序（同價再依品名）。 */
+  function groupedItems() {
+    var byCat = {}, order = [];
+    Object.keys(S.products).forEach(function (k) {
+      var p = S.products[k];
+      if (!p || p.active === false) return;
+      var c = p.cat || '其他';
+      if (!byCat[c]) { byCat[c] = []; order.push(c); }
+      byCat[c].push(p);
+    });
+    order.sort(function (a, b) {
+      var ia = CAT_ORDER.indexOf(a), ib = CAT_ORDER.indexOf(b);
+      if (ia < 0) ia = 999;
+      if (ib < 0) ib = 999;
+      return ia - ib;
+    });
+    return order.map(function (c) {
+      byCat[c].sort(function (a, b) {
+        return (+a.price || 0) - (+b.price || 0)
+            || String(a.name).localeCompare(String(b.name), 'zh-TW');
+      });
+      return { cat: c, items: byCat[c] };
+    });
+  }
+
+  /* 表頭儲存格：top:0 讓它在垂直捲動時固定 */
+  function TH(label, w) {
+    return '<th style="padding:10px;width:' + w + 'px;position:sticky;top:0;'
+         + 'background:#0f172a;color:#fff;z-index:5">' + label + '</th>';
+  }
 
   /* ═══ 資料載入 ═══════════════════════════════════════════ */
   function loadCatalog(cb) {
@@ -3836,26 +3877,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       + '</div>';
 
     /* 表格 */
-    h += '<div style="overflow:auto;border:1px solid #e2e8f0;border-radius:10px">'
+    h += '<div style="overflow-x:auto;overflow-y:visible;border:1px solid #e2e8f0;border-radius:10px">'
       + '<table id="rq-tb" style="width:100%;border-collapse:separate;border-spacing:0;font-size:15px">'
-      + '<thead><tr style="background:#0f172a;color:#fff">'
-      + '<th style="padding:10px;text-align:left;position:sticky;left:0;background:#0f172a;min-width:130px">品項</th>'
-      + '<th style="padding:10px;width:60px">售價</th>'
-      + (hp ? '<th style="padding:10px;width:80px">取餐</th>' : '')
-      + '<th style="padding:10px;width:80px">銷售</th>'
-      + '<th style="padding:10px;width:92px">員餐/檢體</th>'
-      + '<th style="padding:10px;width:80px">報廢</th>'
-      + (hp ? '<th style="padding:10px;width:70px">短少</th>' : '')
+      + '<thead><tr>'
+      + '<th style="padding:10px;text-align:left;position:sticky;left:0;top:0;'
+      + 'background:#0f172a;color:#fff;min-width:130px;z-index:7">品項</th>'
+      + TH('售價', 60) + (hp ? TH('取餐', 80) : '') + TH('銷售', 80)
+      + TH('員餐/檢體', 92) + TH('報廢', 80) + (hp ? TH('短少', 70) : '')
       + '</tr></thead><tbody>';
 
-    var cat = null, list = Object.keys(S.products).map(function (k) { return S.products[k]; })
-      .filter(function (p) { return p.active !== false; });
-
-    list.forEach(function (p) {
-      if (p.cat !== cat) {
-        cat = p.cat;
-        h += '<tr><td colspan="' + (hp ? 7 : 5) + '" style="background:#e0f2fe;font-weight:800;padding:8px 10px;color:#0c4a6e">' + esc(cat) + '</td></tr>';
-      }
+    groupedItems().forEach(function (g) {
+      /* 類別列黏在表頭正下方：捲到哪一類就顯示哪一類，長表格不會迷路 */
+      h += '<tr><td colspan="' + (hp ? 7 : 5) + '" style="background:#e0f2fe;font-weight:800;'
+        + 'padding:8px 10px;color:#0c4a6e;position:sticky;top:' + HDR_H + 'px;z-index:4">'
+        + esc(g.cat) + '</td></tr>';
+      g.items.forEach(function (p) {
       var k = S.ch + '|' + p.sku, v = S.qty[k] || {};
       var dis = S.locked ? ' disabled' : '';
       var ic = 'width:100%;padding:9px 4px;border:1.5px solid #cbd5e1;border-radius:7px;text-align:center;font-size:17px;box-sizing:border-box';
@@ -3868,6 +3904,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       });
       if (hp) h += '<td class="rq-short" style="text-align:center;font-weight:800;border-bottom:1px solid #f1f5f9">—</td>';
       h += '</tr>';
+      });
     });
     h += '</tbody></table></div>';
 
