@@ -803,7 +803,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:9,patch:0,build:69,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:10,patch:0,build:70,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -864,6 +864,7 @@ const CHANGELOG=[
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
 {build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
 {build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]},
+{build:70,version:'4.10.0',date:'2026-07-30',author:'Claude + Tim',summary:'★營收認列口徑拍板 — 損益表金額為準，數量換算僅供核對，差額全數留存',changes:[{cat:'NEW',module:'CORE',desc:'★確立認列口徑（Tim 2026-07-30 拍板）：營收一律以損益表／流水帳收入科目輸入的金額為準；由銷售數量×售價換算的「理論營收」僅為核對工具，任何情況下都不會回寫或覆蓋帳務數字。勾稽頁最上方新增口徑宣告條，卡片改以「實際營收（為準）」置首、「理論營收（核對用）」灰階次之，避免看板的人誤把換算值當成真實營收'},{cat:'NEW',module:'DATA',desc:'★新增差異紀錄 —— 每次開啟勾稽分析即自動留存當日「實際營收 / 理論營收 / 差異 / 分通路明細」，多收（正）與少收（負）一律記錄，不做任何自動沖銷或四捨五入抹平。路徑 finance/{YYYY-MM}/stores/{store}/recon/_variance'},{cat:'PERF',module:'DATA',desc:'差異紀錄採「整月一份文件」而非一天一份：查一整月只需 1 次 Firestore 讀取（一天一份則為 31 次）。寫入以 merge + 巢狀 days.{date} 只覆蓋當日該格，不影響其他日期，亦不會蓋掉使用者已填的原因註記'},{cat:'NEW',module:'UI',desc:'★新增「📋 本月差異紀錄」清單：逐日列出實際營收、理論營收、差異金額與百分比、原因註記，並彙總「淨差異」與「差異絕對值合計」。淨差異會正負相抵看似漂亮，絕對值合計才反映真正的對帳品質，故兩者並列'},{cat:'NEW',module:'CORE',desc:'★差異彙總同時列「日差異絕對值」與「分通路絕對值」。同一天臨辦多收 50、櫃位少收 100，在日層會抵消成 −50，看起來只差一筆；實際上有兩筆對不上共 150。只看淨額會嚴重低估對帳問題，故兩個口徑並列，並在逐日清單加「分通路差異」欄位直接指出是哪一邊出問題'},{cat:'NEW',module:'UI',desc:'新增「📝 註記本日差異原因」— 可填找零短收／招待／發票作廢／漏登等說明，與 noteBy、noteAt 一併存檔，供事後稽核追查；註記與自動留存的數字分開寫入，重算不會覆蓋'}]},
 {build:69,version:'4.9.0',date:'2026-07-30',author:'Claude + Tim',summary:'★品項維護介面 — 售價與品名可於系統內直接修改，不必再進 Firebase Console',changes:[{cat:'NEW',module:'UI',desc:'★新增「品項維護」（錄入頁右上，僅主管可見）。過去改一個售價要進 Firebase Console 找 catalog/products→items[n]，非工程人員無法操作也毫無留痕。現支援品名／SKU／類別搜尋，依類別與售價排序，停用品項灰階標示'},{cat:'NEW',module:'DATA',desc:'★品名亦可修改。紙本統計表與系統品名不一致時（例：紙本「卡啦雞排」對系統「椒鹽雞排」、紙本「台式經典」對系統「台式原味」），店員轉錄會對錯行。改名不動 sku，歷史數量資料以 sku 為鍵，完全不受影響'},{cat:'NEW',module:'SECURITY',desc:'存檔前重新讀取主檔比對，逐筆列出「哪一項、從多少改成多少」供確認，並明示售價異動將回溯影響全部歷史的理論營收與毛利；明細寫入 catalog/priceLog 與當月 auditLog（act:PRICE）。品項數量與編輯當下不符時拒絕寫入，避免覆蓋他人同時的異動'},{cat:'FIX',module:'DOC',desc:'更正 build:58 的錯誤註記 ——「紙本雞塊售價35需更正為30」方向寫反了。雞塊售價即為 35 元，系統主檔（DX03）本來就是 35，紙本正確、註記錯誤。全菜單 44 項與紙本逐項比對，售價零差異'}]},
 {build:68,version:'4.8.0',date:'2026-07-30',author:'Claude + Tim',summary:'期間分析新增通路篩選與整月區間 — 臨辦／櫃位可分開檢視',changes:[{cat:'NEW',module:'UI',desc:'★期間分析新增通路切換（全部合計／臨辦／櫃位）。原本所有數字都是兩通路加總，只看得到門市總體，看不出是哪一邊在浪費 —— 臨辦是從央廚取餐、櫃位是現場製作，營運型態不同，報廢與備量的責任歸屬也不同，必須能分開看。切換後銷售份數、理論營收、毛利、報廢率、隱形損失、各類別報廢率、報廢金額TOP10、建議備量表全部同步篩選'},{cat:'NEW',module:'UI',desc:'★期間分析新增「本月／上月」整月區間按鈕，以頁首選定的年月為準（看哪個月就分析哪個月）。當月未跑完時迄日自動壓到今天，避免出現「缺 27 天未錄入」的假警訊'},{cat:'FIX',module:'CORE',desc:'通路篩選時，整天都沒有該通路資料的日子會整天剔除，「有紀錄天數」才不會被灌水 —— 否則日均銷量與建議備量會全面偏低'},{cat:'FIX',module:'UI',desc:'消失成本卡片改為依通路顯示說明：單看櫃位時標示「此通路無總量，無法推算」，而非留下 $0 讓人誤判櫃位沒有損失'},{cat:'MOD',module:'CORE',desc:'切換通路改用快取重繪，不重新讀取 Firestore（整月 31 天 = 31 次讀取，Spark 免費方案需節制）；改日期或改月份才重撈'},{cat:'FIX',module:'UI',desc:'自訂起訖日或選整月時，「近7/14/30日」按鈕不再誤留高亮 —— 新增 mode 狀態區分 days／month／custom'}]},
 {build:67,version:'4.7.0',date:'2026-07-30',author:'Claude + Tim',summary:'★新增期間分析｜分通路覆核與取消覆核｜商場對帳改為表單輸入',changes:[{cat:'NEW',module:'UI',desc:'★新增「期間分析」頁 —— 原本勾稽分析只能看單日，要比較趨勢得一天一天切。新頁可選近7/14/30日或自訂區間，顯示期間銷售、理論營收、銷貨毛利、報廢率、消失成本、隱形損失（含日均與佔營收比），並列出各類別報廢率與報廢金額 TOP10'},{cat:'NEW',module:'CORE',desc:'★引擎新增 aggregate() 跨日彙總與 suggestPrep() 建議備量。刻意只用「數量與售價」判斷、不使用單位成本 —— 員工APP 無成本讀取權限，若演算法依賴成本，兩邊會算出不同的建議量。高單價品以售價≥55元作為代理指標'},{cat:'NEW',module:'UI',desc:'期間分析頁內建「建議備量表」可直接列印給店員；不足5天有紀錄時顯示樣本不足警語'},{cat:'NEW',module:'CORE',desc:'★分通路覆核：臨辦與櫃位由不同人、不同時間完成，改為各自鎖定（locks:{臨辦,櫃位}）。鎖定一個通路不影響另一通路繼續錄入。舊資料只有 doc 層 lockedAt 者，自動視為兩通路皆已覆核'},{cat:'NEW',module:'CORE',desc:'★新增取消覆核 —— 僅限具成本權限者（老闆／財會），與 Firestore Rules 的判定一致，並強制寫入稽核軌跡（act:UNLOCK），避免有人偷改已結算數字。doc 層 lockedAt 僅在「所有通路皆覆核」時成立，維持 Rules 語意'},{cat:'MOD',module:'UI',desc:'商場對帳「新增一期」原本用 5 個 prompt 逐項詢問、結帳區間標籤還得手打（易打錯格式、無法驗證）。改為表單式輸入：區間用日期選擇器、標籤依「每月11日～隔月10日」規則自動產生、檢核起訖日順序與重複區間'}]},
@@ -3612,7 +3613,7 @@ bootstrapFinDefaults();
 // ═══ END Phase 2 模組 ═══
 </script>
 
-<!-- ═══════════ 勾稽模組 引擎v1.4.0 / 介面v1.10.0 ═══════════ -->
+<!-- ═══════════ 勾稽模組 引擎v1.4.0 / 介面v1.11.0 ═══════════ -->
 <script>
 /*!
  * HaomingRecon — 好洺餐飲 銷售數量勾稽引擎
@@ -3945,7 +3946,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
  */
 (function (W) {
   'use strict';
-  var UI_VERSION = '1.10.0';
+  var UI_VERSION = '1.11.0';
 
   var S = {                       // 模組狀態
     store: '台積電', date: '', ch: '臨辦',
@@ -4582,16 +4583,31 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       + '<input type="date" id="rd-date" value="' + S.date + '" style="padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
       + '<span style="color:#64748b;font-size:13px">' + esc(S.store) + '</span></div>';
 
+    /* 口徑宣告（Tim 2026-07-30 拍板）：
+       營收認列一律以「損益表／流水帳輸入的實際金額」為準；
+       數量錄入換算出來的理論營收只是核對工具，不得反向覆蓋帳。
+       兩者的差額不論正負一律留存，作為稽核與異常追查的依據。 */
+    h += '<div style="background:#ecfeff;border:1px solid #a5f3fc;border-left:4px solid #0891b2;border-radius:8px;padding:9px 13px;margin-bottom:12px;font-size:12.5px;color:#155e75;line-height:1.7">'
+      + '📌 <b>認列口徑</b>：營收以 <b>損益表（流水帳收入科目）輸入金額</b> 為準；'
+      + '「理論營收」由銷售數量 × 售價換算，<b>僅供核對</b>，不會回寫帳務。'
+      + '兩者差額<b>不論多收或少收都會自動留存</b>於差異紀錄，可事後查核。</div>';
+
     h += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'
-      + card('理論營收', '$' + NF(T.theo), '#1d4ed8', '銷售數量 × 售價')
+      + card('實際營收（為準）', '$' + NF(T.actual), '#0891b2', '損益表收入科目加總')
+      + card('理論營收（核對用）', '$' + NF(T.theo), '#64748b', '銷售數量 × 售價')
+      + card('差異（實收−理論）', (T.diff >= 0 ? '+' : '') + '$' + NF(T.diff), diffC, (T.theo ? (T.diff / T.theo * 100).toFixed(1) + '%' : '') + '　已留存')
       + card('銷貨成本', '$' + NF1(T.cogs), '#0f766e', '銷售數量 × 單位成本')
       + card('銷貨毛利', '$' + NF1(T.gross), '#15803d', '毛利率 ' + (T.grossRate * 100).toFixed(1) + '%')
-      + card('財會實收', '$' + NF(T.actual), '#0891b2', '收入科目加總')
-      + card('帳務差距', (T.diff >= 0 ? '+' : '') + '$' + NF(T.diff), diffC, T.theo ? (T.diff / T.theo * 100).toFixed(1) + '%' : '')
       + card('耗損金額', '$' + NF1(T.scrapAmt), '#ea580c', '報廢 × 成本')
       + card('員餐/檢體', '$' + NF1(T.staffAmt), '#7c3aed', '員餐/檢體 × 成本')
       + card('消失成本', '$' + NF1(T.shortAmt), '#dc2626', '短少 × 成本（僅臨辦）')
       + '</div>';
+
+    /* 差異紀錄入口＋當日註記 */
+    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'
+      + '<button onclick="HaomingReconUI.openVarLog()" style="padding:8px 14px;background:#0f172a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📋 本月差異紀錄</button>'
+      + '<button onclick="HaomingReconUI.noteVar()" style="padding:8px 14px;background:#fff;color:#0f172a;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📝 註記本日差異原因</button>'
+      + '<span id="fd-var-note" style="font-size:12px;color:#64748b"></span></div>';
 
     h += '<div style="background:#fef2f2;border:2px solid #fca5a5;border-radius:10px;padding:14px 16px;margin-bottom:14px">'
       + '<div style="font-size:13px;color:#7f1d1d;font-weight:800">當日隱形損失合計</div>'
@@ -4658,6 +4674,141 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       DB().collection('finance').doc(ymOf(S.date)).collection('stores').doc(S.store)
         .collection('recon').doc(S.date).set(res, { merge: true });
     } catch (e) {}
+
+    saveVariance(res);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+   * 差異紀錄（Tim 2026-07-30 拍板：金額以損益表輸入為主，
+   * 數量換算僅供核對，差額不論多少一律留存）
+   *
+   * 儲存策略：整月壓成「一份文件」而非一天一份。
+   *   路徑 finance/{YYYY-MM}/stores/{store}/recon/_variance
+   *   結構 { days:{ 'YYYY-MM-DD': {theo,actual,diff,ch:{...},note,by,at} } }
+   * 理由：Spark 方案讀取次數要省 —— 查一整月的差異只需 1 次讀取，
+   *       若一天一份文件，開一次就是 31 次讀取。
+   * 寫入用 merge + 巢狀物件，只覆蓋當日那一格，不動其他日期。
+   * ═══════════════════════════════════════════════════════════ */
+  function varDoc(d) {
+    return DB().collection('finance').doc(ymOf(d)).collection('stores').doc(S.store)
+      .collection('recon').doc('_variance');
+  }
+
+  /* 每次勾稽計算完自動留存當日差異；正差（多收）負差（少收）一律記錄 */
+  function saveVariance(res) {
+    if (!DB() || !S.date) return;
+    var byCh = {};
+    Object.keys(res.ch || {}).forEach(function (k) {
+      byCh[k] = { theo: res.ch[k].theo, actual: res.ch[k].actual, diff: res.ch[k].diff };
+    });
+    var rec = {
+      date: S.date, store: S.store,
+      theo: res.total.theo, actual: res.total.actual, diff: res.total.diff,
+      diffRate: res.total.theo > 0 ? Math.round(res.total.diff / res.total.theo * 10000) / 10000 : 0,
+      ch: byCh, by: meUser(), at: new Date().toISOString()
+    };
+    var payload = { store: S.store, ym: ymOf(S.date), days: {} };
+    payload.days[S.date] = rec;
+    /* 只寫「數字」欄位，note 交給 noteVar 另行 merge，
+       避免每次重算把使用者填的原因覆蓋掉。 */
+    try {
+      varDoc(S.date).set(payload, { merge: true });
+    } catch (e) {}
+    /* 顯示既有註記 */
+    try {
+      varDoc(S.date).get().then(function (d) {
+        var n = d.exists && d.data().days && d.data().days[S.date] && d.data().days[S.date].note;
+        var el = $('fd-var-note');
+        if (el) el.innerHTML = n ? '📝 ' + esc(n) : '<span style="color:#cbd5e1">尚未註記原因</span>';
+      });
+    } catch (e) {}
+  }
+
+  /* 註記當日差異原因（找零、招待、發票作廢、漏登…）—— 稽核時要能說明為何差 */
+  function noteVar() {
+    if (!DB()) { alert('雲端未連線'); return; }
+    var cur = '';
+    varDoc(S.date).get().then(function (d) {
+      var r = d.exists && d.data().days && d.data().days[S.date];
+      cur = (r && r.note) || '';
+      var t = prompt('請說明 ' + S.date + ' 差異原因（例：找零短收／招待／發票作廢／漏登一筆）：', cur);
+      if (t === null) return;
+      var p = { days: {} };
+      p.days[S.date] = { note: String(t).trim(), noteBy: meUser(), noteAt: new Date().toISOString() };
+      varDoc(S.date).set(p, { merge: true }).then(function () {
+        var el = $('fd-var-note');
+        if (el) el.innerHTML = t ? '📝 ' + esc(t) : '<span style="color:#cbd5e1">尚未註記原因</span>';
+      }).catch(function (e) { alert('儲存失敗：' + (e.code || e.message)); });
+    }).catch(function (e) { alert('讀取失敗：' + (e.code || e.message)); });
+  }
+
+  /* 本月差異紀錄清單：逐日 實收 / 理論 / 差異 / 原因 ＋ 月累計 */
+  function openVarLog() {
+    if (!DB()) { alert('雲端未連線'); return; }
+    var ov = priceOverlay(); ov.style.display = 'flex';
+    ov.innerHTML = '<div style="background:#fff;border-radius:14px;padding:24px 30px;font-size:14px">讀取差異紀錄中…</div>';
+    varDoc(S.date).get().then(function (d) {
+      var days = (d.exists && d.data().days) || {};
+      var keys = Object.keys(days).sort();
+      /* sumAbs   ：日差異取絕對值加總
+         sumAbsCh ：分通路差異取絕對值加總 —— 同一天臨辦多收、櫃位少收會在日層互相抵消
+                    （例 +50 與 −100 只剩 −50），看不出實際有兩筆對不上。
+                    真正的對帳品質要看這個數字。 */
+      var sumA = 0, sumT = 0, sumD = 0, sumAbs = 0, sumAbsCh = 0;
+      keys.forEach(function (k) {
+        sumA += Number(days[k].actual || 0); sumT += Number(days[k].theo || 0);
+        sumD += Number(days[k].diff || 0); sumAbs += Math.abs(Number(days[k].diff || 0));
+        var c = days[k].ch || {};
+        Object.keys(c).forEach(function (n) { sumAbsCh += Math.abs(Number(c[n].diff || 0)); });
+      });
+      var h = '<div style="background:#fff;border-radius:14px;width:min(860px,94vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)">';
+      h += '<div style="padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e2e8f0">'
+        + '<b style="font-size:16px">📋 差異紀錄　' + esc(ymOf(S.date)) + '　' + esc(S.store) + '</b>'
+        + '<button onclick="HaomingReconUI.closeVarLog()" style="margin-left:auto;padding:6px 14px;border:1px solid #cbd5e1;background:#fff;border-radius:8px;cursor:pointer;font-weight:700">✕ 關閉</button></div>';
+      h += '<div style="padding:10px 18px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-size:13px;display:flex;gap:22px;flex-wrap:wrap">'
+        + '<span>有紀錄天數 <b>' + keys.length + '</b></span>'
+        + '<span>實際營收合計 <b style="color:#0891b2">$' + NF(sumA) + '</b></span>'
+        + '<span>理論營收合計 <b style="color:#64748b">$' + NF(sumT) + '</b></span>'
+        + '<span>淨差異 <b style="color:' + (Math.abs(sumD) < 1 ? '#059669' : (sumD < 0 ? '#dc2626' : '#d97706')) + '">' + (sumD >= 0 ? '+' : '') + '$' + NF(sumD) + '</b></span>'
+        + '<span title="每日差異不論正負一律取絕對值加總">日差異絕對值 <b style="color:#b91c1c">$' + NF(sumAbs) + '</b></span>'
+        + '<span title="分通路取絕對值加總。同日臨辦多收、櫃位少收會在日層互相抵消，此數字才是真正對不上的總金額">分通路絕對值 <b style="color:#b91c1c">$' + NF(sumAbsCh) + '</b></span></div>';
+      if (!keys.length) {
+        h += '<div style="padding:40px;text-align:center;color:#94a3b8">本月尚無差異紀錄（開啟勾稽分析頁即會自動留存）</div>';
+      } else {
+        h += '<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">'
+          + '<thead><tr style="background:#0f172a;color:#fff;position:sticky;top:0"><th style="padding:8px;text-align:left">日期</th><th style="padding:8px">實際營收</th><th style="padding:8px">理論營收</th><th style="padding:8px">差異</th><th style="padding:8px">%</th><th style="padding:8px;text-align:left">分通路差異</th><th style="padding:8px;text-align:left">原因註記</th></tr></thead><tbody>';
+        keys.forEach(function (k) {
+          var r = days[k], df = Number(r.diff || 0);
+          var c = Math.abs(df) < 1 ? '#059669' : (df < 0 ? '#dc2626' : '#d97706');
+          var chs = r.ch || {};
+          var chTxt = Object.keys(chs).map(function (n) {
+            var v = Number(chs[n].diff || 0);
+            return '<span style="color:' + (Math.abs(v) < 1 ? '#94a3b8' : (v < 0 ? '#dc2626' : '#d97706')) + '">' + esc(n) + ' ' + (v >= 0 ? '+' : '') + NF(v) + '</span>';
+          }).join('　');
+          h += '<tr style="border-bottom:1px solid #f1f5f9">'
+            + '<td style="padding:7px 8px;font-weight:700">' + esc(k) + '</td>'
+            + '<td style="padding:7px 8px;text-align:right">$' + NF(r.actual) + '</td>'
+            + '<td style="padding:7px 8px;text-align:right;color:#64748b">$' + NF(r.theo) + '</td>'
+            + '<td style="padding:7px 8px;text-align:right;font-weight:800;color:' + c + '">' + (df >= 0 ? '+' : '') + NF(df) + '</td>'
+            + '<td style="padding:7px 8px;text-align:right;color:' + c + '">' + (Number(r.theo) > 0 ? (df / Number(r.theo) * 100).toFixed(1) + '%' : '—') + '</td>'
+            + '<td style="padding:7px 8px;font-size:12px;white-space:nowrap">' + (chTxt || '—') + '</td>'
+            + '<td style="padding:7px 8px;color:' + (r.note ? '#334155' : '#cbd5e1') + '">' + esc(r.note || '未註記') + '</td></tr>';
+        });
+        h += '</tbody></table></div>';
+      }
+      h += '<div style="padding:10px 18px;border-top:1px solid #e2e8f0;font-size:11.5px;color:#94a3b8;line-height:1.7">'
+        + '差異 ＝ 實際營收（損益表輸入，為準）− 理論營收（數量×售價，核對用）。'
+        + '正值代表帳上收的比數量換算多，負值代表少。兩者皆完整留存，不做任何自動沖銷。</div>';
+      h += '</div>';
+      ov.innerHTML = h;
+    }).catch(function (e) {
+      ov.innerHTML = '<div style="background:#fff;border-radius:14px;padding:24px 30px;color:#dc2626">讀取失敗：' + esc(e.code || e.message) + '</div>';
+    });
+  }
+
+  function closeVarLog() {
+    var ov = $('fd-price-ov');
+    if (ov) { ov.style.display = 'none'; ov.innerHTML = ''; }
   }
 
 
@@ -4903,6 +5054,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     openPrice: openPrice,
     closePrice: closePrice,
     savePrice: savePrice,
+    openVarLog: openVarLog,
+    closeVarLog: closeVarLog,
+    noteVar: noteVar,
     renderPeriod: renderPeriod,
     setPeriod: function (d) { PD.days = d; PD.mode = 'days'; PD.to = today(); PD.from = shiftDate(PD.to, -(d - 1)); renderPeriod(); },
     setMonth: function (off) { var r = monthRange(off); PD.mode = 'month'; PD.mOff = off; PD.days = 0; PD.from = r.from; PD.to = r.to; renderPeriod(); },
