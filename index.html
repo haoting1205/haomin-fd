@@ -803,7 +803,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:7,patch:0,build:67,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:8,patch:0,build:68,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -864,6 +864,7 @@ const CHANGELOG=[
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
 {build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
 {build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]},
+{build:68,version:'4.8.0',date:'2026-07-30',author:'Claude + Tim',summary:'期間分析新增通路篩選與整月區間 — 臨辦／櫃位可分開檢視',changes:[{cat:'NEW',module:'UI',desc:'★期間分析新增通路切換（全部合計／臨辦／櫃位）。原本所有數字都是兩通路加總，只看得到門市總體，看不出是哪一邊在浪費 —— 臨辦是從央廚取餐、櫃位是現場製作，營運型態不同，報廢與備量的責任歸屬也不同，必須能分開看。切換後銷售份數、理論營收、毛利、報廢率、隱形損失、各類別報廢率、報廢金額TOP10、建議備量表全部同步篩選'},{cat:'NEW',module:'UI',desc:'★期間分析新增「本月／上月」整月區間按鈕，以頁首選定的年月為準（看哪個月就分析哪個月）。當月未跑完時迄日自動壓到今天，避免出現「缺 27 天未錄入」的假警訊'},{cat:'FIX',module:'CORE',desc:'通路篩選時，整天都沒有該通路資料的日子會整天剔除，「有紀錄天數」才不會被灌水 —— 否則日均銷量與建議備量會全面偏低'},{cat:'FIX',module:'UI',desc:'消失成本卡片改為依通路顯示說明：單看櫃位時標示「此通路無總量，無法推算」，而非留下 $0 讓人誤判櫃位沒有損失'},{cat:'MOD',module:'CORE',desc:'切換通路改用快取重繪，不重新讀取 Firestore（整月 31 天 = 31 次讀取，Spark 免費方案需節制）；改日期或改月份才重撈'},{cat:'FIX',module:'UI',desc:'自訂起訖日或選整月時，「近7/14/30日」按鈕不再誤留高亮 —— 新增 mode 狀態區分 days／month／custom'}]},
 {build:67,version:'4.7.0',date:'2026-07-30',author:'Claude + Tim',summary:'★新增期間分析｜分通路覆核與取消覆核｜商場對帳改為表單輸入',changes:[{cat:'NEW',module:'UI',desc:'★新增「期間分析」頁 —— 原本勾稽分析只能看單日，要比較趨勢得一天一天切。新頁可選近7/14/30日或自訂區間，顯示期間銷售、理論營收、銷貨毛利、報廢率、消失成本、隱形損失（含日均與佔營收比），並列出各類別報廢率與報廢金額 TOP10'},{cat:'NEW',module:'CORE',desc:'★引擎新增 aggregate() 跨日彙總與 suggestPrep() 建議備量。刻意只用「數量與售價」判斷、不使用單位成本 —— 員工APP 無成本讀取權限，若演算法依賴成本，兩邊會算出不同的建議量。高單價品以售價≥55元作為代理指標'},{cat:'NEW',module:'UI',desc:'期間分析頁內建「建議備量表」可直接列印給店員；不足5天有紀錄時顯示樣本不足警語'},{cat:'NEW',module:'CORE',desc:'★分通路覆核：臨辦與櫃位由不同人、不同時間完成，改為各自鎖定（locks:{臨辦,櫃位}）。鎖定一個通路不影響另一通路繼續錄入。舊資料只有 doc 層 lockedAt 者，自動視為兩通路皆已覆核'},{cat:'NEW',module:'CORE',desc:'★新增取消覆核 —— 僅限具成本權限者（老闆／財會），與 Firestore Rules 的判定一致，並強制寫入稽核軌跡（act:UNLOCK），避免有人偷改已結算數字。doc 層 lockedAt 僅在「所有通路皆覆核」時成立，維持 Rules 語意'},{cat:'MOD',module:'UI',desc:'商場對帳「新增一期」原本用 5 個 prompt 逐項詢問、結帳區間標籤還得手打（易打錯格式、無法驗證）。改為表單式輸入：區間用日期選擇器、標籤依「每月11日～隔月10日」規則自動產生、檢核起訖日順序與重複區間'}]},
 {build:66,version:'4.6.0',date:'2026-07-27',author:'Claude + Tim',summary:'櫃位「製作數量」改為自動加總（不需填寫），並移除櫃位短少欄',changes:[{cat:'FIX',module:'CORE',desc:'★釐清櫃位的製作數量語意：它是「銷售＋員餐/檢體＋報廢」的定義式總和，不是像臨辦取餐那樣的獨立來源。build#64 曾誤解為守恆式而開放填寫並計算短少 —— 但既然製作是由三欄相加而來，短少必然恆為 0，該計算沒有意義。現改為由系統自動加總、以唯讀格顯示'},{cat:'MOD',module:'UI',desc:'櫃位回到 3 個輸入欄（銷售/員餐檢體/報廢），製作欄為唯讀計算格（青色底），短少欄不再顯示；摘要列改顯示製作總數。鍵盤上下移動跨距同步回到 3'},{cat:'NEW',module:'CORE',desc:'通路設定新增 madeIsSum 旗標區分兩種總量來源：hasPick=有獨立總量可反推短少（臨辦）、madeIsSum=總量由其他欄相加（櫃位）。邏輯仍為 config 驅動，未寫死通路名稱'},{cat:'DOC',module:'SYSTEM',desc:'櫃位仍可算出耗損金額與員餐/檢體金額，只是無法算消失成本 —— 因為沒有獨立的製作總量可比對'}]},
 {build:65,version:'4.5.0',date:'2026-07-27',author:'Claude + Tim',summary:'勾稽分析新增銷貨成本、銷貨毛利與當日實質貢獻',changes:[{cat:'NEW',module:'CORE',desc:'依銷售數量新增三項指標：銷貨成本(銷售×單位成本)、銷貨毛利(理論營收−銷貨成本)、毛利率。原本儀表板只算得出「浪費掉多少錢」，卻不知道「賣出去賺了多少」，一天的損益並不完整'},{cat:'NEW',module:'UI',desc:'新增「當日實質貢獻」＝ 銷貨毛利 − 隱形損失。這是老闆真正該看的數字：賺到的扣掉浪費掉的，剩下多少'},{cat:'NEW',module:'UI',desc:'通路明細表加入銷貨成本與毛利欄（含毛利率），可看出臨辦與櫃位的獲利結構差異'},{cat:'FIX',module:'CORE',desc:'★避免重複計算：銷貨成本只計「賣出去」的數量，報廢/員餐檢體/短少的成本各自歸類。若把全部製作量都算進銷貨成本，損失會被灌水一倍。已加測試驗證「銷貨成本+耗損+員餐+消失成本 = 製作量×單位成本」，無重複也無遺漏'}]},
@@ -3610,7 +3611,7 @@ bootstrapFinDefaults();
 // ═══ END Phase 2 模組 ═══
 </script>
 
-<!-- ═══════════ 勾稽模組 引擎v1.4.0 / 介面v1.8.0 ═══════════ -->
+<!-- ═══════════ 勾稽模組 引擎v1.4.0 / 介面v1.9.0 ═══════════ -->
 <script>
 /*!
  * HaomingRecon — 好洺餐飲 銷售數量勾稽引擎
@@ -3943,7 +3944,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
  */
 (function (W) {
   'use strict';
-  var UI_VERSION = '1.8.0';
+  var UI_VERSION = '1.9.0';
 
   var S = {                       // 模組狀態
     store: '台積電', date: '', ch: '臨辦',
@@ -4462,7 +4463,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
    * 只需讀 salesQty（數量層）＋ costs（金額層，需 fdCost 權限）
    * 建議備量由 HaomingRecon.suggestPrep 計算 —— 與員工APP 同一份演算法
    * ═══════════════════════════════════════════════════════════ */
-  var PD = { days: 7, from: '', to: '' };
+  /* ch   : 'ALL' | 通路名 —— 臨辦與櫃位的營運型態完全不同（一個從央廚取餐、一個現場製作），
+   *         合併看只看得到門市總體，看不出哪一邊在浪費，故需可單獨檢視。
+   * mode : 'days'(近N日) | 'month'(整月) | 'custom'(自訂起訖) —— 只用於按鈕高亮。
+   * _raw : 上次撈回的原始日資料。切換通路只是換篩選條件，不該再打一次 Firestore
+   *         （整月 31 天 = 31 次讀取，Spark 方案要省）。 */
+  var PD = { days: 7, from: '', to: '', ch: 'ALL', mode: 'days', _raw: null, _span: 0 };
+
+  /* 依通路篩選；整天都沒有該通路資料的日子要整天剔除，
+     否則「有紀錄天數」會被灌水，日均與建議備量全部偏低 */
+  function filterDays(days, ch) {
+    if (ch === 'ALL') return days;
+    return days.map(function (d) {
+      return { date: d.date, lockedAt: d.lockedAt, items: (d.items || []).filter(function (it) { return it.ch === ch; }) };
+    }).filter(function (d) { return d.items.length; });
+  }
 
   function shiftDate(base, off) {
     var d = new Date(base + 'T00:00:00');
@@ -4495,7 +4510,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
           .then(function (sn) { return sn.exists ? { date: dt, items: (sn.data().items || []), lockedAt: sn.data().lockedAt } : null; })
           .catch(function () { return null; });
       })).then(function (arr) {
-        paintPeriod(host, arr.filter(function (x) { return !!x; }), dates.length);
+        PD._raw = arr.filter(function (x) { return !!x; });
+        PD._span = dates.length;
+        paintPeriod(host, filterDays(PD._raw, PD.ch), PD._span);
       });
     });
   }
@@ -4525,18 +4542,33 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px">'
       + '<b style="font-size:18px">📈 期間分析</b>'
       + '<span style="color:#64748b;font-size:13px">' + esc(S.store) + '</span>'
-      + '<span style="margin-left:auto;display:flex;gap:6px">'
+      + '<span style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">'
       + [7, 14, 30].map(function (d) {
-          var on = PD.days === d;
+          var on = PD.mode === 'days' && PD.days === d;
           return '<button onclick="HaomingReconUI.setPeriod(' + d + ')" style="padding:7px 14px;border:1.5px solid ' + (on ? '#1d4ed8' : '#cbd5e1') + ';background:' + (on ? '#1d4ed8' : '#fff') + ';color:' + (on ? '#fff' : '#334155') + ';border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">近' + d + '日</button>';
         }).join('')
+      + [{ o: 0, t: '本月' }, { o: -1, t: '上月' }].map(function (m) {
+          var on = PD.mode === 'month' && PD.mOff === m.o;
+          return '<button onclick="HaomingReconUI.setMonth(' + m.o + ')" style="padding:7px 14px;border:1.5px solid ' + (on ? '#7c2d12' : '#cbd5e1') + ';background:' + (on ? '#7c2d12' : '#fff') + ';color:' + (on ? '#fff' : '#334155') + ';border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">' + m.t + '</button>';
+        }).join('')
       + '</span></div>';
-    h += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;font-size:13px;color:#64748b">'
+
+    /* 通路切換：臨辦與櫃位可分開看。所有卡片、類別報廢、TOP10、建議備量表全部跟著篩選 */
+    var pchs = ['ALL'].concat(Object.keys(W.HaomingRecon.CHANNEL_RULES[S.store] || {}));
+    h += '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
+    pchs.forEach(function (c) {
+      var on = PD.ch === c, lb = c === 'ALL' ? '全部（合計）' : c;
+      h += '<button onclick="HaomingReconUI.setPeriodCh(\'' + c + '\')" style="padding:8px 18px;border:2px solid ' + (on ? '#0f172a' : '#e2e8f0') + ';background:' + (on ? '#0f172a' : '#fff') + ';color:' + (on ? '#fff' : '#334155') + ';border-radius:9px;font-size:15px;font-weight:800;cursor:pointer">' + esc(lb) + '</button>';
+    });
+    h += '</div>';
+
+    h += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;font-size:13px;color:#64748b;flex-wrap:wrap">'
       + '<input type="date" id="pd-from" value="' + PD.from + '" style="padding:6px 8px;border:1.5px solid #cbd5e1;border-radius:7px">'
       + '<span>～</span>'
       + '<input type="date" id="pd-to" value="' + PD.to + '" style="padding:6px 8px;border:1.5px solid #cbd5e1;border-radius:7px">'
       + '<span style="margin-left:6px">期間 ' + spanDays + ' 天，有紀錄 <b style="color:#0f172a">' + A.days + '</b> 天</span>'
       + (A.days < spanDays ? '<span style="color:#b45309">（缺 ' + (spanDays - A.days) + ' 天未錄入）</span>' : '')
+      + (PD.ch !== 'ALL' ? '<span style="background:#0f172a;color:#fff;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700">僅計 ' + esc(PD.ch) + '</span>' : '')
       + '</div>';
 
     if (!A.days) {
@@ -4556,7 +4588,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       + card('銷貨毛利', '$' + NF(money.gross), '#15803d', '毛利率 ' + (money.grossRate * 100).toFixed(1) + '%')
       + card('報廢率', (T.scrapRate * 100).toFixed(1) + '%', T.scrapRate > 0.05 ? '#b91c1c' : '#15803d', T.scrap + ' 份 / $' + NF(money.scrapAmt))
       + card('員餐/檢體', T.staff + ' 份', '#7c3aed', '$' + NF(money.staffAmt))
-      + card('消失成本', '$' + NF(money.shortAmt), '#dc2626', T.short + ' 份（僅臨辦）')
+      /* 消失成本只有「有總量來源」的通路算得出來；櫃位無製作紙本，短少永遠是 0，
+         必須在卡片上講明是「算不出來」而不是「沒有損失」，否則會誤判櫃位很乾淨 */
+      + card('消失成本', '$' + NF(money.shortAmt), '#dc2626',
+          T.short + ' 份' + (PD.ch === 'ALL' ? '（僅臨辦可推算）'
+            : ((W.HaomingRecon.CHANNEL_RULES[S.store] || {})[PD.ch] || {}).hasPick ? '' : '（此通路無總量，無法推算）'))
       + '</div>';
     h += '<div style="background:#fef2f2;border:2px solid #fca5a5;border-radius:10px;padding:12px 15px;margin-bottom:16px;display:flex;gap:24px;flex-wrap:wrap;align-items:baseline">'
       + '<div><div style="font-size:12px;color:#7f1d1d;font-weight:800">期間隱形損失</div>'
@@ -4630,8 +4666,26 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
   }
   function bindPeriod() {
     var f = $('pd-from'), t = $('pd-to');
-    if (f) f.addEventListener('change', function () { PD.from = this.value; PD.days = 0; renderPeriod(); });
-    if (t) t.addEventListener('change', function () { PD.to = this.value; PD.days = 0; renderPeriod(); });
+    if (f) f.addEventListener('change', function () { PD.from = this.value; PD.days = 0; PD.mode = 'custom'; renderPeriod(); });
+    if (t) t.addEventListener('change', function () { PD.to = this.value; PD.days = 0; PD.mode = 'custom'; renderPeriod(); });
+  }
+
+  /* 整月：以頁首選定的年月為準（老闆看的是哪個月，期間分析就跟到哪個月），
+     未跑完的當月把迄日壓到今天，避免「缺 27 天未錄入」的假警訊 */
+  function monthRange(off) {
+    var y, mo;
+    try { y = (typeof YEAR !== 'undefined' ? YEAR : 0); mo = (typeof MONTH !== 'undefined' ? MONTH : 0); } catch (e) { y = 0; mo = 0; }
+    if (!y || !mo) { var nd = new Date(); y = nd.getFullYear(); mo = nd.getMonth() + 1; }
+    mo += (off || 0);
+    while (mo < 1) { mo += 12; y--; }
+    while (mo > 12) { mo -= 12; y++; }
+    var mm = String(mo).padStart(2, '0');
+    var last = new Date(y, mo, 0).getDate();
+    var from = y + '-' + mm + '-01';
+    var to = y + '-' + mm + '-' + String(last).padStart(2, '0');
+    var td = today();
+    if (to > td && from <= td) to = td;
+    return { from: from, to: to };
   }
   var n0 = function (v) { return (typeof v === 'number' && isFinite(v)) ? v : 0; };
   var r2m = function (v) { return Math.round(v * 100) / 100; };
@@ -4644,7 +4698,15 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     save: save,
     unlock: unlock,
     renderPeriod: renderPeriod,
-    setPeriod: function (d) { PD.days = d; PD.to = today(); PD.from = shiftDate(PD.to, -(d - 1)); renderPeriod(); },
+    setPeriod: function (d) { PD.days = d; PD.mode = 'days'; PD.to = today(); PD.from = shiftDate(PD.to, -(d - 1)); renderPeriod(); },
+    setMonth: function (off) { var r = monthRange(off); PD.mode = 'month'; PD.mOff = off; PD.days = 0; PD.from = r.from; PD.to = r.to; renderPeriod(); },
+    /* 切通路不重撈資料，直接用快取重繪（省 Firestore 讀取次數） */
+    setPeriodCh: function (c) {
+      PD.ch = c;
+      var host = $('pane-period');
+      if (host && PD._raw) paintPeriod(host, filterDays(PD._raw, c), PD._span);
+      else renderPeriod();
+    },
     setCh: function (c) { S.ch = c; paintEntry(); }
   };
 })(window);
