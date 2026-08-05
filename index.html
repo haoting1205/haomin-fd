@@ -803,7 +803,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:8,patch:1,build:69,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:9,patch:0,build:70,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -3814,7 +3814,7 @@ W.fbBackupPanel=function(){
 (function (root) {
   'use strict';
 
-  var RECON_VERSION = '1.4.0';        // 勾稽引擎版本（勿與財會系統的 VER 混淆）
+  var RECON_VERSION = '1.5.0';        // 勾稽引擎版本（勿與財會系統的 VER 混淆）
 
   /* ─────────────────────────────────────────────────────────
    * 通路規則（config 驅動；新門市/加盟只改此處，不動邏輯）
@@ -3839,6 +3839,25 @@ W.fbBackupPanel=function(){
     // '交大店': { ... }  ← 依相同格式擴充
     // '總公司': { ... }
   };
+
+  /* ─────────────────────────────────────────────────────────
+   * 門市營業日型態（config 驅動；加盟新店只在此加一行，不動邏輯）
+   *   weekend  : 視為「離峰日」的星期代號（0=日 … 6=六）
+   *   台積電為園區廠辦店 —— 週末客量僅平日的 1/6。
+   *   若與平日混算日均，平日會備不夠（缺貨少賺），週末會大量報廢。
+   * ───────────────────────────────────────────────────────── */
+  var STORE_PROFILE = {
+    '台積電': { label: '廠辦型', weekend: [0, 6], offLabel: '週末' },
+    '_default': { label: '一般型', weekend: [], offLabel: '離峰' }
+  };
+  function profileOf(store) { return STORE_PROFILE[store] || STORE_PROFILE._default; }
+  function dayType(store, dateStr) {
+    var p = profileOf(store);
+    if (!p.weekend || !p.weekend.length) return '全期';
+    var d = new Date(String(dateStr) + 'T00:00:00');
+    if (isNaN(d.getTime())) return '全期';
+    return p.weekend.indexOf(d.getDay()) >= 0 ? (p.offLabel || '離峰') : '平日';
+  }
 
   /* 警戒閾值（可由呼叫端覆寫） */
   var THRESHOLD = {
@@ -4033,17 +4052,23 @@ W.fbBackupPanel=function(){
   function aggregate(days, products, store) {
     products = products || {};
     var rules = CHANNEL_RULES[store] || {};
-    var m = {}, dayCount = 0, dateSet = {};
+    var m = {}, dayCount = 0, dateSet = {}, dtDays = {};
     (days || []).forEach(function (d) {
       if (!d || !d.items || !d.items.length) return;
       dayCount++; dateSet[d.date] = true;
+      var dt = dayType(store, d.date);
+      dtDays[dt] = (dtDays[dt] || 0) + 1;
       d.items.forEach(function (it) {
         var k = it.sku + '|' + it.ch;
-        if (!m[k]) m[k] = { sku: it.sku, ch: it.ch, days: 0, pick: 0, sold: 0, staff: 0, scrap: 0 };
+        if (!m[k]) m[k] = { sku: it.sku, ch: it.ch, days: 0, pick: 0, sold: 0, staff: 0, scrap: 0, dt: {} };
         var r = m[k], rule = rules[it.ch] || {};
+        if (!r.dt[dt]) r.dt[dt] = { days: 0, pick: 0, sold: 0, staff: 0, scrap: 0 };
+        var b = r.dt[dt];
+        var pk = rule.hasPick ? n(it.pick) : (n(it.sold) + n(it.staff) + n(it.scrap));
         r.days++;
-        r.sold += n(it.sold); r.staff += n(it.staff); r.scrap += n(it.scrap);
-        r.pick += rule.hasPick ? n(it.pick) : (n(it.sold) + n(it.staff) + n(it.scrap));
+        r.sold += n(it.sold); r.staff += n(it.staff); r.scrap += n(it.scrap); r.pick += pk;
+        b.days++;
+        b.sold += n(it.sold); b.staff += n(it.staff); b.scrap += n(it.scrap); b.pick += pk;
       });
     });
     var byItem = Object.keys(m).map(function (k) {
@@ -4058,6 +4083,21 @@ W.fbBackupPanel=function(){
         shortRate: r.pick > 0 ? r2(short / r.pick * 1000) / 1000 : 0
       };
       o.prep = suggestPrep(o);
+      /* 依營業日型態分組 —— 平日與離峰日日均分開算，避免互相稀釋 */
+      o.byType = {};
+      Object.keys(r.dt || {}).forEach(function (dt) {
+        var b = r.dt[dt];
+        if (!b.days) return;
+        var bsr = (b.sold + b.scrap) > 0 ? b.scrap / (b.sold + b.scrap) : 0;
+        var e = {
+          dayType: dt, days: b.days, cat: o.cat, name: o.name, price: o.price, ch: o.ch, sku: o.sku,
+          sold: b.sold, staff: b.staff, scrap: b.scrap, made: b.pick,
+          avgSold: r2(b.sold / b.days), avgMade: r2(b.pick / b.days), avgStaff: r2(b.staff / b.days),
+          scrapRate: r2(bsr * 1000) / 1000
+        };
+        e.prep = suggestPrep(e);
+        o.byType[dt] = e;
+      });
       return o;
     });
     var byCat = {};
@@ -4076,7 +4116,16 @@ W.fbBackupPanel=function(){
     byItem.forEach(function (x) { T.sold += x.sold; T.scrap += x.scrap; T.staff += x.staff; T.short += x.short; T.made += x.made; });
     T.scrapRate = (T.sold + T.scrap) > 0 ? r2(T.scrap / (T.sold + T.scrap) * 1000) / 1000 : 0;
     T.shortRate = T.made > 0 ? r2(T.short / T.made * 1000) / 1000 : 0;
-    return { byItem: byItem, byCat: cats, total: T, days: dayCount, dates: Object.keys(dateSet).sort() };
+    var TORD = Object.keys(dtDays).sort(function (a, b) {
+      return (a === '平日' ? 0 : 1) - (b === '平日' ? 0 : 1);
+    });
+    return {
+      byItem: byItem, byCat: cats, total: T, days: dayCount,
+      dates: Object.keys(dateSet).sort(),
+      dayTypes: dtDays, typeOrder: TORD,
+      split: TORD.length > 1,
+      profile: profileOf(store)
+    };
   }
 
   /* ─────────────────────────────────────────────────────────
@@ -4115,6 +4164,9 @@ W.fbBackupPanel=function(){
   root.HaomingRecon = {
     VERSION: RECON_VERSION,
     CHANNEL_RULES: CHANNEL_RULES,
+    STORE_PROFILE: STORE_PROFILE,
+    profileOf: profileOf,
+    dayType: dayType,
     THRESHOLD: THRESHOLD,
     PREP: PREP,
     validate: validate,
@@ -4136,7 +4188,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
  */
 (function (W) {
   'use strict';
-  var UI_VERSION = '1.8.0';
+  var UI_VERSION = '1.9.0';
 
   var S = {                       // 模組狀態
     store: '台積電', date: '', ch: '臨辦',
@@ -4792,9 +4844,21 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     /* 建議備量表 */
     h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
       + '<div style="font-weight:800;font-size:16px">📋 建議備量表</div>'
-      + '<span style="font-size:12px;color:#64748b">依此期間日均銷量推算，與員工APP 同一演算法</span>'
+      + '<span style="font-size:12px;color:#64748b">平日／週末分開推算，與員工APP 同一演算法</span>'
       + '<button onclick="window.print()" style="margin-left:auto;padding:7px 14px;border:1.5px solid #cbd5e1;background:#fff;border-radius:8px;font-size:13px;cursor:pointer">🖨 列印</button></div>';
-    if (A.days < 5) h += '<div style="background:#fef9c3;border-left:4px solid #ca8a04;padding:9px 12px;border-radius:7px;font-size:13px;color:#854d0e;margin-bottom:8px">⚠ 此期間僅 ' + A.days + ' 天有紀錄，建議量僅供起始參考。累積至少 5 天後才具參考性。</div>';
+    var TO = (A.typeOrder && A.typeOrder.length) ? A.typeOrder : ['全期'];
+    if (A.split) {
+      h += '<div style="background:#eff6ff;border-left:4px solid #2563eb;padding:9px 12px;border-radius:7px;font-size:13px;color:#1e3a8a;margin-bottom:8px">'
+        + 'ℹ ' + esc(S.store) + ' 為<b>' + esc((A.profile || {}).label || '') + '</b>門市（'
+        + TO.map(function (t) { return esc(t) + ' ' + (A.dayTypes[t] || 0) + ' 天'; }).join('、')
+        + '）—— 兩者客量差距大，日均已<b>分開計算</b>，請依當天型態取用對應欄位。</div>';
+    }
+    var thin = TO.filter(function (t) { return (A.dayTypes[t] || 0) < 5; });
+    if (thin.length) {
+      h += '<div style="background:#fef9c3;border-left:4px solid #ca8a04;padding:9px 12px;border-radius:7px;font-size:13px;color:#854d0e;margin-bottom:8px">'
+        + '⚠ ' + thin.map(function (t) { return esc(t) + ' 僅 ' + (A.dayTypes[t] || 0) + ' 天有紀錄'; }).join('、')
+        + '，該欄建議量僅供起始參考。累積至少 5 天後才具參考性。</div>';
+    }
     var chs = Object.keys(W.HaomingRecon.CHANNEL_RULES[S.store] || {});
     chs.forEach(function (ch) {
       var list = A.byItem.filter(function (x) { return x.ch === ch; })
@@ -4802,17 +4866,37 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       if (!list.length) return;
       h += '<div style="font-weight:800;margin:10px 0 4px;color:#0f172a">' + esc(ch) + '</div>'
         + '<table style="width:100%;font-size:13px;border-collapse:collapse">'
-        + '<tr style="background:#0f172a;color:#fff"><th style="padding:6px;text-align:left">品項</th><th style="padding:6px">售價</th><th style="padding:6px">日均銷量</th><th style="padding:6px">日均備量</th><th style="padding:6px">報廢率</th><th style="padding:6px">建議備量</th><th style="padding:6px;text-align:left">備註</th></tr>';
+        + '<tr style="background:#0f172a;color:#fff">'
+        + '<th rowspan="2" style="padding:6px;text-align:left">品項</th>'
+        + '<th rowspan="2" style="padding:6px">售價</th>'
+        + TO.map(function (t) {
+            return '<th colspan="3" style="padding:6px;border-left:2px solid #475569;background:' + (t === '平日' ? '#1e3a8a' : '#475569') + '">'
+              + esc(t) + '<span style="font-weight:400;font-size:11px;opacity:.8">（' + (A.dayTypes[t] || 0) + '天）</span></th>';
+          }).join('')
+        + '<th rowspan="2" style="padding:6px;text-align:left">備註</th></tr>'
+        + '<tr style="background:#1e293b;color:#cbd5e1;font-size:11px">'
+        + TO.map(function () {
+            return '<th style="padding:4px 6px;border-left:2px solid #475569">日均銷量</th>'
+              + '<th style="padding:4px 6px">報廢率</th><th style="padding:4px 6px">建議備量</th>';
+          }).join('')
+        + '</tr>';
       list.forEach(function (x) {
         var p = x.prep, bg = p.lv === 'bad' ? '#fef2f2' : (p.lv === 'warn' ? '#fffbeb' : '');
         h += '<tr style="border-bottom:1px solid #f1f5f9;background:' + bg + '">'
           + '<td style="padding:6px">' + esc(x.cat) + '·' + esc(x.name) + '</td>'
-          + '<td style="padding:6px;text-align:center;color:#64748b">' + x.price + '</td>'
-          + '<td style="padding:6px;text-align:center">' + NF1(x.avgSold) + '</td>'
-          + '<td style="padding:6px;text-align:center;color:#64748b">' + NF1(x.avgMade) + '</td>'
-          + '<td style="padding:6px;text-align:center;color:' + (x.scrapRate > 0.05 ? '#b91c1c' : '#64748b') + '">' + (x.scrapRate * 100).toFixed(0) + '%</td>'
-          + '<td style="padding:6px;text-align:center;font-weight:900;font-size:15px;background:#dcfce7;color:#14532d">' + (p.qty == null ? '—' : p.qty) + '</td>'
-          + '<td style="padding:6px;color:#64748b;font-size:12px">' + esc(p.note) + '</td></tr>';
+          + '<td style="padding:6px;text-align:center;color:#64748b">' + x.price + '</td>';
+        TO.forEach(function (t) {
+          var e = (x.byType || {})[t];
+          if (!e) {
+            h += '<td colspan="3" style="padding:6px;text-align:center;color:#cbd5e1;border-left:2px solid #e2e8f0">—</td>';
+            return;
+          }
+          var ep = e.prep || {};
+          h += '<td style="padding:6px;text-align:center;border-left:2px solid #e2e8f0">' + NF1(e.avgSold) + '</td>'
+            + '<td style="padding:6px;text-align:center;color:' + (e.scrapRate > 0.05 ? '#b91c1c' : '#64748b') + '">' + (e.scrapRate * 100).toFixed(0) + '%</td>'
+            + '<td style="padding:6px;text-align:center;font-weight:900;font-size:15px;background:#dcfce7;color:#14532d">' + (ep.qty == null ? '—' : ep.qty) + '</td>';
+        });
+        h += '<td style="padding:6px;color:#64748b;font-size:12px">' + esc(p.note) + '</td></tr>';
       });
       h += '</table>';
     });
