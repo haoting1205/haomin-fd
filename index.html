@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<title>好洺財會系統 v2.5.0</title>
+<title>好洺財會系統</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -536,7 +536,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div class="hdr">
   <div class="hdr-brand">
     <span class="hdr-logo">📋 好洺財會系統</span>
-    <span class="hdr-ver" id="hdr-ver">v2.5.0</span>
+    <span class="hdr-ver" id="hdr-ver"></span>
     <div class="hdr-period">
       <select class="hdr-sel" id="yr" onchange="chPeriod()"><option value="2028">民國117年</option><option value="2027">民國116年</option><option value="2026" selected>民國115年</option><option value="2025">民國114年</option><option value="2024">民國113年</option></select>
       <select class="hdr-sel" id="mo" onchange="chPeriod()"><option value="1">1月</option><option value="2">2月</option><option value="3" selected>3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select>
@@ -574,7 +574,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
   <div class="nav-tab" onclick="sw('qty',this)" style="color:#0d9488"><span>📝</span> 數量錄入</div>
   <div class="nav-tab cost-only" onclick="sw('recon',this)" style="color:#be123c"><span>🔍</span> 勾稽分析</div>
   <div class="nav-tab cost-only" onclick="sw('period',this)" style="color:#7c2d12"><span>📈</span> 期間分析</div>
-  <div class="nav-tab changelog" onclick="sw('cl',this)"><span>📜</span> 版本紀錄 <span class="nav-badge" id="nb-cl" style="background:rgba(245,158,11,.15);color:#f59e0b">v2.5.0</span></div>
+  <div class="nav-tab changelog" onclick="sw('cl',this)"><span>📜</span> 版本紀錄 <span class="nav-badge" id="nb-cl" style="background:rgba(245,158,11,.15);color:#f59e0b"></span></div>
 </div>
 
 <!-- ═══ CONTENT ═══ -->
@@ -804,7 +804,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <script>
 // ═══ VERSION ═══
 const VER={major:4,minor:9,patch:0,build:70,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
-try{document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
+try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
 const CHANGELOG=[
@@ -864,6 +864,7 @@ const CHANGELOG=[
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
 {build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
 {build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]},
+{build:70,version:'4.9.0',date:'2026-08-06',author:'Claude + Tim',summary:'★安全與正確性修補（FD-02～FD-07）＋ 更新紀錄補齊',changes:[{cat:'FIX',module:'CORE',desc:'★成本權限改為 fail-closed：hasCost() 原本在 _fdCost 未定義時回傳 true，等於權限判斷一失效就全面開放成本資料。改為預設關閉'},{cat:'FIX',module:'TAX',desc:'★營業稅申報提醒橫幅從上線到現在一次都沒顯示過：程式找 .header，但頁首實際 class 是 .hdr，外層又包了 if(hdr) 所以靜默失敗。已修正選擇器'},{cat:'FIX',module:'RECON',desc:'修正 4 處小數精度：r2(x*1000)/1000 中 r2() 內部已取到小數 2 位，再乘除 1000 後實際精度變成 1/100000，與註解意圖（3 位小數）不符。改用 Math.round(x*1000)/1000'},{cat:'MOD',module:'DATA',desc:'全系統自動備份排程間隔 4 小時 → 24 小時。單次備份約 8,000 次 Firestore 讀取，Firebase Spark 方案每日硬上限 50,000 次。原設計雖有「同日只跑一次」保護，但備份失敗時不寫 last 標記會每 4 小時重試，多裝置同時開啟也會疊加'},{cat:'FIX',module:'UI',desc:'分頁標題版本號改為由 VER 單一真實來源產生（原本硬編 v2.5.0，落後兩個大版號且 JS 從不更新）。頁首與版本紀錄徽章的 HTML 佔位值一併移除，避免再次產生硬編漂移'},{cat:'FIX',module:'UI',desc:'版本紀錄顯示順序修正：原本用 reverse() 呈現，但陣列本身 build 1～56 遞增、57～68 遞減，導致最新版本被夾在中間。改為依 build 由大到小排序'},{cat:'DOC',module:'SYSTEM',desc:'★補齊紀錄斷層：VER 先前已被設為 v4.9.0 / build 70，但更新紀錄最後一筆停在 build 68 / v4.8.0，違反版本號單一真實來源原則。本筆即為 build 70 的正式紀錄'},{cat:'DOC',module:'CORE',desc:'★推翻稽核報告 FD-01：稽核判定「let db 不跨 script 標籤、四大模組靜默失效」有誤。script 頂層的 let 位於全域詞法環境，跨 script 標籤是共用的，只是不成為 window 屬性；且 build 59 已把兩處 DB() 改為先試詞法 db 再退回 window.db。線上實測 typeof db 為 object 且是有效 Firestore 實例，DB() 正常回傳，備份最後執行時間 2026-08-01 — 模組一直是活的。故不補 window.db 別名，維持 build 59 的設計決策'}]},
 {build:68,version:'4.8.0',date:'2026-07-30',author:'Claude + Tim',summary:'★新增全系統自動備份 —— 財會帳務資料原本沒有任何備份',changes:[{cat:'NEW',module:'DATA',desc:'★財會的逐月逐店帳務、數量錄入、勾稽結果原本沒有任何備份機制。生管ERP 與人資各自只備份自己的資料，而財會資料存在 Firestore 子集合（finance/{年月}/stores/{門市}/salesQty）中，一般的集合查詢抓不到。新增全系統備份：一次匯出人資／生管ERP／財會／品項主檔的完整資料'},{cat:'NEW',module:'DATA',desc:'採 File System Access API 直接寫入指定資料夾（建議選 OneDrive 底下），檔案落地即自動同步上雲。不需要 Azure 註冊、不佔 localStorage 配額。設定一次後每 4 小時自動執行，同一天只跑一次'},{cat:'NEW',module:'DATA',desc:'★完整性檢查：備份前先驗證 ERP 食材/配方/內部品、帳號、員工、品項、財會月份皆不為 0，任何一項為空即中止且不覆蓋既有備份 —— 避免雲端尚未載入完成時寫出一份空備份把好的蓋掉'},{cat:'DOC',module:'SYSTEM',desc:'為何放在財會系統：做成公開網頁工具的話任何人都能一鍵下載全公司資料；財會系統需登入，是合適的存放位置。入口在「系統藍圖」頁上方'},{cat:'DOC',module:'SYSTEM',desc:'背景：Google Drive 容量已滿，人資的雲端備份自 2026-07-26 起靜默失敗；生管ERP 的 localStorage 自動備份曾撐爆 10MB 配額導致所有系統寫入靜默失敗（ERP v2.25.0 已修）'}]},
 {build:67,version:'4.7.0',date:'2026-07-30',author:'Claude + Tim',summary:'★新增期間分析｜分通路覆核與取消覆核｜商場對帳改為表單輸入',changes:[{cat:'NEW',module:'UI',desc:'★新增「期間分析」頁 —— 原本勾稽分析只能看單日，要比較趨勢得一天一天切。新頁可選近7/14/30日或自訂區間，顯示期間銷售、理論營收、銷貨毛利、報廢率、消失成本、隱形損失（含日均與佔營收比），並列出各類別報廢率與報廢金額 TOP10'},{cat:'NEW',module:'CORE',desc:'★引擎新增 aggregate() 跨日彙總與 suggestPrep() 建議備量。刻意只用「數量與售價」判斷、不使用單位成本 —— 員工APP 無成本讀取權限，若演算法依賴成本，兩邊會算出不同的建議量。高單價品以售價≥55元作為代理指標'},{cat:'NEW',module:'UI',desc:'期間分析頁內建「建議備量表」可直接列印給店員；不足5天有紀錄時顯示樣本不足警語'},{cat:'NEW',module:'CORE',desc:'★分通路覆核：臨辦與櫃位由不同人、不同時間完成，改為各自鎖定（locks:{臨辦,櫃位}）。鎖定一個通路不影響另一通路繼續錄入。舊資料只有 doc 層 lockedAt 者，自動視為兩通路皆已覆核'},{cat:'NEW',module:'CORE',desc:'★新增取消覆核 —— 僅限具成本權限者（老闆／財會），與 Firestore Rules 的判定一致，並強制寫入稽核軌跡（act:UNLOCK），避免有人偷改已結算數字。doc 層 lockedAt 僅在「所有通路皆覆核」時成立，維持 Rules 語意'},{cat:'MOD',module:'UI',desc:'商場對帳「新增一期」原本用 5 個 prompt 逐項詢問、結帳區間標籤還得手打（易打錯格式、無法驗證）。改為表單式輸入：區間用日期選擇器、標籤依「每月11日～隔月10日」規則自動產生、檢核起訖日順序與重複區間'}]},
 {build:66,version:'4.6.0',date:'2026-07-27',author:'Claude + Tim',summary:'櫃位「製作數量」改為自動加總（不需填寫），並移除櫃位短少欄',changes:[{cat:'FIX',module:'CORE',desc:'★釐清櫃位的製作數量語意：它是「銷售＋員餐/檢體＋報廢」的定義式總和，不是像臨辦取餐那樣的獨立來源。build#64 曾誤解為守恆式而開放填寫並計算短少 —— 但既然製作是由三欄相加而來，短少必然恆為 0，該計算沒有意義。現改為由系統自動加總、以唯讀格顯示'},{cat:'MOD',module:'UI',desc:'櫃位回到 3 個輸入欄（銷售/員餐檢體/報廢），製作欄為唯讀計算格（青色底），短少欄不再顯示；摘要列改顯示製作總數。鍵盤上下移動跨距同步回到 3'},{cat:'NEW',module:'CORE',desc:'通路設定新增 madeIsSum 旗標區分兩種總量來源：hasPick=有獨立總量可反推短少（臨辦）、madeIsSum=總量由其他欄相加（櫃位）。邏輯仍為 config 驅動，未寫死通路名稱'},{cat:'DOC',module:'SYSTEM',desc:'櫃位仍可算出耗損金額與員餐/檢體金額，只是無法算消失成本 —— 因為沒有獨立的製作總量可比對'}]},
@@ -877,11 +878,11 @@ const CHANGELOG=[
 {build:58,version:'4.1.0',date:'2026-07-26',author:'Claude + Tim',summary:'★新增銷售數量勾稽模組 — 紙本數量進系統，反推消失成本',changes:[{cat:'NEW',module:'CORE',desc:'★勾稽引擎 HaomingRecon v1.0.0 — 純函式、config 驅動通路規則（CHANNEL_RULES），新門市/加盟只改設定不動邏輯。核心：短少數量 = 取餐 − 銷售 − 報廢 − 員餐；消失成本 = 短少 × 單位成本'},{cat:'NEW',module:'UI',desc:'★數量錄入頁 — 鏡像紙本版面（臨辦4欄/櫃位3欄），行動端優先、大按鈕數字鍵盤；即時守恆防呆：銷售+報廢+員餐>取餐 立即紅框並阻擋儲存；店長覆核後鎖定（lockedAt）'},{cat:'NEW',module:'UI',desc:'★勾稽儀表板 — 理論營收 vs 財會實收差距、耗損金額、員工餐金額、消失成本、隱形損失合計；自動警示旗標（帳務差距>2%、報廢率>5%、短少率>2%）＋報廢/消失成本 TOP5 排行'},{cat:'NEW',module:'DATA',desc:'資料模型 — catalog/products（售價層）與 catalog/costs（成本層）實體隔離，Rules 才能只擋成本不擋售價；salesQty/{日期} 存數量、recon/{日期} 存勾稽結果並記錄 costRevUsed（成本會改版，事後重算會對不上原判斷）'},{cat:'NEW',module:'DATA',desc:'台積電通路對應 — 臨辦=臨辦現金+臨辦刷餐（可算短少）；櫃位=電子支付+夜早金額+自費早餐+紙本補單+夜早現金（無取餐數量，不算短少）'},{cat:'NEW',module:'SYSTEM',desc:'成本權限 _fdCost — 老闆恆真，其餘須 HR 開通 access.fdCost；無權限者勾稽頁顯示「權限不足」且不下載成本資料。⚠️目前為匿名驗證，前端隱藏非真資安，須配合 Cloud Function fdLogin + Custom Token 才能由 Firestore Rules 真正擋住'},{cat:'NEW',module:'DATA',desc:'品項主檔 90 項（含售價與單位成本）— 全菜單平均食材成本率 41.9%，10 項 ≥48%'},{cat:'DOC',module:'SYSTEM',desc:'已知限制：飯糰未計入6兩袋包材、未含3-5%製程損耗、櫃位無取餐數量故無法推算消失成本、紙本雞塊售價35需更正為30'}]},
 {build:57,version:'4.0.1',date:'2026-07-17',author:'Claude + Tim',summary:'★本機儲存空間管理 — 修復配額用盡（結構回退的元兇之一）',changes:[{cat:'FIX',module:'DATA',desc:'★移除每月資料的重複儲存 — 原本每次存檔同時寫入 fin_v3_{月份} 與完全重複的 fin_v3 副本（歷史遺留，4處），等於每月資料佔用雙倍空間。已全數移除（讀取端仍相容舊鍵）'},{cat:'NEW',module:'DATA',desc:'★空間不足自動修復 — 新增 _lsSafeSet：寫入失敗時自動清理僅保留最近4個月的本機快取並重試（雲端 finance/{月} 與每日快照完整保留，切到舊月會自動從雲端載回），不再直接失敗導致結構回退'},{cat:'NEW',module:'DATA',desc:'開機自動瘦身 — 啟動4秒後自動清理6個月前的本機月快取，避免長期累積'},{cat:'NEW',module:'SYSTEM',desc:'★用量檢視 — ?selftest=1 新增「本機儲存用量」：總用量/各系統佔用/財會月份快取清單＋手動清理鈕。⚠️架構事實：GitHub Pages 全系統共用網域 haoting1205.github.io，瀏覽器 localStorage 約5MB配額由 財會/人資/生管ERP/POS/員工APP 共同分享'}]}
 ];
-let clExpanded={57:true};
+let clExpanded={70:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
-[...CHANGELOG].reverse().forEach(entry=>{const isOpen=clExpanded[entry.build];h+='<div class="cl-entry"><div class="cl-entry-hdr'+(isOpen?' open':'')+'" onclick="toggleCL('+entry.build+')"><div style="display:flex;align-items:center;gap:14px"><div class="cl-entry-num">#'+entry.build+'</div><div><div style="display:flex;align-items:center;gap:10px"><span class="cl-entry-ver">v'+entry.version+'</span><span class="cl-entry-date">'+entry.date+'</span><span class="cl-entry-cnt">'+entry.changes.length+' 項</span></div><div class="cl-entry-sum">'+entry.summary+'</div></div></div><div class="cl-arrow'+(isOpen?' open':'')+'">▾</div></div>';if(isOpen){entry.changes.forEach(c=>{const cat=CL_CATS[c.cat],mod=CL_MODS[c.module]||{label:c.module,color:'#94a3b8'};h+='<div class="cl-chg"><span class="cl-cat" style="background:'+cat.bg+';color:'+cat.color+';border:1px solid '+cat.color+'33">'+cat.icon+' '+cat.label+'</span><span class="cl-mod" style="color:'+mod.color+'">'+mod.label+'</span><span class="cl-desc">'+c.desc+'</span></div>'});h+='<div class="cl-meta">👤 '+entry.author+' │ 📅 '+entry.date+'</div>'}h+='</div>'});
+[...CHANGELOG].sort((a,b)=>b.build-a.build).forEach(entry=>{const isOpen=clExpanded[entry.build];h+='<div class="cl-entry"><div class="cl-entry-hdr'+(isOpen?' open':'')+'" onclick="toggleCL('+entry.build+')"><div style="display:flex;align-items:center;gap:14px"><div class="cl-entry-num">#'+entry.build+'</div><div><div style="display:flex;align-items:center;gap:10px"><span class="cl-entry-ver">v'+entry.version+'</span><span class="cl-entry-date">'+entry.date+'</span><span class="cl-entry-cnt">'+entry.changes.length+' 項</span></div><div class="cl-entry-sum">'+entry.summary+'</div></div></div><div class="cl-arrow'+(isOpen?' open':'')+'">▾</div></div>';if(isOpen){entry.changes.forEach(c=>{const cat=CL_CATS[c.cat],mod=CL_MODS[c.module]||{label:c.module,color:'#94a3b8'};h+='<div class="cl-chg"><span class="cl-cat" style="background:'+cat.bg+';color:'+cat.color+';border:1px solid '+cat.color+'33">'+cat.icon+' '+cat.label+'</span><span class="cl-mod" style="color:'+mod.color+'">'+mod.label+'</span><span class="cl-desc">'+c.desc+'</span></div>'});h+='<div class="cl-meta">👤 '+entry.author+' │ 📅 '+entry.date+'</div>'}h+='</div>'});
 h+='<div class="cl-legend"><h4>📌 版本編號規則</h4><div class="cl-legend-grid"><div><span style="color:#f59e0b;font-weight:800">主版本</span><span style="color:#475569"> — 架構重大變更</span></div><div><span style="color:#3b82f6;font-weight:800">次版本</span><span style="color:#475569"> — 新增功能模組</span></div><div><span style="color:#22c55e;font-weight:800">修訂版</span><span style="color:#475569"> — 修改/優化/修復</span></div><div><span style="color:#a855f7;font-weight:800">Build #</span><span style="color:#475569"> — 流水號永遞增</span></div></div><div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)"><div style="font-size:11px;font-weight:800;color:#64748b;margin-bottom:8px">類型標籤</div><div class="cl-legend-tags">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<span class="cl-cat" style="background:'+v.bg+';color:'+v.color+';border:1px solid '+v.color+'33">'+v.icon+' '+v.label+'</span>'});h+='</div></div></div>';w.innerHTML=h}
 function toggleCL(b){clExpanded[b]=!clExpanded[b];renderChangelog()}
 
@@ -2822,7 +2823,7 @@ function checkTaxReminder(){
       tabs.forEach(function(t){if((t.getAttribute('onclick')||'').indexOf("'tax'")>=0)t.click()});
       bar.style.display='none';
     };
-    var hdr=document.querySelector('.header');
+    var hdr=document.querySelector('.hdr'); /* [修補 FD-03] 頁首 class 是 .hdr，原本 .header 全檔不存在 */
     if(hdr)hdr.parentElement.insertBefore(bar,hdr.nextSibling);
   }
 }
@@ -3621,7 +3622,7 @@ bootstrapFinDefaults();
  *   每 4 小時自動把 Firestore 全系統資料寫成一份 JSON。 */
 (function(W){
 'use strict';
-var DBN='hm_fd_ob', ST='h', KEY='dir', IVL=4*3600*1000;
+var DBN='hm_fd_ob', ST='h', KEY='dir', IVL=24*3600*1000; /* [修補 FD-07] 單次備份約 8000 次讀取，Spark 每日上限 50000 */
 
 function idb(){return new Promise(function(res,rej){var r=indexedDB.open(DBN,1);
   r.onupgradeneeded=function(){r.result.createObjectStore(ST)};
@@ -3641,7 +3642,7 @@ W.fbBackupPickDir=function(){
   W.showDirectoryPicker({mode:'readwrite'}).then(function(dir){
     return put(dir).then(function(){
       localStorage.setItem('hm_fdob_name',dir.name);
-      alert('✅ 已設定備份資料夾：'+dir.name+'\n\n之後每 4 小時自動備份全系統資料。\n現在立即執行第一次備份。');
+      alert('✅ 已設定備份資料夾：'+dir.name+'\n\n之後每 24 小時自動備份全系統資料。\n現在立即執行第一次備份。');
       W.fbBackupNow();
     });
   }).catch(function(e){ if(e&&e.name!=='AbortError')alert('設定失敗：'+e.message) });
@@ -3768,7 +3769,7 @@ W.fbBackupNow=function(silent){
   });
 };
 
-/* 自動排程：開啟後 90 秒跑第一次，之後每 4 小時；同日已備份過就跳過 */
+/* 自動排程：開啟後 90 秒跑第一次，之後每 24 小時；同日已備份過就跳過 */
 function auto(){
   get().then(function(dir){
     if(!dir)return;
@@ -3797,7 +3798,7 @@ W.fbBackupPanel=function(){
     +'<button onclick="fbBackupPickDir()" style="padding:11px 18px;background:#1d4ed8;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:800;cursor:pointer">📁 '+(name?'變更':'設定')+'備份資料夾</button>'
     +'<button onclick="fbBackupNow()" style="padding:11px 18px;background:#fff;border:1.5px solid #cbd5e1;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer">📸 立即備份</button>'
     +'</div>'
-    +'<div style="font-size:11px;color:#94a3b8;margin-top:9px">設定後每 4 小時自動備份（同一天只跑一次）。每次重開分頁後首次寫入需按一下確認。</div>'
+    +'<div style="font-size:11px;color:#94a3b8;margin-top:9px">設定後每 24 小時自動備份（同一天只跑一次）。每次重開分頁後首次寫入需按一下確認。</div>'
     +'</div>';
 };
 })(window);
@@ -3990,8 +3991,8 @@ W.fbBackupPanel=function(){
       a.gross = a.theo - a.cogs;
       a.grossRate = a.theo > 0 ? a.gross / a.theo : 0;
       ['theo', 'actual', 'diff', 'cogs', 'gross', 'scrapAmt', 'staffAmt', 'shortAmt'].forEach(function (k) { a[k] = r2(a[k]); });
-      a.grossRate = r2(a.grossRate * 1000) / 1000;
-      a.diffRate = r2(a.diffRate * 1000) / 1000;
+      a.grossRate = Math.round(a.grossRate*1000)/1000;
+      a.diffRate = Math.round(a.diffRate*1000)/1000;
 
       hiddenLoss += a.scrapAmt + a.staffAmt + a.shortAmt;
       totTheo += a.theo; totActual += a.actual;
@@ -4079,7 +4080,7 @@ W.fbBackupPanel=function(){
         sku: r.sku, ch: r.ch, name: p.name || r.sku, cat: p.cat || '', price: n(p.price),
         days: r.days, sold: r.sold, staff: r.staff, scrap: r.scrap, made: r.pick, short: short,
         avgSold: r2(r.sold / r.days), avgMade: r2(r.pick / r.days), avgStaff: r2(r.staff / r.days),
-        scrapRate: r2(sr * 1000) / 1000,
+        scrapRate: Math.round(sr*1000)/1000,
         shortRate: r.pick > 0 ? r2(short / r.pick * 1000) / 1000 : 0
       };
       o.prep = suggestPrep(o);
@@ -4093,7 +4094,7 @@ W.fbBackupPanel=function(){
           dayType: dt, days: b.days, cat: o.cat, name: o.name, price: o.price, ch: o.ch, sku: o.sku,
           sold: b.sold, staff: b.staff, scrap: b.scrap, made: b.pick,
           avgSold: r2(b.sold / b.days), avgMade: r2(b.pick / b.days), avgStaff: r2(b.staff / b.days),
-          scrapRate: r2(bsr * 1000) / 1000
+          scrapRate: Math.round(bsr*1000)/1000
         };
         e.prep = suggestPrep(e);
         o.byType[dt] = e;
@@ -4216,7 +4217,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
   var NF1 = function (v) { return Number(v || 0).toLocaleString('zh-TW', { maximumFractionDigits: 1 }); };
   var today = function () { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   var ymOf = function (d) { return (d || '').slice(0, 7); };
-  var hasCost = function () { return typeof W._fdCost !== 'undefined' ? !!W._fdCost : true; };
+  var hasCost = function () { return typeof W._fdCost !== 'undefined' ? !!W._fdCost : false; }; /* [修補 FD-02] fail-closed */
 
   var HDR_H = 41;   // 表頭列高（類別列要黏在它下方）
 
