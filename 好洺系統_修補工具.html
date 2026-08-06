@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>好洺系統 · 修補工具 v1.0</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans TC',-apple-system,system-ui,sans-serif;background:#f5f1ea;color:#0a0a0a;line-height:1.6;padding:0 0 60px}
+header{background:#0a0a0a;color:#f5f1ea;padding:20px;border-bottom:3px solid #c2410c}
+header h1{font-size:20px;font-weight:700}
+header p{font-size:12px;color:#a8a29e;margin-top:4px}
+.wrap{max-width:1000px;margin:0 auto;padding:20px}
+.warn{background:#fef3c7;border-left:4px solid #d97706;padding:14px 16px;margin:16px 0;font-size:14px;border-radius:2px}
+.warn b{color:#92400e}
+.sys{background:#fff;border:1px solid #e7e5e4;border-radius:3px;margin:18px 0;overflow:hidden}
+.sys-h{background:#0a0a0a;color:#f5f1ea;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.sys-h .nm{font-size:17px;font-weight:700}
+.sys-h .repo{font-family:ui-monospace,monospace;font-size:11px;color:#fbbf24}
+.sys-b{padding:18px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+button{font-family:inherit;font-size:14px;font-weight:600;padding:10px 16px;border:none;border-radius:2px;cursor:pointer;background:#c2410c;color:#fff}
+button:hover{background:#ea580c}
+button:disabled{background:#a8a29e;cursor:not-allowed}
+button.sec{background:#fff;color:#0a0a0a;border:1px solid #d6d3d1}
+button.sec:hover{background:#f5f5f4}
+input[type=text],input[type=password]{font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid #d6d3d1;border-radius:2px;min-width:180px}
+label{font-size:13px;color:#57534e}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #f0efed;vertical-align:top}
+th{background:#faf9f7;font-size:11px;letter-spacing:.08em;color:#57534e;text-transform:uppercase}
+td.sev{white-space:nowrap;font-weight:700;font-size:12px}
+.P0{color:#b91c1c}.P1{color:#c2410c}.P2{color:#a16207}.P3{color:#57534e}
+td.st{white-space:nowrap;font-weight:700}
+.ok{color:#047857}.no{color:#b91c1c}.skip{color:#a8a29e}
+.why{color:#57534e;font-size:12px;margin-top:3px}
+.log{background:#0a0a0a;color:#d6d3d1;font-family:ui-monospace,monospace;font-size:12px;padding:12px;border-radius:2px;margin-top:12px;white-space:pre-wrap;max-height:220px;overflow:auto;display:none}
+.log.show{display:block}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:2px;background:#ede6d6;color:#57534e;margin-left:6px}
+.pill.done{background:#047857;color:#fff}
+.pill.fail{background:#b91c1c;color:#fff}
+footer{max-width:1000px;margin:30px auto;padding:0 20px;font-size:12px;color:#78716c}
+h3{font-size:14px;margin:16px 0 6px;color:#0a0a0a}
+code{font-family:ui-monospace,monospace;font-size:12px;background:#f0efed;padding:1px 5px;border-radius:2px}
+</style>
+</head>
+<body>
+<header>
+  <h1>好洺餐飲 · 系統修補工具 v1.0</h1>
+  <p>HAOMING F&amp;B · PATCH TOOL · 2026-08-05</p>
+</header>
+
+<div class="wrap">
+
+<div class="warn">
+  <b>使用方式（完全在你的電腦本機執行，不會上傳任何檔案）</b><br>
+  1. 點「從 GitHub 讀取線上版」抓取目前正式環境的 <code>index.html</code>（或用「選擇本機檔案」載入你自己的版本）<br>
+  2. 檢查修補結果表，每條規則會顯示 ✅ 已套用 / ❌ 找不到目標 / ⏭ 已略過<br>
+  3. 點「下載修補後的 index.html」，依你原本的部署 SOP 上傳到 GitHub（<b>main 與 master 兩個分支都要更新</b>）<br>
+  4. 上傳後用 <code>Ctrl+Shift+R</code> 強制重新整理，確認版本號有跳動
+  <br><br>
+  <b>⚠️ 上傳前務必先備份現有的 index.html。</b>本工具只做字串取代，不會改動你的資料，但仍請保留回退版本。
+</div>
+
+<!-- ============ 財會 ============ -->
+<div class="sys" id="sys-fd">
+  <div class="sys-h">
+    <div><span class="nm">財會系統</span><span class="pill" data-pill>待處理</span></div>
+    <span class="repo">haomin-fd · v4.8.0 → v4.9.0</span>
+  </div>
+  <div class="sys-b">
+    <div class="row">
+      <button data-act="fetch">從 GitHub 讀取線上版</button>
+      <button class="sec" data-act="pick">選擇本機檔案</button>
+      <input type="file" data-file accept=".html" style="display:none">
+      <button class="sec" data-act="dl" disabled>下載修補後的 index.html</button>
+      <span data-info style="font-size:12px;color:#57534e"></span>
+    </div>
+    <table data-tbl><thead><tr><th style="width:70px">嚴重度</th><th>修補項目</th><th style="width:90px">結果</th></tr></thead><tbody></tbody></table>
+    <div class="log" data-log></div>
+  </div>
+</div>
+
+<!-- ============ POS ============ -->
+<div class="sys" id="sys-pos">
+  <div class="sys-h">
+    <div><span class="nm">POS 系統</span><span class="pill" data-pill>待處理</span></div>
+    <span class="repo">haomin-pos · v1.5.0 → v1.6.0</span>
+  </div>
+  <div class="sys-b">
+    <div class="row">
+      <label>新的後台管理密碼：</label>
+      <input type="password" data-adminpin placeholder="留空則不更動密碼" autocomplete="new-password">
+      <span style="font-size:12px;color:#78716c">（只在你的瀏覽器內處理，不會外傳）</span>
+    </div>
+    <div class="row">
+      <button data-act="fetch">從 GitHub 讀取線上版</button>
+      <button class="sec" data-act="pick">選擇本機檔案</button>
+      <input type="file" data-file accept=".html" style="display:none">
+      <button class="sec" data-act="dl" disabled>下載修補後的 index.html</button>
+      <span data-info style="font-size:12px;color:#57534e"></span>
+    </div>
+    <table data-tbl><thead><tr><th style="width:70px">嚴重度</th><th>修補項目</th><th style="width:90px">結果</th></tr></thead><tbody></tbody></table>
+    <div class="log" data-log></div>
+  </div>
+</div>
+
+<!-- ============ QR ============ -->
+<div class="sys" id="sys-qr">
+  <div class="sys-h">
+    <div><span class="nm">QR 掃碼點餐</span><span class="pill" data-pill>待處理</span></div>
+    <span class="repo">haomin-pos-qr · 無版號 → v1.1.0</span>
+  </div>
+  <div class="sys-b">
+    <div class="row">
+      <button data-act="fetch">從 GitHub 讀取線上版</button>
+      <button class="sec" data-act="pick">選擇本機檔案</button>
+      <input type="file" data-file accept=".html" style="display:none">
+      <button class="sec" data-act="dl" disabled>下載修補後的 index.html</button>
+      <span data-info style="font-size:12px;color:#57534e"></span>
+    </div>
+    <table data-tbl><thead><tr><th style="width:70px">嚴重度</th><th>修補項目</th><th style="width:90px">結果</th></tr></thead><tbody></tbody></table>
+    <div class="log" data-log></div>
+  </div>
+</div>
+
+<footer>
+  本工具只涵蓋「可用字串取代安全完成」的修補項目。<br>
+  員工APP、HR管理端、生管ERP 的修補，以及需要改動資料結構的項目（庫存增量寫入、門市隔離、Firestore 安全規則、離線佇列），列於《好洺六系統_稽核與改善規畫.md》的第二波與第三波，需另行開發。
+</footer>
+</div>
+
+<script>
+/* ============================================================
+   好洺系統修補工具 v1.0
+   規則已於 2026-08-05 對線上正式版原始碼逐條驗證命中次數
+   ============================================================ */
+
+var RAW = {
+  fd:  'https://raw.githubusercontent.com/haoting1205/haomin-fd/main/index.html',
+  pos: 'https://raw.githubusercontent.com/haoting1205/haomin-pos/main/index.html',
+  qr:  'https://raw.githubusercontent.com/haoting1205/haomin-pos-qr/main/index.html'
+};
+
+/* --- 注入用的程式碼片段（避免內嵌字串跳脫問題，用陣列組合） --- */
+var ERR_REPORTER = [
+'<script>',
+'/* [修補] 全域錯誤回報 → Firestore pos_errors */',
+'(function(){var busy=false,n=0;function rep(o){if(busy||n>20)return;busy=true;n++;try{',
+'var d=(window.firebase&&firebase.apps&&firebase.apps.length)?firebase.firestore():null;',
+'if(d)d.collection("pos_errors").add({msg:String(o.msg||""),src:String(o.src||""),line:o.line||0,',
+'stack:String(o.stack||"").slice(0,1500),ua:navigator.userAgent,ts:Date.now(),sys:"pos"}).catch(function(){});',
+'}catch(e){}busy=false;}',
+'window.onerror=function(m,s,l,c,e){rep({msg:m,src:s,line:l,stack:e&&e.stack});return false;};',
+'window.addEventListener("unhandledrejection",function(ev){rep({msg:"unhandledrejection: "+(ev.reason&&ev.reason.message||ev.reason),stack:ev.reason&&ev.reason.stack});});',
+'})();',
+'<\/script>'
+].join('\n');
+
+var INV_PERSIST = [
+'  /* [修補 POS-03] 庫存持久化綁定在「狀態」而非「動作」——',
+'     原本只有結帳 deduct() 會寫雲端，手動補貨 rs() 不會寫，',
+'     且開機時雲端會覆蓋本機 → 庫存永遠單向往下掉。 */',
+'  useEffect(function(){',
+'    if(!window.__invCloudReady) return;',
+'    var t=setTimeout(function(){ try{ DB.saveInventory(inv); }catch(e){} },1000);',
+'    return function(){ clearTimeout(t); };',
+'  },[inv]);'
+].join('\n');
+
+/* --- 規則定義 --- */
+var RULES = {
+
+fd: [
+ {id:'FD-01',sev:'P0',expect:1,
+  title:'復活四大失效模組：數量錄入 / 勾稽分析 / 期間分析 / 全系統自動備份',
+  why:'第 1 個 script 用 <code>let db</code> 宣告，詞法作用域不跨 &lt;script&gt; 標籤，後面兩個 script 區塊的 <code>DB()</code> 永遠取到 null，四個模組全部靜默失效（自動備份也完全沒在跑）。補一行掛到 window 即可。',
+  find:/(\bdb\s*=\s*firebase\s*\.\s*firestore\s*\([^)]*\)\s*;)/,
+  repl:'$1 window.db = db; /* [修補 FD-01] 讓後續 script 區塊的 DB() 取得到 */'},
+
+ {id:'FD-02',sev:'P0',expect:1,
+  title:'成本權限改為預設關閉（原本 fail-open）',
+  why:'<code>hasCost()</code> 在 <code>_fdCost</code> 未定義時回傳 <code>true</code>，等於權限判斷失效時全部開放。安全設計應該 fail-closed。',
+  find:/typeof\s+W\._fdCost\s*!==\s*'undefined'\s*\?\s*!!W\._fdCost\s*:\s*true/,
+  repl:"typeof W._fdCost !== 'undefined' ? !!W._fdCost : false /* [修補 FD-02] fail-closed */"},
+
+ {id:'FD-03',sev:'P1',expect:1,
+  title:'修復營業稅申報提醒橫幅（選擇器打錯，永遠不會顯示）',
+  why:'程式找 <code>.header</code>，但頁首實際的 class 是 <code>.hdr</code>，全檔沒有任何 <code>class="header"</code>。因為外面包了 <code>if(hdr)</code>，所以是靜默失敗——申報提醒從上線到現在一次都沒跳過。',
+  find:/querySelector\(\s*'\.header'\s*\)/,
+  repl:"querySelector('.hdr') /* [修補 FD-03] */"},
+
+ {id:'FD-04',sev:'P3',expect:3,
+  title:'修正三處小數精度計算',
+  why:'<code>r2(x*1000)/1000</code> 中 <code>r2()</code> 內部已經是取到小數 2 位，再乘除 1000 後實際精度變成 1/100000，與註解意圖（3 位小數）不符。',
+  find:/r2\(\s*([\w.$]+)\s*\*\s*1000\s*\)\s*\/\s*1000/g,
+  repl:'Math.round($1*1000)/1000'},
+
+ {id:'FD-05',sev:'P2',expect:3,
+  title:'版本號顯示修正 v2.5.0 → v4.9.0（分頁標題已落後兩個大版號）',
+  why:'實際程式是 v4.8.0，但 <code>&lt;title&gt;</code> 與兩個顯示欄位仍硬編 v2.5.0，JS 從來不會去更新它。瀏覽器分頁、書籤、列印頁首永遠顯示錯誤版本。',
+  find:/v2\.5\.0/g, repl:'v4.9.0'},
+
+ {id:'FD-06',sev:'P2',expect:1,
+  title:'版本號升級 4.8.0 → 4.9.0 並寫入更新紀錄',
+  why:'標記本次修補，方便日後追蹤與回退。',
+  find:/4\.8\.0/, repl:'4.9.0'},
+
+ {id:'FD-07',sev:'P0',expect:1,
+  title:'⚠️ 自動備份間隔 4 小時 → 24 小時（必須與 FD-01 同時上線）',
+  why:'<b>這一項是 FD-01 的配套保險，不可略過。</b>備份模組因為 FD-01 的 bug 從上線到現在從未執行過。一旦補上 <code>window.db</code>，它會立刻醒過來——而單次備份要 <b>8,000+ 次 Firestore 讀取</b>（24 月 × 3 店 × 3 次，加上 10 個集合各 limit(800)），每 4 小時跑一次等於<b>每日約 48,000 次</b>。<br>你的 Firebase 是 <b>Spark 免付費方案，每日讀取硬上限 50,000 次</b>——這不是帳單問題，是配額用盡後<b>三家店的 POS、HR、員工APP 會在當天稍晚全部開始讀取失敗</b>。<br>改為 24 小時後約 8,000 次/日，安全落在配額內，而且這才符合你原本「每日自動備份」的設計本意。<br><b>治本作法是改成增量備份（只備 updatedAt 較新的資料），已列入第二波。</b>',
+  find:/1000\s*\*\s*60\s*\*\s*60\s*\*\s*4(?!\d)/,
+  repl:'1000*60*60*24 /* [修補 FD-07] Spark 方案每日 50,000 次讀取上限，原 4 小時間隔會吃光配額 */'}
+],
+
+pos: [
+ {id:'POS-01',sev:'P0',expect:1,
+  title:'修正未稅營收公式（原本會少報營業稅約 5%）',
+  why:'原式 <code>tax = Math.round(rv*.05)</code> 是「外加稅」算法，但台灣營業稅是<b>內含 5%</b>。含稅 <code>rv</code> 的未稅金額應為 <code>rv/1.05</code>。以月營收 300 萬估算，稅額每月少算約 7,100 元。財會端用的是正確的內含稅公式，兩系統稅基不一致。',
+  find:/Math\.round\(\s*rv\s*\*\s*\.05\s*\)/,
+  repl:'(rv - Math.round(rv/1.05)) /* [修補 POS-01] 內含稅：未稅=rv/1.05 */'},
+
+ {id:'POS-02a',sev:'P0',expect:1,
+  title:'移除登入畫面上直接印出的管理密碼提示',
+  why:'登入畫面把管理密碼直接寫在提示文字上，連輸入錯誤的訊息都寫出答案。',
+  find:/管理密碼錯誤\([^)]*\)/, repl:'管理密碼錯誤'},
+
+ {id:'POS-02b',sev:'P0',expect:1,
+  title:'移除密碼提示（欄位標籤）',
+  why:'同上，欄位標籤也把密碼括號寫出來。',
+  find:/管理密碼\([^)]*\)/, repl:'管理密碼'},
+
+ {id:'POS-02c',sev:'P1',expect:1,
+  title:'移除員工 PIN 提示',
+  why:'員工密碼同樣印在畫面上。',
+  find:/員工密碼\([^)]*\)/, repl:'員工密碼'},
+
+ {id:'POS-02d',sev:'P0',expect:1,optional:true,
+  title:'更換後台管理密碼（需在上方欄位填入新密碼）',
+  why:'原本硬編為連號弱密碼。填入新密碼後本工具會直接取代；<b>密碼只在你的瀏覽器內處理，不會外傳</b>。留空則此項略過。',
+  find:/pin\s*===\s*"0000"/,
+  /* $ 需跳脫為 $$，否則 String.replace 會把 $& $1 等當成特殊樣式 */
+  repl:function(ctx){ return ('pin===' + JSON.stringify(ctx.adminPin)).replace(/\$/g,'$$$$'); }},
+
+ {id:'POS-03',sev:'P0',expect:1,
+  title:'修復手動補貨不寫入 Firebase（BInv.rs 持久化 bug）',
+  why:'<code>rs()</code> 只改 React state 就跳綠色成功提示，完全沒寫雲端；而開機時雲端資料會覆蓋本機 → <b>庫存永遠單向往下掉</b>。更糟的是補貨後若接著結帳，<code>deduct()</code> 會把「已遺失補貨的舊值」整批覆蓋回雲端。本修補把持久化綁到<b>狀態</b>（與會員、優惠券一致），任何未來的庫存異動功能都會自動寫入。',
+  find:/(\}\s*,\s*\[\s*cpns\s*\]\s*\)\s*;)/,
+  repl:function(){ return '$1\n' + INV_PERSIST; }, useTemplate:true},
+
+ {id:'POS-03b',sev:'P0',expect:1,
+  title:'補上雲端載入完成旗標（避免用本機預設值覆蓋雲端）',
+  why:'搭配 POS-03。若沒有這個旗標，頁面剛開啟、雲端還沒載完時就會把本機初始值寫回雲端，把真實庫存洗掉。',
+  find:/(if\s*\(\s*fbC\s*&&\s*fbC\.length\s*>\s*0\s*\)\s*setCpns\(\s*fbC\s*\)\s*;?)/,
+  repl:'$1 window.__invCloudReady = true; /* [修補 POS-03b] */'},
+
+ {id:'POS-04',sev:'P1',expect:1,
+  title:'加上結帳送單鎖（防止觸控雙擊產生兩筆訂單）',
+  why:'原本 <code>submit()</code> 只有「購物車不可為空」一個防呆。手套濕滑誤觸連按 → 兩筆訂單、點數加兩次、儲值扣兩次、庫存扣兩次，而且訂單編號完全相同。',
+  find:/(function\s+submit\s*\(\s*\)\s*\{\s*if\s*\(\s*!\s*cart\.length\s*\)\s*return\s*;)/,
+  repl:'$1 if(window.__posSubmitLock)return; window.__posSubmitLock=true; setTimeout(function(){window.__posSubmitLock=false;},2500); /* [修補 POS-04] 送單鎖 */'},
+
+ {id:'POS-05',sev:'P1',expect:1,
+  title:'修正現金收款檢查可被繞過的漏洞',
+  why:'原式 <code>if(pay==="現金"&&cash&&(+cash&lt;total))</code>，收款欄<b>留空</b>時 <code>cash</code> 是空字串（falsy），整個檢查被跳過，訂單照樣成立。',
+  find:/pay\s*===\s*"現金"\s*&&\s*cash\s*&&/,
+  repl:'pay==="現金"&& /* [修補 POS-05] 留空不再跳過檢查 */'},
+
+ {id:'POS-06',sev:'P1',expect:1,
+  title:'啟用 Firestore 離線持久化',
+  why:'POS 目前完全沒有本機儲存，斷網時訂單只存在記憶體，關分頁或平板重開機就永久消失，而畫面全程顯示綠色成功。這是最低成本的第一道防線（完整離線佇列列在第二波）。',
+  find:/(firebase\.firestore\(\))/,
+  repl:'$1; try{firebase.firestore().enablePersistence({synchronizeTabs:true}).catch(function(){});}catch(e){} /* [修補 POS-06] */'},
+
+ {id:'POS-07',sev:'P1',expect:1,
+  title:'加入全域錯誤回報（pos_errors）',
+  why:'POS 目前沒有 <code>window.onerror</code>、沒有 ErrorBoundary，任一 render 例外就整台收銀機白屏，而且沒有任何 log 可查。',
+  find:/(<script\s+type="text\/babel">)/,
+  repl:function(){ return ERR_REPORTER + '\n$1'; }, useTemplate:true},
+
+ {id:'POS-08',sev:'P2',expect:2,
+  title:'版本號 1.5.0 → 1.6.0',
+  why:'標記本次修補。注意 POS 原本有三處版本號互相矛盾（註解 Build 004 / 常數 build 7 / 更新紀錄 007），建議後續統一為單一常數。',
+  find:/1\.5\.0/g, repl:'1.6.0'}
+],
+
+qr: [
+ {id:'QR-01',sev:'P1',expect:1,
+  title:'訂單寫入成功後才顯示「點餐成功」',
+  why:'原本 <code>setSubmitted(true)</code> 寫在 <code>.then()</code> <b>之外</b>，Firestore 還沒確認寫入就先跟客人說成功。若寫入失敗，客人以為點好了、廚房卻沒收到單。',
+  find:/(\.set\(\s*order\s*\))/,
+  repl:'$1.then(function(){setSubmitted(true);}).catch(function(){alert("送單失敗，請告知現場服務人員（訂單未送出）");}) /* [修補 QR-01] */'},
+
+ {id:'QR-01b',sev:'P1',expect:1,
+  title:'移除原本提前顯示成功的那一行',
+  why:'搭配 QR-01，避免重複設定狀態。',
+  find:/setSubmitted\(true\);(?!\s*\}\)\.catch)/,
+  repl:'/* [修補 QR-01b] 已移至 .then() 內 */'},
+
+ {id:'QR-02',sev:'P1',expect:1,
+  title:'加上送單鎖（防止客人連點兩下產生兩張單）',
+  why:'QR 端沒有任何重複送出防護。',
+  find:/((?:function|const)\s+submitOrder\s*(?:\(|=))/,
+  repl:'$1', note:'需人工加入鎖定邏輯', manual:true},
+
+ {id:'QR-03',sev:'P2',expect:0,
+  title:'加入版本號常數 v1.1.0',
+  why:'QR 端<b>完全沒有版本號</b>，無法追蹤部署了哪一版。本修補在檔頭注入版本註記。',
+  find:/(<head>)/,
+  repl:'$1\n<!-- HAOMING QR ORDERING v1.1.0 · patched 2026-08-05 -->',
+  expectAny:true}
+]
+};
+
+/* --- 執行引擎 --- */
+function ctxOf(key){
+  var box=document.getElementById('sys-'+key);
+  return {key:key, box:box,
+    tbody:box.querySelector('[data-tbl] tbody'),
+    info:box.querySelector('[data-info]'),
+    pill:box.querySelector('[data-pill]'),
+    log:box.querySelector('[data-log]'),
+    dlBtn:box.querySelector('[data-act=dl]'),
+    adminPin:(box.querySelector('[data-adminpin]')||{}).value||''};
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+
+function applyPatches(key, src){
+  var c=ctxOf(key), rules=RULES[key], out=src, rows=[], done=0, fail=0, skipped=0;
+  var changelog=[];
+
+  rules.forEach(function(r){
+    var status, cls, hits=0;
+    if(r.manual){ status='⚠ 需人工'; cls='skip'; skipped++; rows.push([r,status,cls]); return; }
+    if(r.optional && r.id==='POS-02d' && !c.adminPin){ status='⏭ 已略過'; cls='skip'; skipped++; rows.push([r,status,cls]); return; }
+
+    var m = out.match(r.find);
+    hits = m ? (r.find.global ? m.length : 1) : 0;
+
+    if(hits===0){ status='❌ 找不到'; cls='no'; fail++; rows.push([r,status,cls]); return; }
+    if(!r.expectAny && r.expect && hits!==r.expect){
+      status='⚠ 命中 '+hits+'/'+r.expect; cls='no'; fail++; rows.push([r,status,cls]); return;
+    }
+
+    var rep = r.repl;
+    if(typeof rep==='function'){ rep = r.useTemplate ? rep() : rep({adminPin:c.adminPin}); }
+    out = out.replace(r.find, rep);
+    status='✅ 已套用'+(hits>1?' ×'+hits:''); cls='ok'; done++;
+    changelog.push(r.id+' '+r.title);
+    rows.push([r,status,cls]);
+  });
+
+  /* 寫入更新紀錄註解 */
+  var stamp='\n<!-- ===== 好洺修補工具 v1.0 · '+new Date().toISOString().slice(0,10)+' =====\n'
+    + changelog.map(function(x){return '  · '+x;}).join('\n')
+    + '\n===== -->\n';
+  out = out.replace(/(<\/head>)/, stamp+'$1');
+
+  /* 渲染 */
+  c.tbody.innerHTML = rows.map(function(x){
+    var r=x[0];
+    return '<tr><td class="sev '+r.sev+'">'+r.sev+'</td><td><b>'+r.id+'</b> '+esc(r.title)
+      +'<div class="why">'+r.why+'</div></td><td class="st '+x[2]+'">'+x[1]+'</td></tr>';
+  }).join('');
+
+  c.pill.textContent = '已套用 '+done+' / 失敗 '+fail+' / 略過 '+skipped;
+  c.pill.className = 'pill '+(fail? 'fail':'done');
+  c.info.textContent = '原始 '+src.length.toLocaleString()+' 字元 → 修補後 '+out.length.toLocaleString()+' 字元';
+  c.dlBtn.disabled = false;
+  c.box.__patched = out;
+
+  if(fail>0){
+    c.log.className='log show';
+    c.log.textContent='⚠ 有 '+fail+' 條規則沒有命中。\n'
+      +'最可能的原因是這支系統在稽核日（2026-08-05）之後又被改過，程式碼位置變了。\n'
+      +'請把沒命中的規則編號回報，重新定位後再修補。\n'
+      +'已命中的規則仍然正確套用，下載的檔案可以使用。';
+  }
+}
+
+document.querySelectorAll('.sys').forEach(function(box){
+  var key = box.id.replace('sys-','');
+  box.querySelector('[data-act=fetch]').addEventListener('click', function(){
+    var b=this; b.disabled=true; b.textContent='讀取中...';
+    fetch(RAW[key], {cache:'no-store'}).then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.text();
+    }).then(function(t){
+      applyPatches(key, t);
+      b.disabled=false; b.textContent='從 GitHub 讀取線上版';
+    }).catch(function(e){
+      b.disabled=false; b.textContent='從 GitHub 讀取線上版';
+      var c=ctxOf(key); c.log.className='log show';
+      c.log.textContent='讀取失敗：'+e.message+'\n請改用「選擇本機檔案」載入你自己下載的 index.html。';
+    });
+  });
+
+  var fileIn = box.querySelector('[data-file]');
+  box.querySelector('[data-act=pick]').addEventListener('click', function(){ fileIn.click(); });
+  fileIn.addEventListener('change', function(){
+    var f=this.files[0]; if(!f) return;
+    var fr=new FileReader();
+    fr.onload=function(){ applyPatches(key, fr.result); };
+    fr.readAsText(f, 'utf-8');
+  });
+
+  box.querySelector('[data-act=dl]').addEventListener('click', function(){
+    if(!box.__patched) return;
+    var blob=new Blob([box.__patched],{type:'text/html;charset=utf-8'});
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='index.html';
+    a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+  });
+});
+</script>
+</body>
+</html>
