@@ -803,7 +803,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:11,patch:0,build:72,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:12,patch:0,build:73,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -864,6 +864,7 @@ const CHANGELOG=[
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
 {build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
 {build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]},
+{build:73,version:'4.12.0',date:'2026-08-07',author:'Claude + Tim',summary:'★臨辦與櫃位可各自定價 —— 售價、理論營收、勾稽、期間分析全面依通路取價',changes:[{cat:'NEW',module:'DATA',desc:'★品項主檔新增 prices 欄位（{通路: 金額}）。原本一個品項只有一個售價，臨辦與櫃位共用；實際上兩邊定價不同，等於其中一邊的理論營收長期是錯的'},{cat:'NEW',module:'CORE',desc:'★勾稽引擎新增 priceOf(prod, ch)：該通路有設價就用該通路價，沒設就退回 price 基準價 —— 舊資料不動也能正常運作。calc() 與 aggregate() 全面改用它，理論營收、消失成本、毛利、期間分析金額一律依該筆紀錄的通路取價'},{cat:'NEW',module:'RECON',desc:'品項管理改版：通路鈕與該通路售價黏在一起（臨[45] 櫃[50]），哪個價屬於哪個通路不會看錯。沒賣的通路顯示灰色虛線「—」。原本那個共用的售價欄已移除'},{cat:'MOD',module:'RECON',desc:'儲存時逐通路驗證售價、逐通路列出改價明細（例如「起司（櫃位）：55 → 60」）。price 欄位保留為基準價（＝主通路價），任何還沒讀 prices 的舊程式仍拿得到合理數字'},{cat:'MOD',module:'RECON',desc:'錄入表的售價欄與底部理論營收改為顯示當前通路的價；沒有 ord 的品項排序也改用該通路價'},{cat:'MOD',module:'SYSTEM',desc:'員工APP 同批更新（v3.15.0）：它自帶一份相同的勾稽引擎，同步加入 priceOf，避免兩套系統的建議備量緩衝判斷用到不同的價'},{cat:'MOD',module:'CORE',desc:'勾稽引擎 v1.5.0 → v1.6.0；HaomingReconUI v1.11.0 → v1.12.0'}]},
 {build:72,version:'4.11.0',date:'2026-08-06',author:'Claude + Tim',summary:'★品項分通路：臨辦／櫃位各自只顯示自己賣的品項',changes:[{cat:'NEW',module:'DATA',desc:'★品項主檔 catalog/products 新增 chs 欄位（通路陣列）。原本兩個通路共用同一份 90 項清單，櫃位那頁要捲過一堆臨辦才賣的東西；現在錄入表只列出該通路有勾的品項，類別小計也只算該通路'},{cat:'NEW',module:'RECON',desc:'品項管理每列新增「臨／櫃」切換鈕，藍底代表該通路有賣。至少要勾一個通路，全部取消會被擋下並提示改用停售'},{cat:'NEW',module:'RECON',desc:'★新增「🔍 依過去紀錄自動分通路」：掃描過去 24 個月的錄入紀錄，哪個品項在哪個通路被錄過就勾哪個，從未錄入過的維持全通路。掃完只改畫面不寫雲端，可先檢查再儲存 —— 避免上線後要手動整理 90 項'},{cat:'MOD',module:'DATA',desc:'向後相容設計：沒有 chs 欄位＝全通路。儲存時若該品項涵蓋全部通路就不寫 chs，日後新增通路（如交大店、總公司）會自動涵蓋，不需回頭改資料'},{cat:'MOD',module:'RECON',desc:'錄入頁說明列新增「本通路 N 項」，一眼看出這個通路實際要填幾項'},{cat:'MOD',module:'CORE',desc:'抽出共用掃描器 scanQty()，徹底刪除的用量檢查與自動分通路共用同一套走訪邏輯；用量檢查帶提前中止條件，掃到就停，不做多餘讀取'},{cat:'MOD',module:'RECON',desc:'HaomingReconUI 升至 v1.11.0'}]},
 {build:71,version:'4.10.0',date:'2026-08-06',author:'Claude + Tim',summary:'★數量錄入：品項管理（改價／新增／停售／刪除／排序）＋ 類別數量小計',changes:[{cat:'NEW',module:'RECON',desc:'★新增「⚙️ 品項管理」（數量錄入頁右上角，限成本權限）：可直接改品名與售價、新增品項、停售／恢復、類別內上下移動、跨類別搬移，不必再改程式碼'},{cat:'NEW',module:'RECON',desc:'★類別列改為數量小計列：取餐／銷售／員餐檢體／報廢／短少五欄即時小計，隨輸入同步更新，短少大於 0 標紅。依決策不顯示金額，避免與底部理論營收混淆'},{cat:'NEW',module:'DATA',desc:'品項主檔 catalog/products 新增 ord 欄位（類別內序號）。groupedItems 排序改為 ord 優先，沒有 ord 的品項沿用原本的售價→品名規則排在後面 —— 舊資料與員工APP 完全向後相容，毋須同批改版'},{cat:'NEW',module:'DATA',desc:'刪除採兩段式：預設「停售」(active:false)，錄入表隱藏但歷史勾稽報表仍查得到品名；「徹底刪除」必須先停售，且系統會掃描 24 個月全部錄入紀錄，確認該品項從未被錄入過才放行'},{cat:'DOC',module:'RECON',desc:'★售價採全域生效（經確認的決策）：salesQty 只存數量，理論營收一律以現行售價計算，因此改價會回頭改變所有日期的理論營收，包含已覆核鎖定的日子。品項管理頁面常駐警語，儲存前另以對話框逐項列出價格變動並要求確認'},{cat:'FIX',module:'RECON',desc:'順手修正原類別列 colspan 寫死為 7／5 的錯誤（櫃位通路實際有 6 欄），改為逐欄輸出，欄位對齊不再跑位'},{cat:'MOD',module:'RECON',desc:'HaomingReconUI 升至 v1.10.0，新增 openCat／closeCat 兩個公開方法'}]},
 {build:70,version:'4.9.0',date:'2026-08-06',author:'Claude + Tim',summary:'★安全與正確性修補（FD-02～FD-07）＋ 更新紀錄補齊',changes:[{cat:'FIX',module:'CORE',desc:'★成本權限改為 fail-closed：hasCost() 原本在 _fdCost 未定義時回傳 true，等於權限判斷一失效就全面開放成本資料。改為預設關閉'},{cat:'FIX',module:'TAX',desc:'★營業稅申報提醒橫幅從上線到現在一次都沒顯示過：程式找 .header，但頁首實際 class 是 .hdr，外層又包了 if(hdr) 所以靜默失敗。已修正選擇器'},{cat:'FIX',module:'RECON',desc:'修正 4 處小數精度：r2(x*1000)/1000 中 r2() 內部已取到小數 2 位，再乘除 1000 後實際精度變成 1/100000，與註解意圖（3 位小數）不符。改用 Math.round(x*1000)/1000'},{cat:'MOD',module:'DATA',desc:'全系統自動備份排程間隔 4 小時 → 24 小時。單次備份約 8,000 次 Firestore 讀取，Firebase Spark 方案每日硬上限 50,000 次。原設計雖有「同日只跑一次」保護，但備份失敗時不寫 last 標記會每 4 小時重試，多裝置同時開啟也會疊加'},{cat:'FIX',module:'UI',desc:'分頁標題版本號改為由 VER 單一真實來源產生（原本硬編 v2.5.0，落後兩個大版號且 JS 從不更新）。頁首與版本紀錄徽章的 HTML 佔位值一併移除，避免再次產生硬編漂移'},{cat:'FIX',module:'UI',desc:'版本紀錄顯示順序修正：原本用 reverse() 呈現，但陣列本身 build 1～56 遞增、57～68 遞減，導致最新版本被夾在中間。改為依 build 由大到小排序'},{cat:'DOC',module:'SYSTEM',desc:'★補齊紀錄斷層：VER 先前已被設為 v4.9.0 / build 70，但更新紀錄最後一筆停在 build 68 / v4.8.0，違反版本號單一真實來源原則。本筆即為 build 70 的正式紀錄'},{cat:'DOC',module:'CORE',desc:'★推翻稽核報告 FD-01：稽核判定「let db 不跨 script 標籤、四大模組靜默失效」有誤。script 頂層的 let 位於全域詞法環境，跨 script 標籤是共用的，只是不成為 window 屬性；且 build 59 已把兩處 DB() 改為先試詞法 db 再退回 window.db。線上實測 typeof db 為 object 且是有效 Firestore 實例，DB() 正常回傳，備份最後執行時間 2026-08-01 — 模組一直是活的。故不補 window.db 別名，維持 build 59 的設計決策'}]},
@@ -880,7 +881,7 @@ const CHANGELOG=[
 {build:58,version:'4.1.0',date:'2026-07-26',author:'Claude + Tim',summary:'★新增銷售數量勾稽模組 — 紙本數量進系統，反推消失成本',changes:[{cat:'NEW',module:'CORE',desc:'★勾稽引擎 HaomingRecon v1.0.0 — 純函式、config 驅動通路規則（CHANNEL_RULES），新門市/加盟只改設定不動邏輯。核心：短少數量 = 取餐 − 銷售 − 報廢 − 員餐；消失成本 = 短少 × 單位成本'},{cat:'NEW',module:'UI',desc:'★數量錄入頁 — 鏡像紙本版面（臨辦4欄/櫃位3欄），行動端優先、大按鈕數字鍵盤；即時守恆防呆：銷售+報廢+員餐>取餐 立即紅框並阻擋儲存；店長覆核後鎖定（lockedAt）'},{cat:'NEW',module:'UI',desc:'★勾稽儀表板 — 理論營收 vs 財會實收差距、耗損金額、員工餐金額、消失成本、隱形損失合計；自動警示旗標（帳務差距>2%、報廢率>5%、短少率>2%）＋報廢/消失成本 TOP5 排行'},{cat:'NEW',module:'DATA',desc:'資料模型 — catalog/products（售價層）與 catalog/costs（成本層）實體隔離，Rules 才能只擋成本不擋售價；salesQty/{日期} 存數量、recon/{日期} 存勾稽結果並記錄 costRevUsed（成本會改版，事後重算會對不上原判斷）'},{cat:'NEW',module:'DATA',desc:'台積電通路對應 — 臨辦=臨辦現金+臨辦刷餐（可算短少）；櫃位=電子支付+夜早金額+自費早餐+紙本補單+夜早現金（無取餐數量，不算短少）'},{cat:'NEW',module:'SYSTEM',desc:'成本權限 _fdCost — 老闆恆真，其餘須 HR 開通 access.fdCost；無權限者勾稽頁顯示「權限不足」且不下載成本資料。⚠️目前為匿名驗證，前端隱藏非真資安，須配合 Cloud Function fdLogin + Custom Token 才能由 Firestore Rules 真正擋住'},{cat:'NEW',module:'DATA',desc:'品項主檔 90 項（含售價與單位成本）— 全菜單平均食材成本率 41.9%，10 項 ≥48%'},{cat:'DOC',module:'SYSTEM',desc:'已知限制：飯糰未計入6兩袋包材、未含3-5%製程損耗、櫃位無取餐數量故無法推算消失成本、紙本雞塊售價35需更正為30'}]},
 {build:57,version:'4.0.1',date:'2026-07-17',author:'Claude + Tim',summary:'★本機儲存空間管理 — 修復配額用盡（結構回退的元兇之一）',changes:[{cat:'FIX',module:'DATA',desc:'★移除每月資料的重複儲存 — 原本每次存檔同時寫入 fin_v3_{月份} 與完全重複的 fin_v3 副本（歷史遺留，4處），等於每月資料佔用雙倍空間。已全數移除（讀取端仍相容舊鍵）'},{cat:'NEW',module:'DATA',desc:'★空間不足自動修復 — 新增 _lsSafeSet：寫入失敗時自動清理僅保留最近4個月的本機快取並重試（雲端 finance/{月} 與每日快照完整保留，切到舊月會自動從雲端載回），不再直接失敗導致結構回退'},{cat:'NEW',module:'DATA',desc:'開機自動瘦身 — 啟動4秒後自動清理6個月前的本機月快取，避免長期累積'},{cat:'NEW',module:'SYSTEM',desc:'★用量檢視 — ?selftest=1 新增「本機儲存用量」：總用量/各系統佔用/財會月份快取清單＋手動清理鈕。⚠️架構事實：GitHub Pages 全系統共用網域 haoting1205.github.io，瀏覽器 localStorage 約5MB配額由 財會/人資/生管ERP/POS/員工APP 共同分享'}]}
 ];
-let clExpanded={72:true};
+let clExpanded={73:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -3817,7 +3818,7 @@ W.fbBackupPanel=function(){
 (function (root) {
   'use strict';
 
-  var RECON_VERSION = '1.5.0';        // 勾稽引擎版本（勿與財會系統的 VER 混淆）
+  var RECON_VERSION = '1.6.0';        // 勾稽引擎版本（勿與財會系統的 VER 混淆）
 
   /* ─────────────────────────────────────────────────────────
    * 通路規則（config 驅動；新門市/加盟只改此處，不動邏輯）
@@ -3886,6 +3887,19 @@ W.fbBackupPanel=function(){
   };
 
   var n = function (v) { return (typeof v === 'number' && isFinite(v)) ? v : 0; };
+
+  /* ─────────────────────────────────────────────────────────
+   * priceOf — 依通路取售價
+   *   臨辦與櫃位同一品項可能不同價（例如櫃位有服務費、臨辦是團購價）。
+   *   prices: {通路: 金額}；查不到就退回 price（基準價）—— 舊資料完全相容。
+   * ───────────────────────────────────────────────────────── */
+  function priceOf(prod, ch) {
+    if (!prod) return 0;
+    var ps = prod.prices;
+    if (ps && ch && ps[ch] != null && ps[ch] !== '') return n(+ps[ch]);
+    return n(+prod.price);
+  }
+
   var r2 = function (v) { return Math.round(v * 100) / 100; };
 
   /* ─────────────────────────────────────────────────────────
@@ -3949,7 +3963,7 @@ W.fbBackupPanel=function(){
       var rule = rules[it.ch]; if (!rule) return;
       var acc = ch[it.ch];
       var prod = products[it.sku] || {};
-      var price = n(prod.price);
+      var price = priceOf(prod, it.ch);
       var cRec = costs[it.sku];
       var cost = cRec ? n(cRec.cost) : null;
       if (cRec && n(cRec.costRev) > costRevUsed) costRevUsed = n(cRec.costRev);
@@ -4079,7 +4093,7 @@ W.fbBackupPanel=function(){
       var short = rule.hasPick ? Math.max(0, r.pick - r.sold - r.staff - r.scrap) : 0;
       var sr = (r.sold + r.scrap) > 0 ? r.scrap / (r.sold + r.scrap) : 0;
       var o = {
-        sku: r.sku, ch: r.ch, name: p.name || r.sku, cat: p.cat || '', price: n(p.price),
+        sku: r.sku, ch: r.ch, name: p.name || r.sku, cat: p.cat || '', price: priceOf(p, r.ch),
         days: r.days, sold: r.sold, staff: r.staff, scrap: r.scrap, made: r.pick, short: short,
         avgSold: r2(r.sold / r.days), avgMade: r2(r.pick / r.days), avgStaff: r2(r.staff / r.days),
         scrapRate: Math.round(sr*1000)/1000,
@@ -4175,7 +4189,8 @@ W.fbBackupPanel=function(){
     validate: validate,
     calc: calc,
     aggregate: aggregate,
-    suggestPrep: suggestPrep
+    suggestPrep: suggestPrep,
+    priceOf: priceOf
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -4191,7 +4206,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
  */
 (function (W) {
   'use strict';
-  var UI_VERSION = '1.11.0';
+  var UI_VERSION = '1.12.0';
 
   var S = {                       // 模組狀態
     store: '台積電', date: '', ch: '臨辦',
@@ -4257,7 +4272,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
         if (ha && hb) return (+a.ord) - (+b.ord);
         if (ha) return -1;
         if (hb) return 1;
-        return (+a.price || 0) - (+b.price || 0)
+        return W.HaomingRecon.priceOf(a, ch) - W.HaomingRecon.priceOf(b, ch)
             || String(a.name).localeCompare(String(b.name), 'zh-TW');
       });
       return { cat: c, items: byCat[c] };
@@ -4398,7 +4413,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       var ic = 'width:100%;padding:9px 4px;border:1.5px solid #cbd5e1;border-radius:7px;text-align:center;font-size:17px;box-sizing:border-box';
       h += '<tr data-sku="' + p.sku + '" data-cat="' + esc(g.cat) + '">'
         + '<td style="padding:6px 10px;position:sticky;left:0;background:#fff;border-bottom:1px solid #f1f5f9">' + esc(p.name) + '</td>'
-        + '<td style="text-align:center;color:#64748b;border-bottom:1px solid #f1f5f9">' + p.price + '</td>';
+        + '<td style="text-align:center;color:#64748b;border-bottom:1px solid #f1f5f9">' + W.HaomingRecon.priceOf(p, S.ch) + '</td>';
       if (hp) h += '<td style="padding:4px;border-bottom:1px solid #f1f5f9"><input type="number" inputmode="numeric" min="0" data-f="pick" value="' + (v.pick != null ? v.pick : '') + '" style="' + ic + '"' + dis + '></td>';
       /* 櫃位的「製作」不是輸入欄，而是三欄相加的結果，故以唯讀儲存格呈現 */
       else if (ms) h += '<td class="rq-made" style="text-align:center;color:#0f766e;font-weight:700;background:#f0fdfa;border-bottom:1px solid #f1f5f9">—</td>';
@@ -4506,7 +4521,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
         }
         tMade += sold + staff + scrap;
       }
-      tSold += sold; tScrap += scrap; tStaff += staff; tTheo += sold * (p.price || 0);
+      tSold += sold; tScrap += scrap; tStaff += staff; tTheo += sold * W.HaomingRecon.priceOf(p, S.ch);
 
       var ck = tr.getAttribute('data-cat') || '其他';
       var ct = catT[ck] || (catT[ck] = { pick: 0, made: 0, sold: 0, staff: 0, scrap: 0, short: 0 });
@@ -4981,6 +4996,19 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
   /* 有效通路：沒設定過就是全通路 */
   function chsOf(it) { return (it.chs == null) ? allChannels() : it.chs; }
 
+  /* 管理畫面取價：該通路有設就用該通路價，否則退回基準價 */
+  function mPrice(it, ch) {
+    if (it.prices && it.prices[ch] != null && it.prices[ch] !== '') return +it.prices[ch] || 0;
+    return +it.price || 0;
+  }
+  function mSetPrice(it, ch, v) {
+    if (!it.prices) {
+      it.prices = {};
+      chsOf(it).forEach(function (c) { it.prices[c] = +it.price || 0; });
+    }
+    it.prices[ch] = +v || 0;
+  }
+
   function mFind(sku) {
     for (var i = 0; i < M.items.length; i++) if (M.items[i].sku === sku) return M.items[i];
     return null;
@@ -5025,7 +5053,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
         return { sku: p.sku, name: p.name || '', cat: p.cat || '其他',
                  price: (+p.price || 0), ord: (p.ord != null ? +p.ord : null),
                  active: p.active !== false,
-                 chs: (p.chs && p.chs.length) ? p.chs.slice() : null, raw: p };
+                 chs: (p.chs && p.chs.length) ? p.chs.slice() : null,
+                 prices: (p.prices && typeof p.prices === 'object') ? JSON.parse(JSON.stringify(p.prices)) : null,
+                 raw: p };
       });
       M.scanning = '';
       mPaint();
@@ -5059,7 +5089,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     h += '<div style="padding:10px 16px;background:#fffbeb;border-bottom:1px solid #fde68a;font-size:13px;color:#92400e;line-height:1.75">'
       +  '⚠️ <b>售價是全域生效的</b>：改價之後，<b>所有日期</b>的理論營收都會用新價重算，包含已覆核鎖定的日子。<br>'
       +  '🗑 刪除預設是「停售」——錄入表看不到，歷史報表仍查得到品名。要「徹底刪除」必須先停售，且該品項從來沒有被錄入過。<br>'
-      +  '🔵 <b>' + allChannels().map(function (c) { return c.slice(0, 1) + '＝' + c; }).join('、') + '</b>：藍底代表該通路賣這一項，錄入表只會列出有勾的品項。至少要勾一個。'
+      +  '🔵 <b>' + allChannels().map(function (c) { return c.slice(0, 1) + '＝' + c; }).join('、') + '</b>：藍底代表該通路賣這一項，錄入表只會列出有勾的品項。至少要勾一個。<br>'
+      +  '💰 <b>每個通路有自己的售價</b>：緊接在通路鈕右邊那格就是該通路的價。灰色「—」代表這個通路沒賣。'
       +  '</div>'
       +  '<div style="padding:9px 16px;background:#eff6ff;border-bottom:1px solid #bfdbfe;display:flex;gap:10px;align-items:center;flex-wrap:wrap">'
       +  '<button data-act="auto" style="padding:8px 14px;background:#1d4ed8;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer">'
@@ -5072,7 +5103,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       +  '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
       +  '<input id="m-new-name" placeholder="品名" style="flex:2;min-width:130px;padding:9px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
       +  '<input id="m-new-cat" list="m-cat-list" placeholder="類別（可打新的）" style="flex:1;min-width:130px;padding:9px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
-      +  '<input id="m-new-price" type="number" min="0" placeholder="售價" style="width:92px;padding:9px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
+      +  '<input id="m-new-price" type="number" min="0" placeholder="售價（兩通路先同價）" style="width:150px;padding:9px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
       +  '<button data-act="add" style="padding:9px 18px;background:#059669;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer">新增</button>'
       +  '</div>'
       +  '<datalist id="m-cat-list">' + opts.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist>'
@@ -5087,16 +5118,23 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
         h += '<div class="m-row" data-sku="' + esc(it.sku) + '" style="display:flex;gap:6px;align-items:center;padding:7px 16px;border-bottom:1px solid #f1f5f9;'
           + (off ? 'background:#fafafa;opacity:.62' : '') + '">'
           + '<input data-fld="name" value="' + esc(it.name) + '" style="flex:2;min-width:100px;padding:7px;border:1px solid #cbd5e1;border-radius:6px;font-size:15px">'
-          + '<input data-fld="price" type="number" min="0" value="' + (+it.price || 0) + '" style="width:74px;padding:7px;border:1px solid #cbd5e1;border-radius:6px;font-size:15px;text-align:right">'
           + '<select data-fld="cat" style="width:118px;padding:7px;border:1px solid #cbd5e1;border-radius:6px;font-size:14px">'
           + opts.map(function (x) { return '<option value="' + esc(x) + '"' + (x === it.cat ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('')
           + '<option value="__new__">＋ 新類別…</option></select>'
           + allChannels().map(function (ch) {
               var on = chsOf(it).indexOf(ch) >= 0;
-              return '<button data-act="ch" data-ch="' + esc(ch) + '" title="' + esc(ch) + '" style="' + MBTN
-                + ';width:auto;padding:6px 10px;font-size:13px;font-weight:800;'
+              /* 通路鈕與該通路售價黏在一起 —— 哪個價屬於哪個通路不會看錯 */
+              var btn = '<button data-act="ch" data-ch="' + esc(ch) + '" title="' + esc(ch) + '（點一下開關）" style="' + MBTN
+                + ';width:auto;padding:6px 9px;font-size:13px;font-weight:800;border-radius:6px 0 0 6px;'
                 + (on ? 'background:#1d4ed8;color:#fff;border-color:#1d4ed8' : 'background:#fff;color:#cbd5e1')
                 + '">' + esc(ch.slice(0, 1)) + '</button>';
+              var box = on
+                ? '<input data-fld="price" data-ch="' + esc(ch) + '" type="number" min="0" value="' + mPrice(it, ch)
+                  + '" title="' + esc(ch) + ' 售價" style="width:62px;padding:7px 4px;border:1px solid #cbd5e1;border-left:none;'
+                  + 'border-radius:0 6px 6px 0;font-size:15px;text-align:right;margin-right:7px;box-sizing:border-box">'
+                : '<span style="display:inline-block;width:62px;padding:7px 4px;border:1px dashed #e2e8f0;border-left:none;'
+                  + 'border-radius:0 6px 6px 0;font-size:13px;text-align:center;color:#cbd5e1;margin-right:7px;box-sizing:border-box">—</span>';
+              return btn + box;
             }).join('')
           + '<button data-act="up" ' + (i === 0 ? 'disabled' : '') + ' style="' + MBTN + (i === 0 ? ';opacity:.25' : '') + '">▲</button>'
           + '<button data-act="down" ' + (last ? 'disabled' : '') + ' style="' + MBTN + (last ? ';opacity:.25' : '') + '">▼</button>'
@@ -5130,7 +5168,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       var row = mRowOf(el); if (!row) return;
       var it = mFind(row.getAttribute('data-sku')); if (!it) return;
       if (fld === 'name') { it.name = el.value; return; }
-      if (fld === 'price') { it.price = +el.value || 0; return; }
+      if (fld === 'price') {
+        var pch = el.getAttribute('data-ch');
+        if (pch) mSetPrice(it, pch, el.value); else it.price = +el.value || 0;
+        return;
+      }
       if (fld === 'cat') {
         var nv = el.value;
         if (nv === '__new__') {
@@ -5199,7 +5241,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     if (dup.length) { alert('「' + c + ' · ' + n + '」已經存在了'); return; }
     var sku = '';
     do { sku = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); } while (mFind(sku));
-    M.items.push({ sku: sku, name: n, cat: c, price: +p, ord: null, active: true, chs: null, raw: null });
+    var pr = {};
+    allChannels().forEach(function (x) { pr[x] = +p; });
+    M.items.push({ sku: sku, name: n, cat: c, price: +p, prices: pr, ord: null, active: true, chs: null, raw: null });
     mPaint();
   }
 
@@ -5286,7 +5330,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     M.items.forEach(function (it) {
       var nm = String(it.name).trim();
       if (!bad && !nm) bad = '有品項的名稱是空的';
-      if (!bad && !(+it.price >= 0)) bad = '「' + nm + '」的售價不是有效數字';
+      chsOf(it).forEach(function (c) {
+        if (!bad && !(mPrice(it, c) >= 0)) bad = '「' + nm + '」的' + c + '售價不是有效數字';
+      });
       var key = it.cat + '|' + nm;
       if (!bad && seen[key]) bad = '「' + it.cat + ' · ' + nm + '」重複了';
       seen[key] = 1;
@@ -5299,7 +5345,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     M.items.forEach(function (it) {
       var o = S.products[it.sku];
       if (!o) { add++; return; }
-      if ((+o.price || 0) !== (+it.price || 0)) chg.push('　' + it.name + '：' + (+o.price || 0) + ' → ' + (+it.price || 0));
+      chsOf(it).forEach(function (c) {
+        var was = W.HaomingRecon.priceOf(o, c), now = mPrice(it, c);
+        if (was !== now) chg.push('　' + it.name + '（' + c + '）：' + was + ' → ' + now);
+      });
       if ((o.active !== false) && !it.active) off.push(it.name);
     });
     var msg = '';
@@ -5317,7 +5366,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
       o.sku = it.sku;
       o.name = String(it.name).trim();
       o.cat = it.cat;
-      o.price = +it.price || 0;
+      /* 逐通路售價；price 保留為基準價（＝主通路價），
+         讓任何還沒讀 prices 的舊程式仍拿得到合理數字 */
+      var cs = chsOf(it), pr = {};
+      cs.forEach(function (c) { pr[c] = mPrice(it, c); });
+      o.prices = pr;
+      o.price = pr[cs[0]] != null ? pr[cs[0]] : (+it.price || 0);
       o.ord = it.ord;
       if (it.active) delete o.active; else o.active = false;
       /* 全通路就不存 chs —— 與舊資料語意一致，日後新增通路也會自動涵蓋 */
