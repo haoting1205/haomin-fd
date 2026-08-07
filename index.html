@@ -548,6 +548,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
     <button class="hdr-btn print" onclick="doPrint()">🖨️ 列印</button>
     <button class="hdr-btn" onclick="doExport()">⬇ CSV</button>
     <button class="hdr-btn save" onclick="doSave()">💾 儲存</button>
+    <button class="hdr-btn" onclick="openErpImport()" title="\u5f9e\u751f\u7ba1\u7cfb\u7d71\u532f\u5165\u9032\u8ca8\u5206\u9304" style="font-size:12px">📥 匯入生管進貨</button>
     <button class="hdr-btn" id="gdrive-btn" onclick="manualGDriveBackup()" title="Google Drive 雲端備份" style="font-size:12px">📥 雲端備份</button>
     <button class="hdr-btn" onclick="exportBackup()" title="下載 JSON 備份檔" style="font-size:12px">⬇ 本機備份</button>
     <button class="hdr-btn" onclick="importBackup()" title="匯入 JSON 備份檔" style="font-size:12px">📤 還原</button>
@@ -803,7 +804,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:12,patch:0,build:73,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:13,patch:0,build:74,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
@@ -864,6 +865,7 @@ const CHANGELOG=[
 {build:54,version:'3.9.0',date:'2026-07-17',author:'Claude + Tim',summary:'★經營儀表板（原營業分析）＋央廚調撥自動連動',changes:[{cat:'NEW',module:'ANALYSIS',desc:'★「營業分析」升級為「📊 經營儀表板」— 新增五大關鍵指標各店健檢表：營收/食材率/人事率/主成本率/淨利/淨利率，依餐飲業基準自動紅黃綠燈（主成本率<60%健康·65%警戒｜食材率30-38%｜人事率25-30%｜淨利率>8%健康·<5%警戒），三店合計列加總判讀。原MoM/YoY/季度/門市比較/趨勢全部保留於下方'},{cat:'NEW',module:'ANALYSIS',desc:'★損益兩平線 — 自動計算「月營收需達多少才不虧」＋日均目標，並顯示本月實際超過/差距金額（公式：固定成本(人事+費用)÷(1−食材成本率)）'},{cat:'NEW',module:'LEDGER',desc:'★央廚內部調撥自動連動 — 門市「央廚(食材)/央廚(包材)」支出自動同步為總公司對應收入（日結(交大店食材)/日結(交大店包材)/日結(台積電食材)/日結(台積電包材)）。單向連動：門市帳為唯一輸入來源，總公司該4列自動帶入且唯讀（藍底），滑鼠顯示來源。消除兩邊重複輸入與對不上的風險'},{cat:'MOD',module:'ANALYSIS',desc:'指標計算口徑統一：員工餐排除（僅記錄不計入）、人事費用自類別名稱含「人事」自動歸集'}]},
 {build:55,version:'3.9.1',date:'2026-07-17',author:'Claude + Tim',summary:'★修正切換月份時 經營儀表板/稅務中心/商場對帳 未更新（顯示上月數字）',changes:[{cat:'FIX',module:'SYSTEM',desc:'★重大顯示錯誤：切換月份後，若當前停在「經營儀表板」「稅務中心」「商場對帳」頁，畫面不會重繪 — 仍顯示切換前月份的數字（易誤判經營狀況）。根因：_reRenderFinPane 僅涵蓋 損益表/資產負債表/現金流量表 三頁，其餘月份相依頁未註冊'},{cat:'MOD',module:'SYSTEM',desc:'改為表驅動註冊（FIN_RENDER 對照表）— 未來新增月份相依頁籤只需在表中註冊一行，不可能再漏；重繪加 try-catch 並自動上報 error_log，單頁渲染失敗不影響切月'}]},
 {build:56,version:'4.0.0',date:'2026-07-17',author:'Claude + Tim',summary:'★★資料層根治：結構主權＋結構版本號 — 徹底終結「切月後刪除復活／排序跑回原位」',changes:[{cat:'FIX',module:'DATA',desc:'★根因：_loadStoreRows 的「雲端較新」分支把整個科目陣列以雲端取代（DATA[sn]=cloudRows）— 雲端的排序與列組成直接蓋掉本機，導致移動科目後切月跑回原位、已刪列有機會回來。且觸發條件 _cloudNewerThanLocal 拿「Firestore 伺服器時鐘」比「本機電腦時鐘」，本機時鐘慢60秒以上（或本機存檔曾失敗）即永久誤判雲端較新 → 每次切月都復原結構'},{cat:'NEW',module:'DATA',desc:'★確立結構主權原則 — 「哪些科目存在、什麼順序」以本機為權威，雲端只能提供金額。雲端較新時改為：本機陣列維持不動、逐列更新金額/欄位、雲端獨有列補尾端，排序與刪除永不被覆蓋'},{cat:'NEW',module:'DATA',desc:'★結構版本號 srev（不依賴任何時鐘）— 新增/刪除/改名/拖曳排序/移動類別皆遞增版本，隨資料同步雲端。載入時比對：雲端 srev 較大＝其他裝置確實改過結構且較新→採用雲端結構；否則本機結構為準。同時解決「陳舊裝置把舊結構倒退回雲端」的反向風險'},{cat:'FIX',module:'DATA',desc:'時鐘偏移誤判修正 — 新舊判定改用 savedAtClient（寫入端 client 時鐘），同一裝置離開/回到同月份時為同一時鐘，永不誤判'},{cat:'FIX',module:'SYSTEM',desc:'靜默失敗終結 — 切月雲端 flush 原無 catch（失敗無感知，雲端保留舊資料）；本機 localStorage 寫入失敗（空間不足）亦被靜默吞掉（結構回退主因之一）。兩者現在都會顯示錯誤、上報 error_log，並提示使用者'}]},
+{build:74,version:'4.13.0',date:'2026-08-07',author:'Claude + Tim',summary:'★生管→財會進貨橋接修復（E-22）—— 新增「📥 匯入生管進貨」',changes:[{cat:'FIX',module:'DATA',desc:'★E-22 真正的原因不是「還沒接」，是三層都對不上：(1) 生管寫 prod_finance、財會讀 finance；(2) 生管寫成一個大陣列 {entries:[...]}，財會的帳本是 finance/{年月}/stores/{門市} 底下的 rows[{sec,name,daily}]，結構完全不同；(3) 生管端欄位名讀錯（buyRec.itemName／totalAmt，但 buyLog 實際欄位是 ingName／total），加上門市寫死「總公司」—— 所以就算集合改名，推過去的每一筆也是品項空白、金額 0、門市全錯'},{cat:'NEW',module:'DATA',desc:'★新增「📥 匯入生管進貨」（標題列）：讀取生管推送到 finance/_erp_ledger 的待匯入分錄，列出日期／門市／供應商／科目／品項／含稅金額／單號，由老闆確認後才寫進帳本。刻意不做自動寫入 —— 帳本不該被外部系統直接改動'},{cat:'NEW',module:'DATA',desc:'匯入規則（依老闆決定）：金額記含稅總額；帳本列名用供應商名稱；月結廠商落「支出食材(月結)」，其餘落「支出食/包材(日結)」；損耗不推（成本已在進貨認列，再記一次會灌水一倍）'},{cat:'NEW',module:'DATA',desc:'安全設計：同一天同一家廠商的金額採累加，不覆蓋手填數字；只處理目前年月的分錄，其他月份另外提示；門市對不到財會的分錄以紅底標示並跳過不匯入；匯入後回寫 imported 標記，重複開啟不會再出現'},{cat:'MOD',module:'SYSTEM',desc:'生管ERP 同批更新（v2.26.0）：pushBuyToFinance 全面重寫（欄位 fallback、門市對照表、供應商名稱與月結判斷、含稅金額），改寫入 finance/_erp_ledger；pushWasteToFinance 停止推送財會，改為僅寫本機損耗紀錄'}]},
 {build:73,version:'4.12.0',date:'2026-08-07',author:'Claude + Tim',summary:'★臨辦與櫃位可各自定價 —— 售價、理論營收、勾稽、期間分析全面依通路取價',changes:[{cat:'NEW',module:'DATA',desc:'★品項主檔新增 prices 欄位（{通路: 金額}）。原本一個品項只有一個售價，臨辦與櫃位共用；實際上兩邊定價不同，等於其中一邊的理論營收長期是錯的'},{cat:'NEW',module:'CORE',desc:'★勾稽引擎新增 priceOf(prod, ch)：該通路有設價就用該通路價，沒設就退回 price 基準價 —— 舊資料不動也能正常運作。calc() 與 aggregate() 全面改用它，理論營收、消失成本、毛利、期間分析金額一律依該筆紀錄的通路取價'},{cat:'NEW',module:'RECON',desc:'品項管理改版：通路鈕與該通路售價黏在一起（臨[45] 櫃[50]），哪個價屬於哪個通路不會看錯。沒賣的通路顯示灰色虛線「—」。原本那個共用的售價欄已移除'},{cat:'MOD',module:'RECON',desc:'儲存時逐通路驗證售價、逐通路列出改價明細（例如「起司（櫃位）：55 → 60」）。price 欄位保留為基準價（＝主通路價），任何還沒讀 prices 的舊程式仍拿得到合理數字'},{cat:'MOD',module:'RECON',desc:'錄入表的售價欄與底部理論營收改為顯示當前通路的價；沒有 ord 的品項排序也改用該通路價'},{cat:'MOD',module:'SYSTEM',desc:'員工APP 同批更新（v3.15.0）：它自帶一份相同的勾稽引擎，同步加入 priceOf，避免兩套系統的建議備量緩衝判斷用到不同的價'},{cat:'MOD',module:'CORE',desc:'勾稽引擎 v1.5.0 → v1.6.0；HaomingReconUI v1.11.0 → v1.12.0'}]},
 {build:72,version:'4.11.0',date:'2026-08-06',author:'Claude + Tim',summary:'★品項分通路：臨辦／櫃位各自只顯示自己賣的品項',changes:[{cat:'NEW',module:'DATA',desc:'★品項主檔 catalog/products 新增 chs 欄位（通路陣列）。原本兩個通路共用同一份 90 項清單，櫃位那頁要捲過一堆臨辦才賣的東西；現在錄入表只列出該通路有勾的品項，類別小計也只算該通路'},{cat:'NEW',module:'RECON',desc:'品項管理每列新增「臨／櫃」切換鈕，藍底代表該通路有賣。至少要勾一個通路，全部取消會被擋下並提示改用停售'},{cat:'NEW',module:'RECON',desc:'★新增「🔍 依過去紀錄自動分通路」：掃描過去 24 個月的錄入紀錄，哪個品項在哪個通路被錄過就勾哪個，從未錄入過的維持全通路。掃完只改畫面不寫雲端，可先檢查再儲存 —— 避免上線後要手動整理 90 項'},{cat:'MOD',module:'DATA',desc:'向後相容設計：沒有 chs 欄位＝全通路。儲存時若該品項涵蓋全部通路就不寫 chs，日後新增通路（如交大店、總公司）會自動涵蓋，不需回頭改資料'},{cat:'MOD',module:'RECON',desc:'錄入頁說明列新增「本通路 N 項」，一眼看出這個通路實際要填幾項'},{cat:'MOD',module:'CORE',desc:'抽出共用掃描器 scanQty()，徹底刪除的用量檢查與自動分通路共用同一套走訪邏輯；用量檢查帶提前中止條件，掃到就停，不做多餘讀取'},{cat:'MOD',module:'RECON',desc:'HaomingReconUI 升至 v1.11.0'}]},
 {build:71,version:'4.10.0',date:'2026-08-06',author:'Claude + Tim',summary:'★數量錄入：品項管理（改價／新增／停售／刪除／排序）＋ 類別數量小計',changes:[{cat:'NEW',module:'RECON',desc:'★新增「⚙️ 品項管理」（數量錄入頁右上角，限成本權限）：可直接改品名與售價、新增品項、停售／恢復、類別內上下移動、跨類別搬移，不必再改程式碼'},{cat:'NEW',module:'RECON',desc:'★類別列改為數量小計列：取餐／銷售／員餐檢體／報廢／短少五欄即時小計，隨輸入同步更新，短少大於 0 標紅。依決策不顯示金額，避免與底部理論營收混淆'},{cat:'NEW',module:'DATA',desc:'品項主檔 catalog/products 新增 ord 欄位（類別內序號）。groupedItems 排序改為 ord 優先，沒有 ord 的品項沿用原本的售價→品名規則排在後面 —— 舊資料與員工APP 完全向後相容，毋須同批改版'},{cat:'NEW',module:'DATA',desc:'刪除採兩段式：預設「停售」(active:false)，錄入表隱藏但歷史勾稽報表仍查得到品名；「徹底刪除」必須先停售，且系統會掃描 24 個月全部錄入紀錄，確認該品項從未被錄入過才放行'},{cat:'DOC',module:'RECON',desc:'★售價採全域生效（經確認的決策）：salesQty 只存數量，理論營收一律以現行售價計算，因此改價會回頭改變所有日期的理論營收，包含已覆核鎖定的日子。品項管理頁面常駐警語，儲存前另以對話框逐項列出價格變動並要求確認'},{cat:'FIX',module:'RECON',desc:'順手修正原類別列 colspan 寫死為 7／5 的錯誤（櫃位通路實際有 6 欄），改為逐欄輸出，欄位對齊不再跑位'},{cat:'MOD',module:'RECON',desc:'HaomingReconUI 升至 v1.10.0，新增 openCat／closeCat 兩個公開方法'}]},
@@ -881,7 +883,7 @@ const CHANGELOG=[
 {build:58,version:'4.1.0',date:'2026-07-26',author:'Claude + Tim',summary:'★新增銷售數量勾稽模組 — 紙本數量進系統，反推消失成本',changes:[{cat:'NEW',module:'CORE',desc:'★勾稽引擎 HaomingRecon v1.0.0 — 純函式、config 驅動通路規則（CHANNEL_RULES），新門市/加盟只改設定不動邏輯。核心：短少數量 = 取餐 − 銷售 − 報廢 − 員餐；消失成本 = 短少 × 單位成本'},{cat:'NEW',module:'UI',desc:'★數量錄入頁 — 鏡像紙本版面（臨辦4欄/櫃位3欄），行動端優先、大按鈕數字鍵盤；即時守恆防呆：銷售+報廢+員餐>取餐 立即紅框並阻擋儲存；店長覆核後鎖定（lockedAt）'},{cat:'NEW',module:'UI',desc:'★勾稽儀表板 — 理論營收 vs 財會實收差距、耗損金額、員工餐金額、消失成本、隱形損失合計；自動警示旗標（帳務差距>2%、報廢率>5%、短少率>2%）＋報廢/消失成本 TOP5 排行'},{cat:'NEW',module:'DATA',desc:'資料模型 — catalog/products（售價層）與 catalog/costs（成本層）實體隔離，Rules 才能只擋成本不擋售價；salesQty/{日期} 存數量、recon/{日期} 存勾稽結果並記錄 costRevUsed（成本會改版，事後重算會對不上原判斷）'},{cat:'NEW',module:'DATA',desc:'台積電通路對應 — 臨辦=臨辦現金+臨辦刷餐（可算短少）；櫃位=電子支付+夜早金額+自費早餐+紙本補單+夜早現金（無取餐數量，不算短少）'},{cat:'NEW',module:'SYSTEM',desc:'成本權限 _fdCost — 老闆恆真，其餘須 HR 開通 access.fdCost；無權限者勾稽頁顯示「權限不足」且不下載成本資料。⚠️目前為匿名驗證，前端隱藏非真資安，須配合 Cloud Function fdLogin + Custom Token 才能由 Firestore Rules 真正擋住'},{cat:'NEW',module:'DATA',desc:'品項主檔 90 項（含售價與單位成本）— 全菜單平均食材成本率 41.9%，10 項 ≥48%'},{cat:'DOC',module:'SYSTEM',desc:'已知限制：飯糰未計入6兩袋包材、未含3-5%製程損耗、櫃位無取餐數量故無法推算消失成本、紙本雞塊售價35需更正為30'}]},
 {build:57,version:'4.0.1',date:'2026-07-17',author:'Claude + Tim',summary:'★本機儲存空間管理 — 修復配額用盡（結構回退的元兇之一）',changes:[{cat:'FIX',module:'DATA',desc:'★移除每月資料的重複儲存 — 原本每次存檔同時寫入 fin_v3_{月份} 與完全重複的 fin_v3 副本（歷史遺留，4處），等於每月資料佔用雙倍空間。已全數移除（讀取端仍相容舊鍵）'},{cat:'NEW',module:'DATA',desc:'★空間不足自動修復 — 新增 _lsSafeSet：寫入失敗時自動清理僅保留最近4個月的本機快取並重試（雲端 finance/{月} 與每日快照完整保留，切到舊月會自動從雲端載回），不再直接失敗導致結構回退'},{cat:'NEW',module:'DATA',desc:'開機自動瘦身 — 啟動4秒後自動清理6個月前的本機月快取，避免長期累積'},{cat:'NEW',module:'SYSTEM',desc:'★用量檢視 — ?selftest=1 新增「本機儲存用量」：總用量/各系統佔用/財會月份快取清單＋手動清理鈕。⚠️架構事實：GitHub Pages 全系統共用網域 haoting1205.github.io，瀏覽器 localStorage 約5MB配額由 財會/人資/生管ERP/POS/員工APP 共同分享'}]}
 ];
-let clExpanded={73:true};
+let clExpanded={74:true};
 function renderChangelog(){const w=document.getElementById('cl-inner');if(!w)return;const total=CHANGELOG.reduce((s,e)=>s+e.changes.length,0);const cs={},ms={};CHANGELOG.forEach(e=>e.changes.forEach(c=>{cs[c.cat]=(cs[c.cat]||0)+1;ms[c.module]=(ms[c.module]||0)+1}));let h='<div class="cl-hdr"><div class="cl-sys">HAOMING-FIN</div><div class="cl-title">版本控制與修改紀錄</div><div class="cl-badges"><div class="cl-vb"><span style="color:#22c55e">●</span> '+VER.str()+'</div><div class="cl-bb">Build #'+VER.build+'</div><div class="cl-bb">共 '+total+' 筆</div><div class="cl-bb">'+CHANGELOG.length+' 次更新</div></div><div style="font-size:12px;color:#64748b;margin-top:12px">版本規則：v{主版本}.{次版本}.{修訂版} │ Build# 流水號永遞增</div></div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依類型</div><div class="cl-stats">';Object.entries(CL_CATS).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:'+v.bg+';border:1px solid '+v.color+'33"><div style="font-size:16px">'+v.icon+'</div><div class="cl-stat-v" style="color:'+v.color+'">'+(cs[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
 h+='<div style="font-size:10px;color:#475569;margin-bottom:6px;letter-spacing:.5px;font-weight:700">依模組</div><div class="cl-stats">';Object.entries(CL_MODS).filter(([k])=>ms[k]).forEach(([k,v])=>{h+='<div class="cl-stat" style="background:rgba(255,255,255,.02);border:1px solid '+v.color+'33"><div class="cl-stat-v" style="color:'+v.color+'">'+(ms[k]||0)+'</div><div class="cl-stat-l">'+v.label+'</div></div>'});h+='</div>';
@@ -1731,6 +1733,161 @@ function _mergeRows(target,source,sn){
     });
   });
   return changed;
+}
+
+/* ═══════════════════════════════════════════════════════════
+ * 📥 匯入生管進貨（生管→財會橋接 · E-22 修正）
+ *
+ * 舊版橋接三層都對不上，資料進了孤兒集合：
+ *   生管寫 prod_finance/ledger（一個大陣列），
+ *   財會讀 finance/{年月}/stores/{門市}（rows[{sec,name,daily}]），
+ *   而且生管端欄位名讀錯（itemName/totalAmt vs 實際的 ingName/total）、
+ *   門市寫死「總公司」。
+ *
+ * 新做法：生管推到 finance/_erp_ledger 待匯入區，
+ * 這裡逐筆列出、由老闆確認後才落到帳本 —— 不會直接改動手填的數字。
+ * 依老闆決定：金額記含稅總額、列名用供應商名稱、損耗不推。
+ * ═══════════════════════════════════════════════════════════ */
+var _erpLedger=[];
+
+function _erpRef(){ return db.collection('finance').doc('_erp_ledger') }
+
+function openErpImport(){
+  var ov=document.getElementById('erp-imp-ov');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='erp-imp-ov';
+    ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,23,42,.55);z-index:9000;overflow:auto;padding:12px';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',function(e){
+      var b=e.target; while(b&&b!==ov&&!(b.getAttribute&&b.getAttribute('data-act')))b=b.parentNode;
+      if(!b||b===ov)return;
+      var a=b.getAttribute('data-act');
+      if(a==='close')_erpClose();
+      else if(a==='import')_erpDoImport();
+      else if(a==='reload')_erpLoad();
+    });
+  }
+  ov.innerHTML='<div style="max-width:960px;margin:0 auto;background:#fff;border-radius:14px;padding:24px;text-align:center;color:#64748b">讀取中…</div>';
+  _erpLoad();
+}
+function _erpClose(){ var ov=document.getElementById('erp-imp-ov'); if(ov&&ov.parentNode)ov.parentNode.removeChild(ov) }
+
+function _erpLoad(){
+  if(typeof db==='undefined'||!db){ _erpPaint('雲端未連線，無法讀取生管資料'); return }
+  _erpRef().get({source:'server'}).then(function(d){
+    _erpLedger=(d.exists&&d.data().entries)||[];
+    _erpPaint('');
+  }).catch(function(e){ _erpPaint('讀取失敗：'+(e.message||e)) });
+}
+
+function _erpMk(){ return YEAR+'-'+String(MONTH).padStart(2,'0') }
+
+/* 只處理「目前年月」且尚未匯入的分錄 —— 避免一次動到別的月份的帳 */
+function _erpPending(){
+  var mk=_erpMk();
+  return _erpLedger.filter(function(x){
+    return x && !x.imported && x.date && x.date.substring(0,7)===mk;
+  });
+}
+
+function _erpPaint(err){
+  var ov=document.getElementById('erp-imp-ov'); if(!ov)return;
+  var mk=_erpMk(), list=_erpPending();
+  var other=_erpLedger.filter(function(x){return x&&!x.imported&&x.date&&x.date.substring(0,7)!==mk}).length;
+  var known={'交大店':1,'台積電':1,'總公司':1};
+
+  var h='<div style="max-width:960px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">';
+  h+='<div style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#0f172a;color:#fff">'
+   + '<b style="font-size:17px">📥 匯入生管進貨</b>'
+   + '<span style="font-size:12px;color:#94a3b8">'+mk+'　待匯入 '+list.length+' 筆</span>'
+   + '<button data-act="reload" style="margin-left:auto;padding:7px 12px;background:#334155;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer">重新讀取</button>'
+   + '<button data-act="close" style="margin-left:6px;padding:7px 14px;background:#475569;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">關閉</button></div>';
+
+  if(err){ h+='<div style="padding:24px;color:#b91c1c;font-size:14px">'+err+'</div></div>'; ov.innerHTML=h; return }
+
+  h+='<div style="padding:10px 16px;background:#fffbeb;border-bottom:1px solid #fde68a;font-size:13px;color:#92400e;line-height:1.75">'
+   + '確認後才會寫進帳本，<b>不會覆蓋你手填的數字</b> —— 同一天同一家廠商的金額會<b>累加</b>。<br>'
+   + '金額為<b>含稅總額</b>；月結廠商落「支出食材(月結)」，其餘落「支出食/包材(日結)」；列名用<b>供應商名稱</b>。'
+   + (other?'<br>另有 <b>'+other+'</b> 筆屬於其他月份，請切換到該月份再匯入。':'')
+   + '</div>';
+
+  if(!list.length){
+    h+='<div style="padding:40px;text-align:center;color:#94a3b8;font-size:14px">'+mk+' 沒有待匯入的進貨分錄</div>';
+  }else{
+    h+='<div style="max-height:calc(100vh - 320px);overflow:auto">'
+     + '<table style="width:100%;border-collapse:collapse;font-size:13px">'
+     + '<thead><tr style="background:#f1f5f9;position:sticky;top:0">'
+     + '<th style="padding:8px;text-align:left">日期</th><th style="padding:8px;text-align:left">門市</th>'
+     + '<th style="padding:8px;text-align:left">供應商</th><th style="padding:8px;text-align:left">科目</th>'
+     + '<th style="padding:8px;text-align:left">品項</th><th style="padding:8px;text-align:right">含稅金額</th>'
+     + '<th style="padding:8px;text-align:left">單號</th></tr></thead><tbody>';
+    var tot=0, bad=0;
+    list.forEach(function(x){
+      var ok=!!known[x.store]; if(!ok)bad++;
+      tot+=+x.amount||0;
+      h+='<tr style="border-bottom:1px solid #f1f5f9'+(ok?'':';background:#fef2f2')+'">'
+       + '<td style="padding:7px">'+esc(x.date)+'</td>'
+       + '<td style="padding:7px">'+esc(x.store)+(x.storeRaw&&x.storeRaw!==x.store?'<br><span style="font-size:10px;color:#94a3b8">原：'+esc(x.storeRaw)+'</span>':'')+(ok?'':'<br><span style="font-size:10px;color:#b91c1c">⚠ 對不到財會門市</span>')+'</td>'
+       + '<td style="padding:7px;font-weight:700">'+esc(x.supplier||'')+'</td>'
+       + '<td style="padding:7px;font-size:12px;color:#475569">'+esc(x.sec||'')+'</td>'
+       + '<td style="padding:7px;font-size:12px">'+esc(x.item||'')+'</td>'
+       + '<td style="padding:7px;text-align:right;font-weight:700">'+NF(+x.amount||0)+'</td>'
+       + '<td style="padding:7px;font-size:12px;color:#64748b">'+esc(x.docNo||'')+'</td></tr>';
+    });
+    h+='</tbody></table></div>'
+     + '<div style="padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;font-size:14px">'
+     + '合計 <b style="font-size:17px;color:#1d4ed8">$'+NF(tot)+'</b>'
+     + (bad?'　<span style="color:#b91c1c;font-weight:700">⚠ '+bad+' 筆門市對不到財會，匯入時會跳過</span>':'')
+     + '</div>';
+  }
+
+  h+='<div style="display:flex;gap:10px;padding:12px 16px;background:#f8fafc;border-top:1px solid #e2e8f0">'
+   + '<button data-act="close" style="flex:1;padding:12px;background:#fff;color:#334155;border:1.5px solid #cbd5e1;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer">取消</button>'
+   + '<button data-act="import"'+(list.length?'':' disabled')+' style="flex:2;padding:12px;background:'+(list.length?'#1d4ed8':'#cbd5e1')+';color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:'+(list.length?'pointer':'not-allowed')+'">📥 確認匯入 '+list.length+' 筆</button>'
+   + '</div></div>';
+  ov.innerHTML=h;
+}
+
+function _erpDoImport(){
+  var list=_erpPending();
+  if(!list.length)return;
+  var known={'交大店':1,'台積電':1,'總公司':1};
+  var use=list.filter(function(x){return known[x.store]});
+  var skip=list.length-use.length;
+  if(!use.length){ alert('這些分錄的門市都對不到財會，請先在生管修正門市'); return }
+  var tot=use.reduce(function(s,x){return s+(+x.amount||0)},0);
+  if(!confirm('要把 '+use.length+' 筆進貨（合計 $'+NF(tot)+'）寫進 '+_erpMk()+' 的帳本嗎？\n'
+      + (skip?'（另有 '+skip+' 筆門市對不到，會跳過）\n':'')
+      + '\n同一天同一家廠商會累加到既有金額上，不會覆蓋。'))return;
+
+  var added=0;
+  use.forEach(function(x){
+    var sn=x.store, day=String(Number(x.date.substring(8,10)));
+    if(!DATA[sn])return;
+    var row=null;
+    for(var i=0;i<DATA[sn].length;i++){
+      if(DATA[sn][i].sec===x.sec && DATA[sn][i].name===x.supplier){ row=DATA[sn][i]; break }
+    }
+    if(!row){ row={sec:x.sec,name:x.supplier,daily:{},monthly:0}; DATA[sn].push(row); }
+    if(!row.daily)row.daily={};
+    row.daily[day]=(+row.daily[day]||0)+(+x.amount||0);
+    x.imported=true; x.importedAt=new Date().toISOString();
+    added++;
+  });
+
+  /* 回寫待匯入區的已匯入標記 */
+  if(typeof db!=='undefined'&&db){
+    _erpRef().set({entries:_erpLedger,updatedAt:new Date().toISOString()},{merge:true}).catch(function(e){
+      alert('⚠ 帳本已寫入，但「已匯入」標記存檔失敗：'+(e.message||e)+'\n\n請重新讀取確認，避免重複匯入。');
+    });
+  }
+
+  ['jd','ts','hq'].forEach(function(k){try{buildTable(k)}catch(e){}});
+  try{showSt(CUR);recalc(CUR)}catch(e){}
+  doSave();
+  _erpClose();
+  alert('✅ 已匯入 '+added+' 筆，合計 $'+NF(tot)+(skip?'\n（'+skip+' 筆門市對不到已跳過）':''));
 }
 
 function doSave(){
