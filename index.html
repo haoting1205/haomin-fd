@@ -804,11 +804,19 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:13,patch:0,build:74,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:14,patch:0,build:75,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
 const CHANGELOG=[
+{build:75,version:'4.14.0',date:'2026-08-09',author:'Claude + Tim',summary:'全系統備份改為增量 —— 每日雲端讀取大幅下降',changes:[
+{cat:'MOD',module:'BACKUP',desc:'★ 舊版每次備份都重掃過去 24 個月 × 3 家店。三年前的帳早就不會再變卻天天重讀一次，而且 Firestore 對「回傳 0 筆的查詢」一樣計費，空月份也照樣付。改為只重讀本月與上月，其餘月份沿用上一次備份的內容'},
+{cat:'NEW',module:'BACKUP',desc:'歷史月份快取存在 IndexedDB（不是 localStorage）—— 生管 ERP 曾因為把大量資料塞進 localStorage 撐爆配額，導致所有系統的本機寫入靜默失敗，不重蹈覆轍'},
+{cat:'NEW',module:'BACKUP',desc:'三道安全網，任何一道不成立就自動退回完整重掃：(1) 手動按「立即備份」一律完整重掃 (2) 沒有快取或快取超過 7 天 (3) 合併後的月份數若少於快取原有的月份數'},
+{cat:'NEW',module:'BACKUP',desc:'只有「寫檔成功」才更新快取。寫檔失敗時快取不前進，下次增量不會少讀一段'},
+{cat:'NEW',module:'BACKUP',desc:'狀態列會標示這次是「增量」還是「完整」，一眼看得出來'},
+{cat:'FIX',module:'BACKUP',desc:'想要一份保證從頭讀過的備份，就按「📸 立即備份」—— 手動一律完整重掃'}
+]},
 {build:1,version:'1.0.0',date:'2026-04-12',author:'Claude + Tim',summary:'財會系統 v1.0 初始版本建立',changes:[{cat:'NEW',module:'PL',desc:'損益表 — 三店並列＋全店合計'},{cat:'NEW',module:'BS',desc:'資產負債表 — 雙欄排版'},{cat:'NEW',module:'CF',desc:'現金流量表 — 間接法三大活動'},{cat:'NEW',module:'LEDGER',desc:'門市流水帳 — 日期×廠商矩陣'},{cat:'NEW',module:'LEDGER',desc:'智慧填入（Quick-Fill）'},{cat:'NEW',module:'LEDGER',desc:'即時損益重算'},{cat:'NEW',module:'UI',desc:'導航列 + 年月切換'},{cat:'NEW',module:'DATA',desc:'localStorage 儲存'},{cat:'NEW',module:'PRINT',desc:'A4 列印 + CSV 匯出'},{cat:'NEW',module:'BP',desc:'系統架構藍圖頁'}]},
 {build:2,version:'1.0.0',date:'2026-04-13',author:'Claude + Tim',summary:'系統藍圖整合',changes:[{cat:'NEW',module:'BP',desc:'藍圖頁加入主導航'},{cat:'STYLE',module:'BP',desc:'樣式整合進主 CSS'},{cat:'MOD',module:'UI',desc:'導航分隔線'}]},
 {build:3,version:'1.0.1',date:'2026-04-14',author:'Claude + Tim',summary:'版本控制系統 + 差異分析',changes:[{cat:'DOC',module:'SYSTEM',desc:'完成系統差異分析'},{cat:'DOC',module:'SYSTEM',desc:'盤點 56 項不足功能'},{cat:'NEW',module:'SYSTEM',desc:'建立版本控制系統'},{cat:'NEW',module:'UI',desc:'Header 版本號 + 版本紀錄頁籤'},{cat:'MOD',module:'PL',desc:'損益表結構優化'},{cat:'REFACT',module:'UI',desc:'CSS 整合'}]},
@@ -3773,7 +3781,7 @@ bootstrapFinDefaults();
 </script>
 
 
-<!-- ═══════════ 全系統自動備份 v1.0.0 ═══════════ -->
+<!-- ═══════════ 全系統自動備份 v1.1.0（增量） ═══════════ -->
 <script>
 /* 為什麼放在財會系統：
  *   ERP 與人資只備份自己的資料，財會的逐月逐店帳務、數量錄入、勾稽結果沒人備份。
@@ -3782,7 +3790,7 @@ bootstrapFinDefaults();
  *   每 4 小時自動把 Firestore 全系統資料寫成一份 JSON。 */
 (function(W){
 'use strict';
-var DBN='hm_fd_ob', ST='h', KEY='dir', IVL=24*3600*1000; /* [修補 FD-07] 單次備份約 8000 次讀取，Spark 每日上限 50000 */
+var DBN='hm_fd_ob', ST='h', KEY='dir', KEY_FIN='finCache', IVL=24*3600*1000; /* [修補 FD-07] 單次備份約 8000 次讀取，Spark 每日上限 50000 */
 
 function idb(){return new Promise(function(res,rej){var r=indexedDB.open(DBN,1);
   r.onupgradeneeded=function(){r.result.createObjectStore(ST)};
@@ -3790,6 +3798,12 @@ function idb(){return new Promise(function(res,rej){var r=indexedDB.open(DBN,1);
 function put(v){return idb().then(function(d){return new Promise(function(res,rej){
   var t=d.transaction(ST,'readwrite');t.objectStore(ST).put(v,KEY);
   t.oncomplete=function(){res(1)};t.onerror=function(){rej(t.error)}})})}
+function putFin(v){return idb().then(function(d){return new Promise(function(res){
+  try{var t=d.transaction(ST,'readwrite');t.objectStore(ST).put(v,KEY_FIN);
+    t.oncomplete=function(){res(1)};t.onerror=function(){res(0)}}catch(e){res(0)}})}).catch(function(){return 0})}
+function getFin(){return idb().then(function(d){return new Promise(function(res){
+  try{var t=d.transaction(ST,'readonly');var q=t.objectStore(ST).get(KEY_FIN);
+    q.onsuccess=function(){res(q.result||null)};q.onerror=function(){res(null)}}catch(e){res(null)}})}).catch(function(){return null})}
 function get(){return idb().then(function(d){return new Promise(function(res){
   try{var t=d.transaction(ST,'readonly');var q=t.objectStore(ST).get(KEY);
     q.onsuccess=function(){res(q.result||null)};q.onerror=function(){res(null)}}catch(e){res(null)}})}).catch(function(){return null})}
@@ -3809,7 +3823,16 @@ W.fbBackupPickDir=function(){
 };
 
 /* 從 Firestore 匯出全系統資料 */
-function collect(onStep){
+/* [v4.14.0] ★ 增量備份。
+   舊版每次都重掃過去 24 個月 × 3 家店 —— 三年前的帳早就不會再變，卻天天重讀一次，
+   而且 Firestore 對「回傳 0 筆的查詢」一樣計費，空月份也照樣付。
+   改為只重讀「本月與上月」，其餘月份沿用上一次備份的內容。
+   三道安全設計（任何一道不成立就自動退回完整重掃）：
+     1. 手動按「立即備份」一律完整重掃 —— 你要一份保證從頭讀過的，就按它
+     2. 沒有可用的歷史快取時，完整重掃
+     3. 沿用後的月份數若少於快取原有的月份數，視為異常，改走完整重掃
+   prevFin = 上一次備份的 bk.finance；傳 null 就是完整重掃。 */
+function collect(onStep,prevFin){
   var d=DB();
   if(!d) return Promise.reject(new Error('雲端未連線'));
   var bk={meta:{ts:new Date().toISOString(),by:'財會系統自動備份',source:'Firestore',schema:2}};
@@ -3821,6 +3844,13 @@ function collect(onStep){
   var now=new Date(), YM=[];
   for(var y=now.getFullYear()-1;y<=now.getFullYear();y++)
     for(var m=1;m<=12;m++) YM.push(y+'-'+String(m).padStart(2,'0'));
+  /* 增量：只重讀本月與上月，其餘沿用快取 */
+  var _incr=!!(prevFin&&typeof prevFin==='object'&&Object.keys(prevFin).length);
+  var _thisYM=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  var _pd=new Date(now.getFullYear(),now.getMonth()-1,1);
+  var _prevYM=_pd.getFullYear()+'-'+String(_pd.getMonth()+1).padStart(2,'0');
+  var _fresh={};_fresh[_thisYM]=1;_fresh[_prevYM]=1;
+  if(_incr)YM=YM.filter(function(ym){return _fresh[ym]});
 
   function DOC(c,i){return d.collection(c).doc(i).get().then(function(s){return s.exists?s.data():null}).catch(function(){return null})}
   function COL(c){return d.collection(c).limit(800).get().then(function(q){var o={};q.forEach(function(s){o[s.id]=s.data()});return o}).catch(function(){return null})}
@@ -3858,7 +3888,23 @@ function collect(onStep){
       return sub.then(function(){ if(Object.keys(node).length) bk.finance[ym]=node });
     });
   });
-  return chain.then(function(){ return bk });
+  return chain.then(function(){
+    if(_incr){
+      /* 把快取裡的歷史月份補回來（本月與上月用剛讀到的新值覆蓋） */
+      var merged={};
+      Object.keys(prevFin).forEach(function(ym){ merged[ym]=prevFin[ym] });
+      Object.keys(bk.finance).forEach(function(ym){ merged[ym]=bk.finance[ym] });
+      /* 安全網：合併後不可以比快取原本的月份數還少 */
+      if(Object.keys(merged).length<Object.keys(prevFin).length){
+        bk._incrFailed=true;
+      }else{
+        bk.finance=merged;
+        bk._incr=true;
+        bk._incrMonths=Object.keys(_fresh);
+      }
+    }
+    return bk;
+  });
 }
 
 function writeFile(fn,txt,silent){
@@ -3894,12 +3940,31 @@ function verify(bk){
   };
   return {counts:c, zero:Object.keys(c).filter(function(k){return !c[k]})};
 }
+/* [v4.14.0] 增量備份專用的守門：這次的財會月份數不可以比上次少。
+   備份最怕的是「看起來成功、內容卻少一段」，而且要等到真的要還原時才會發現。 */
+function verifyIncr(bk,prevFin){
+  if(!prevFin)return {ok:true};
+  var now=Object.keys(bk.finance||{}).length, was=Object.keys(prevFin).length;
+  return now>=was?{ok:true}:{ok:false,reason:'財會月份數由 '+was+' 變成 '+now};
+}
 
 W.fbBackupNow=function(silent){
   var st=document.getElementById('fdob-status');
   var setS=function(m){ if(st)st.textContent=m; };
   setS('備份中…');
-  return collect(function(s){ setS('讀取中：'+s) }).then(function(bk){
+  /* [v4.14.0] 手動按下去 = 完整重掃（silent 為 false）；排程自動跑 = 增量 */
+  var wantIncr=!!silent;
+  return (wantIncr?getFin():Promise.resolve(null)).then(function(cache){
+    var prevFin=(cache&&cache.finance&&cache.ts&&(Date.now()-cache.ts)<7*24*3600*1000)?cache.finance:null;
+    if(wantIncr&&!prevFin)console.log('[全系統備份] 無可用快取或快取超過 7 天，改走完整重掃');
+    return collect(function(s){ setS('讀取中：'+s) },prevFin);
+  }).then(function(bk){
+    if(bk._incrFailed){
+      console.warn('[全系統備份] 增量合併異常，改走完整重掃');
+      return collect(function(s){ setS('讀取中（完整）：'+s) },null);
+    }
+    return bk;
+  }).then(function(bk){
     var v=verify(bk);
     if(v.zero.length){
       var msg='⚠ 備份中止：以下資料為空，可能雲端尚未載入完成\n\n'+v.zero.join('、')+'\n\n未覆蓋既有備份。';
@@ -3912,7 +3977,10 @@ W.fbBackupNow=function(silent){
     var fn='好洺全系統備份_'+n.getFullYear()+p(n.getMonth()+1)+p(n.getDate())+'.json';
     return writeFile(fn,txt,silent).then(function(r){
       if(r.ok){
-        setS('✅ '+n.toLocaleString('zh-TW')+'　'+Math.round(txt.length/1024)+' KB');
+        /* 只有寫檔成功才更新快取 —— 失敗時不可以讓快取前進，否則下次增量會少一段 */
+        try{ putFin({ts:Date.now(),finance:bk.finance}) }catch(_e){}
+        setS('✅ '+n.toLocaleString('zh-TW')+'　'+Math.round(txt.length/1024)+' KB'
+             +(bk._incr?'　（增量）':'　（完整）'));
         if(!silent)alert('✅ 全系統備份完成\n\n檔名：'+fn+'\n大小：'+Math.round(txt.length/1024)+' KB\n\n'
           +Object.keys(v.counts).map(function(k){return k+'：'+v.counts[k]}).join('\n'));
         console.log('[全系統備份] 完成',fn,v.counts);
