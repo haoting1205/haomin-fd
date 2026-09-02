@@ -53,6 +53,10 @@
   --fs-xl:18px; --fs-2xl:22px; --fs-3xl:28px;
 }
 
+/* build#76：負數金額格提示 */
+.lt td.negv{background:#fee2e2 !important;box-shadow:inset 0 0 0 2px #dc2626}
+.lt td.negv input{color:#b91c1c !important;font-weight:800}
+
 /* ── Reset ──────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg)}
@@ -804,11 +808,38 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:14,patch:0,build:75,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:17,patch:0,build:78,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
 const CHANGELOG=[
+{build:78,version:'4.17.0',date:'2026-09-01',author:'Claude + Tim',summary:'第三輪：營業稅換算、還款誤入費用偵測、設定上雲端；另已收斂 Firestore 安全規則',changes:[
+{cat:'FIX',module:'TAX',desc:'★營業稅換算：舊版一律「金額 × 5%」。統一發票金額是含稅的，未稅銷售額應為 含稅 ÷ 1.05，稅額 ＝ 含稅 × 5% ÷ 1.05（約 4.76%）。以台積電 605,819 為例，舊算法 30,291、正確 28,848，每月差約 1,400。新增「含稅／未稅」切換（預設含稅，餐飲店 POS 實收即為含稅），並把完整算式直接印在畫面上供記帳士核對'},
+{cat:'NEW',module:'PL',desc:'★還款／繳稅誤入費用偵測：總公司「其他費用」裡掛著兆豐貸款、台灣企銀貸款、彥頡借款、營所稅暫收款、勞健退欠費分期，合計 105,041。還本金是減少負債、繳稅是清償負債，都不是當期費用（只有利息才是），放在費用裡會讓淨利被低估同樣金額而報表上看不出來。系統會列出明細並提供一鍵標為「排除加總」；本金與利息混在一起的那幾筆會特別提醒要先問記帳士'},
+{cat:'NEW',module:'DATA',desc:'★本機設定上雲端：資產負債表存量、現金流量估算、損益表手動調整、發票紀錄、營業稅設定，原本只活在單一台電腦。現在同步到 finance/_settings，換裝置看得到、清快取救得回。逐項比對「最後修改時間」，本機較新時不會被舊雲端蓋掉'},
+{cat:'DOC',module:'SYSTEM',desc:'Firestore 安全規則已於 2026-09-01 收斂：原本每個集合都是 allow ...: if true（任何人不需登入即可讀寫全部資料，包含員工帳號密碼雜湊、三店財務、會員個資），改為一律要求已登入。刪除權限維持與改版前完全一致。回頭路：Firebase 主控台規則頁左側版本紀錄，點「8月 6, 2026 9:56」即還原'},
+{cat:'DOC',module:'SYSTEM',desc:'第三輪測試新增 15 項（營業稅雙模式換算、偵測器、一鍵標記、設定推送/取回/衝突仲裁）。累計 137 項全數通過'}
+]},
+{build:77,version:'4.16.0',date:'2026-08-31',author:'Claude + Tim',summary:'第二輪深度實測 —— 修復 4 項，最重要的是「備份根本沒備份到一半的資料」',changes:[
+{cat:'FIX',module:'BACKUP',desc:'★備份檔完全沒有包含資產負債表存量、現金流量估算、損益表手動調整、發票紀錄、營業稅設定 —— 這些只活在這台電腦的 localStorage，Firestore 沒有、Google Drive 全系統備份也讀不到（那支只讀 Firestore）。清一次瀏覽器快取就永久消失。現在一併備份與還原'},
+{cat:'FIX',module:'DATA',desc:'★存檔誠實回報：原本忽略 _lsSafeSet 的回傳值，本機配額爆掉又遇上雲端失敗時，狀態列仍顯示「已存本機」，使用者安心關掉分頁 → 資料兩邊都沒有。現在會顯示「雲端與本機都沒存進去！請勿關閉分頁」並跳出搶救指示'},
+{cat:'FIX',module:'TAX',desc:'發票金額原本直接 +amount，輸入「12,000」會變成 NaN、存進 JSON 後成為 null，整筆金額無聲消失。改為容錯解析並在格式看不懂時明確拒絕'},
+{cat:'FIX',module:'CORE',desc:'品項/成本主檔是成本系統寫的，原本寫死當陣列讀。對方若改成物件格式，整個數量錄入頁直接掛掉且只顯示「cl.forEach is not a function」。改為兩種格式都吃；成本讀不到也不再讓整頁死掉（數量照樣能錄，成本欄標示缺成本）'},
+{cat:'DOC',module:'SYSTEM',desc:'第二輪測試新增 42 項：付款註記與金額快照、分期、類別移動收合、複製月份、Excel 多格貼上、拖曳排序、自動存檔、多分頁偵測、生管進貨匯入、數量錄入與品項管理、商場對帳 CRUD、每日快照、CSV 內容比對、列印、備份還原演練。累計 102 項'}
+]},
+{build:76,version:'4.15.0',date:'2026-08-31',author:'Claude + Tim',summary:'全功能實測 + 修復 10 項（含 2 項會讓錢算錯的靜默錯誤）',changes:[
+{cat:'FIX',module:'DATA',desc:'★同名科目防呆 —— 雲端合併是以「類別＋名稱」配對的，同一類別下有兩列同名時，跨裝置存檔會把金額塞進錯的那一列、另一列資料消失。新增／批次新增／改名三個入口全部擋下重複，開檔與雲端同步後也會掃描既有資料並在畫面下方警示'},
+{cat:'FIX',module:'LEDGER',desc:'★手續費格填 0 之後，該日自動計算會永久失效且無法恢復（覆寫旗標一旦設上就拿不掉）→ 手續費少記、費用低估。改為填 0 或清空即解除覆寫，自動計算回來'},
+{cat:'FIX',module:'PL',desc:'「排除加總（僅紀錄）」原本只有流水帳生效，損益表、資產負債表、現金流量表、經營儀表板仍照計 → 兩邊數字對不起來。_calcStoreBreakdown 補上排除'},
+{cat:'FIX',module:'TAX',desc:'稅務中心的年度營所稅推估自己另寫一套加總（未排除員工餐與 noSum），與同一頁的銷項／進項邏輯不一致。改為呼叫與損益表同一支 _calcStoreBreakdown'},
+{cat:'FIX',module:'CORE',desc:'★勾稽引擎 n()：字串型數量（跨系統呼叫／舊資料）會被靜默算成 0，理論營收、成本、短少全部歸零而畫面毫無異狀。改為容許可轉換的數字字串'},
+{cat:'FIX',module:'CORE',desc:'勾稽引擎「缺單位成本 N 項」重複計數（同一品項出現在兩個通路會算兩次）'},
+{cat:'FIX',module:'BS',desc:'舊月份或舊版本存下的存量／估算資料若缺欄位，整張報表會印出「非數值」，而且借貸平衡檢查會跟著靜默失效。改為缺欄位補 0，平衡檢查照常運作'},
+{cat:'NEW',module:'LEDGER',desc:'通路有收入卻沒有對應手續費科目時明確警示（原本靜默略過 → 手續費完全沒記到帳）'},
+{cat:'NEW',module:'LEDGER',desc:'負數金額標紅提示。不阻擋（沖銷／退款可能真的需要），但打錯字看得見'},
+{cat:'FIX',module:'SYSTEM',desc:'成本頁（勾稽分析／期間分析）原本只把按鈕用 display:none 藏起來，直接呼叫 sw() 仍可打開。改為真正擋住切換。註：真正的防線仍是 Firestore 安全規則，前端只是第一道'},
+{cat:'DOC',module:'SYSTEM',desc:'建立離線回歸測試套件（Playwright + 假 Firebase）：13 分頁渲染、三大財報、自動計算規則、勾稽引擎 22 組黃金案例、模組七五項實測，共 60 項。全程未連線正式資料庫'}
+]},
 {build:75,version:'4.14.0',date:'2026-08-09',author:'Claude + Tim',summary:'全系統備份改為增量 —— 每日雲端讀取大幅下降',changes:[
 {cat:'MOD',module:'BACKUP',desc:'★ 舊版每次備份都重掃過去 24 個月 × 3 家店。三年前的帳早就不會再變卻天天重讀一次，而且 Firestore 對「回傳 0 筆的查詢」一樣計費，空月份也照樣付。改為只重讀本月與上月，其餘月份沿用上一次備份的內容'},
 {cat:'NEW',module:'BACKUP',desc:'歷史月份快取存在 IndexedDB（不是 localStorage）—— 生管 ERP 曾因為把大量資料塞進 localStorage 撐爆配額，導致所有系統的本機寫入靜默失敗，不重蹈覆轍'},
@@ -929,7 +960,12 @@ function $(id){return document.getElementById(id)}function setTxt(id,v,c){const 
 
 // ═══ NAV ═══
 const FIN_PANES=['pl','bs','cf','bp','cl','tax','analysis','mall','qty','recon','period'];
-function sw(id,el){document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'||id==='mall'||id==='qty'||id==='recon'||id==='period'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis();if(id==='mall')renderMallRecon();if(id==='qty')HaomingReconUI.renderEntry();if(id==='recon')HaomingReconUI.renderDash();if(id==='period')HaomingReconUI.renderPeriod();if(id==='bp'){try{var _bp=$('pane-bp');if(_bp&&!$('fdob-status')){var _w=document.createElement('div');_w.style.cssText='max-width:1100px;margin:0 auto;padding:0 16px';_w.innerHTML=fbBackupPanel();_bp.insertBefore(_w,_bp.firstChild)}}catch(e){}}if(id==='pl')renderPL();if(id==='bs')renderBS();if(id==='cf')renderCF()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
+const COST_PANES=['recon','period']; /* 與 HTML 的 class="cost-only" 一致；數量錄入(qty)是門市人員日常作業，不可擋 */
+function sw(id,el){
+  /* build#76：原本只把成本頁的按鈕用 display:none 藏起來 —— 那等於門沒鎖只是把門牌拿掉。
+     這裡真正擋住切換動作；不過真正的防線仍是 Firestore 安全規則（後端），前端只是第一道。 */
+  if(COST_PANES.indexOf(id)>=0&&!window._fdCost){alert('權限不足：成本相關頁面僅限老闆或具成本權限之財會人員檢視。');return}
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.pane').forEach(p=>{p.classList.remove('active');p.style.display='none'});if(FIN_PANES.includes(id)){const p=$('pane-'+id);if(p){p.style.display=(id==='bp'||id==='cl'||id==='tax'||id==='analysis'||id==='mall'||id==='qty'||id==='recon'||id==='period'?'block':'flex');p.classList.add('active')}if(id==='cl')renderChangelog();if(id==='tax')renderTaxCenter();if(id==='analysis')renderAnalysis();if(id==='mall')renderMallRecon();if(id==='qty')HaomingReconUI.renderEntry();if(id==='recon')HaomingReconUI.renderDash();if(id==='period')HaomingReconUI.renderPeriod();if(id==='bp'){try{var _bp=$('pane-bp');if(_bp&&!$('fdob-status')){var _w=document.createElement('div');_w.style.cssText='max-width:1100px;margin:0 auto;padding:0 16px';_w.innerHTML=fbBackupPanel();_bp.insertBefore(_w,_bp.firstChild)}}catch(e){}}if(id==='pl')renderPL();if(id==='bs')renderBS();if(id==='cf')renderCF()}else{const p=$('pane-ledger');if(p){p.style.display='flex';p.classList.add('active')}CUR=id;showSt(id);recalc(id)}try{localStorage.setItem('fin_v3_pos',JSON.stringify({pane:id,year:YEAR,month:MONTH}))}catch(e){}}
 function showSt(k){document.querySelectorAll('.l-inner').forEach(d=>d.style.display='none');const e=$('st-'+k);if(e)e.style.display='block'}
 function chPeriod(){
   // Step 1: 切換前只存本機（不覆蓋雲端，避免舊月在其他分頁的新資料被蓋）
@@ -1017,7 +1053,8 @@ h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">
 h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}"><span style="position:sticky;left:10px;display:inline-flex;align-items:center;gap:10px"><span onclick="toggleSec('${sec}')" style="cursor:pointer;user-select:none" title="${_clp?'展開科目明細':'收合科目明細（保留小計）'}">${(SL[sec]||sec).replace('▶',_clp?'▷':'▼')}${_clp?' <span style=\"font-size:10px;opacity:.75\">('+sr.length+'個科目已收合)</span>':''}</span><span style="display:inline-flex;gap:4px"><button onclick="event.stopPropagation();moveSec('${sec}',-1)" title="類別整塊上移" style="background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:4px;width:24px;height:19px;font-size:10px;cursor:pointer;line-height:1">▲</button><button onclick="event.stopPropagation();moveSec('${sec}',1)" title="類別整塊下移" style="background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:4px;width:24px;height:19px;font-size:10px;cursor:pointer;line-height:1">▼</button></span></span></td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg='#fafbfc'; /* 空格全表統一一色（Tim 2026-07-17：一種顏色，輸入數字變另一種）*/h+=`<tr style="background:${bg}${_clp?';display:none':''}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:#fff;position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}${row.memo?'\n📝 '+row.memo:''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':row.tax==='R'?'收據：無統一發票，不可扣抵進項':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':row.tax==='R'?'據':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:56px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}${isStaffMeal(row)?'<span style=\"font-size:9px;background:#f1f5f9;color:#64748b;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700\" title=\"員工餐僅記錄，不計入小計/損益表\">僅記錄</span>':''}${row.autoFee?'<span style=\"font-size:9px;background:#eff6ff;color:#1d4ed8;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700\" title=\"自動計算 '+row.autoFee+'（輸入可覆寫該格，覆寫後不再自動變動）\">⚙'+row.autoFee+'</span>':''}${row.term?'<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();editTerm(\''+sec+'\','+ri+')">'+row.term.cur+'/'+row.term.total+'</span>':''}${row.memo?'<span style="font-size:9px;color:#f59e0b;margin-left:3px" title="'+row.memo.replace(/"/g,'&#34;')+'">📝</span>':''}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=(d.w===0||d.w===6)||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${hv}${xp}${nt}" style="background:${bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"${row.auto?' readonly title="'+(row.auto==='xfer'?'自動連動：'+(row.xferFrom||'')+'（請於門市帳輸入）':'自動計算：6項收入×7%')+'" style="background:#e0f2fe;color:#0369a1;font-weight:700;cursor:not-allowed"':''}></td>`}h+=`<td class="ltot${c.exp?' payable'+payCls(row):''}" id="rt-${rid}"${c.exp?` onclick="payDialog('${sec}',${ri})" title="${payTitle(row).replace(/"/g,'&#34;')}"`:''} style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
-function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)DATA[sn][idx].daily[day]=0;else DATA[sn][idx].daily[day]=v;if(DATA[sn][idx].autoFee){if(!DATA[sn][idx].ovr)DATA[sn][idx].ovr={};DATA[sn][idx].ovr[day]=1}inp.parentElement.classList.toggle('hv',v!==0);recalc(s);if((s==='jd'||s==='ts')&&DATA[SMAP[s]][idx]&&DATA[SMAP[s]][idx].name.indexOf('央廚')===0){recalc('hq');buildTable('hq');showSt('hq')}schedAutoSave()}
+function _paintNeg(){try{document.querySelectorAll('.lt input[type=number]').forEach(function(i){var v=parseFloat(i.value);i.parentElement.classList.toggle('negv',!isNaN(v)&&v<0)})}catch(e){}}
+function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)DATA[sn][idx].daily[day]=0;else DATA[sn][idx].daily[day]=v;if(DATA[sn][idx].autoFee){if(!DATA[sn][idx].ovr)DATA[sn][idx].ovr={};if(v===0){delete DATA[sn][idx].ovr[day];delete DATA[sn][idx].daily[day]}else DATA[sn][idx].ovr[day]=1}inp.parentElement.classList.toggle('hv',v!==0);inp.parentElement.classList.toggle('negv',v<0);/* build#76：負數不阻擋（沖銷/退款可能需要），但標紅提示，避免打錯字沒人發現 */recalc(s);if((s==='jd'||s==='ts')&&DATA[SMAP[s]][idx]&&DATA[SMAP[s]][idx].name.indexOf('央廚')===0){recalc('hq');buildTable('hq');showSt('hq')}schedAutoSave()}
 function kd(e,inp){if(e.key==='Enter'){e.preventDefault();onCell(inp);inp.select();return}if(e.key==='Tab'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+(e.shiftKey?-1:1)];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowRight'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowLeft'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i-1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();onCell(inp);
   // 根治游標錯位：不再用 DOM 欄序（跨列結構不同會偏移），改以 data-day 直接對位 — 上下移動永遠停在「同一天」的欄位
   const day=inp.dataset.day,tbl=inp.closest('table');
@@ -1046,6 +1083,7 @@ function editName(sec,ri){
   var target=match[ri];
   var newName=prompt('修改科目名稱：',target.name);
   if(!newName||newName.trim()===''||newName.trim()===target.name)return;
+  if(_dupRow(sn,sec,newName.trim(),target)){alert('「'+sec+'」底下已經有「'+newName.trim()+'」這個科目了。\n\n同一類別不可以有兩個同名科目，請換一個名稱。');return}
   pushHistory();_tombRemove(sn,sec,newName.trim());target.name=newName.trim();_bumpSrev(sn);
   buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
 }
@@ -1300,7 +1338,30 @@ function _autoChannelFees(sk){
     if(!srcRows.length)return;
     var feeRow=null,feeRi=-1,cnt=0;
     for(var i=0;i<DATA[sn].length;i++){var r=DATA[sn][i];if(r.sec==='其他費用'){if(r.name===rule.out){feeRow=r;feeRi=cnt}cnt++}}
-    if(!feeRow)return; // 手續費科目不存在（如全支付未建）→ 不自動建列，尊重科目表
+    if(!feeRow){
+      /* build#76：原本靜默 return。若該通路已經有收入卻沒有對應的手續費科目，
+         手續費就會完全沒被記到帳上 → 費用低估、淨利虛胖，而畫面上看不出任何異狀。
+         這裡不自動建列（尊重科目表），改成明確提醒老闆自己去建。 */
+      var _hasRev=srcRows.some(function(r){for(var k in r.daily){if(+r.daily[k])return true}return false});
+      if(_hasRev){
+        window._feeMissing=window._feeMissing||{};
+        var _mk2=sk+'|'+rule.out;
+        if(!window._feeMissing[_mk2]){
+          window._feeMissing[_mk2]=1;
+          console.warn('⚠️ '+sn+'「'+rule.out+'」科目不存在，'+rule.lab+' 未列入費用');
+          try{
+            var fb=document.getElementById('fee-warn-bar');
+            if(!fb){fb=document.createElement('div');fb.id='fee-warn-bar';
+              fb.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99989;background:#78350f;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 -4px 16px rgba(0,0,0,.3)';
+              document.body.appendChild(fb);}
+            fb.innerHTML='⚠️ '+sn+' 有「'+rule.src.join('／')+'」的收入，但沒有「'+rule.out+'」這個科目 —— '+rule.lab+' 目前完全沒被記到費用裡。'
+              +' <span style="margin-left:auto;background:#fff;color:#78350f;padding:4px 10px;border-radius:6px;cursor:pointer" onclick="this.parentElement.remove()">知道了</span>'
+              +' <span style="font-weight:400;opacity:.85">請在「其他費用」新增這個科目，系統就會自動算</span>';
+          }catch(e){}
+        }
+      }
+      return;
+    }
     var byDay={};
     srcRows.forEach(function(r){for(var k in r.daily){var v=+r.daily[k]||0;if(v)byDay[k]=(byDay[k]||0)+v}});
     if(!feeRow.ovr)feeRow.ovr={};
@@ -1414,11 +1475,160 @@ var taxDue=Math.round(taxMonthly*0.05);
 var taxInside=Math.round(taxIncluded-taxIncluded/1.05);
 var taxTotal=taxDue+taxInside;
 var taxEl=$('tax-summary-'+sk);
+_paintNeg();/* build#76 */
 if(taxEl){taxEl.innerHTML='<span style="color:#dc2626" title="月結加稅：未稅總額 $'+NFL(taxMonthly)+' × 5%">月稅 $'+NF(taxDue)+'</span> + <span style="color:#2563eb" title="逐筆含稅：含稅總額 $'+NFL(taxIncluded)+' 中已含稅">含稅 $'+NF(taxInside)+'</span> + <span style="color:#16a34a" title="有發票之免稅品項">免稅 $'+NF(taxExempt)+'</span>'+(taxReceipt>0?' + <span style="color:#92400e" title="收據類：無發票不可扣抵">收據 $'+NF(taxReceipt)+'</span>':'')+(taxUnmarked>0?' + <span style="color:#94a3b8" title="未標記稅別">未標 $'+NF(taxUnmarked)+'</span>':'')+'<span style="margin-left:8px;font-weight:900;color:var(--navy-700)">稅金合計 $'+NF(taxTotal)+'</span>'}}
 
 // ═══ ADD/SAVE/EXPORT ═══
-function addRow(){const sec=$('add-sec').value,nm=$('add-nm').value.trim();if(!nm){$('add-nm').focus();return}pushHistory();_tombRemove(SMAP[CUR],sec,nm);DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0});_bumpSrev(SMAP[CUR]);$('add-nm').value='';buildTable(CUR);showSt(CUR);const b=$('l-body');if(b)b.scrollTop=b.scrollHeight;schedAutoSave()}
-function batchAdd(){const lines=$('batch-inp').value.split('\n').map(s=>s.trim()).filter(Boolean);const sec=$('batch-sec').value;if(!lines.length)return;pushHistory();lines.forEach(nm=>{if(nm)DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0})});_bumpSrev(SMAP[CUR]);$('batch-inp').value='';toggleAddPan();buildTable(CUR);showSt(CUR);schedAutoSave()}
+
+/* ═══════════════════════════════════════════════════════════
+ * build#78：還款／稅款誤入費用偵測
+ *
+ * 為什麼要做：總公司「其他費用」裡掛著兆豐貸款、台灣企銀貸款、彥頡借款、
+ *   營所稅暫收款、勞健退欠費分期 —— 合計十萬以上。
+ *   這些是「還本金」和「繳稅」，屬於資產負債表項目，不是當期費用
+ *   （只有利息才是費用）。放在費用裡會讓損益表的淨利被低估同樣的金額，
+ *   而看報表的人完全看不出來。
+ *
+ * 這裡只「指出來」，不自動改 —— 哪幾筆是本金、哪幾筆含利息，
+ * 只有老闆和記帳士知道，程式不該替他決定。
+ * ═══════════════════════════════════════════════════════════ */
+var _NONEXP_PAT=[
+  {re:/貸款|借款|本金|還款/, why:'還本金屬於減少負債，不是費用（只有利息才是費用）'},
+  {re:/營所稅|所得稅|暫收款|欠費分期|補繳/, why:'繳稅／補繳欠費屬於清償負債，不是當期費用'},
+  {re:/股東往來|老闆墊款/, why:'股東往來屬於資產負債表項目'}
+];
+function _scanNonExpense(){
+  var hits=[];
+  Object.keys(SMAP).forEach(function(sk){
+    var sn=SMAP[sk];
+    (DATA[sn]||[]).forEach(function(r){
+      if(r.sec==='收入'||isStaffMeal(r)||r.noSum)return;
+      if(!cfg(r.sec).exp)return;
+      var amt=Object.values(r.daily).reduce(function(a,b){return a+(+b||0)},0);
+      if(!amt)return;
+      for(var i=0;i<_NONEXP_PAT.length;i++){
+        if(_NONEXP_PAT[i].re.test(r.name)){hits.push({sk:sk,store:sn,sec:r.sec,name:r.name,amt:amt,why:_NONEXP_PAT[i].why});break}
+      }
+    });
+  });
+  return hits;
+}
+function _warnNonExpense(){
+  var hits=_scanNonExpense();
+  var bar=document.getElementById('nonexp-bar');
+  if(!hits.length){if(bar)bar.remove();return}
+  var tot=hits.reduce(function(a,x){return a+x.amt},0);
+  if(!bar){bar=document.createElement('div');bar.id='nonexp-bar';
+    bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99988;background:#1e3a5f;color:#fff;padding:10px 16px;font-size:13px;display:flex;gap:12px;align-items:center;box-shadow:0 -4px 16px rgba(0,0,0,.3)';
+    document.body.appendChild(bar);}
+  bar.innerHTML='<b>🏦 有 '+hits.length+' 筆看起來是「還款／繳稅」被記在費用裡（合計 $'+NFL(tot)+'）</b>'
+    +'<span style="opacity:.85;font-weight:400">還本金與繳稅不是當期費用，會讓淨利被低估</span>'
+    +'<span style="margin-left:auto;display:flex;gap:8px">'
+    +'<button onclick="showNonExpense()" style="background:#fff;color:#1e3a5f;border:none;padding:5px 12px;border-radius:6px;font-weight:800;cursor:pointer;font-size:12px">看是哪幾筆</button>'
+    +'<button onclick="this.parentElement.parentElement.remove()" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px">先不管</button>'
+    +'</span>';
+}
+function showNonExpense(){
+  var hits=_scanNonExpense();
+  if(!hits.length){alert('目前沒有偵測到還款／繳稅類的科目。');return}
+  var old=document.getElementById('nonexp-modal');if(old)old.remove();
+  var m=document.createElement('div');m.id='nonexp-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:99995;display:flex;align-items:center;justify-content:center;padding:20px';
+  var rows='';
+  hits.forEach(function(x,i){
+    rows+='<tr style="border-bottom:1px solid #e2e8f0">'
+      +'<td style="padding:8px 6px"><input type="checkbox" class="nex-ck" data-i="'+i+'" checked style="width:16px;height:16px"></td>'
+      +'<td style="padding:8px 6px;font-size:12px;color:#64748b">'+x.store+'</td>'
+      +'<td style="padding:8px 6px;font-weight:700">'+x.name+'</td>'
+      +'<td style="padding:8px 6px;text-align:right;font-family:var(--f-num);font-weight:700">$'+NFL(x.amt)+'</td>'
+      +'<td style="padding:8px 6px;font-size:11px;color:#64748b;max-width:220px">'+x.why+'</td></tr>';
+  });
+  m.innerHTML='<div style="background:#fff;border-radius:14px;padding:24px;max-width:760px;width:100%;max-height:86vh;overflow:auto" onclick="event.stopPropagation()">'
+    +'<div style="font-size:18px;font-weight:900;color:#0f172a;margin-bottom:6px">🏦 還款／繳稅被記在費用裡</div>'
+    +'<div style="font-size:13px;color:#475569;line-height:1.8;margin-bottom:16px">'
+    +'還本金是「減少負債」、繳稅是「清償負債」，兩者都不是當期費用 —— <b>只有利息才算費用</b>。<br>'
+    +'記在費用裡會讓損益表的淨利被低估，但流水帳看起來完全正常。<br>'
+    +'<b style="color:#b45309">⚠ 如果某一筆是「本金＋利息」一起繳的，勾了會連利息也一起排除 —— 那筆請先問記帳士怎麼拆。</b></div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f1f5f9">'
+    +'<th style="padding:8px 6px;width:36px"></th><th style="padding:8px 6px;text-align:left">門市</th>'
+    +'<th style="padding:8px 6px;text-align:left">科目</th><th style="padding:8px 6px;text-align:right">本月合計</th>'
+    +'<th style="padding:8px 6px;text-align:left">為什麼</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div style="display:flex;gap:10px;margin-top:20px">'
+    +'<button onclick="applyNonExpense()" style="flex:1;padding:12px;background:#1d4ed8;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:800;cursor:pointer">把勾選的標為「排除加總」</button>'
+    +'<button onclick="document.getElementById(\'nonexp-modal\').remove()" style="padding:12px 18px;background:#f1f5f9;color:#475569;border:none;border-radius:9px;font-weight:700;cursor:pointer">取消</button>'
+    +'</div>'
+    +'<div style="font-size:11px;color:#94a3b8;margin-top:10px">標記後：流水帳仍看得到金額（僅紀錄），但不計入小計、損益表、資產負債表、現金流量表與經營儀表板。隨時可在科目名稱上點「✏️」選單改回來。</div>'
+    +'</div>';
+  m.onclick=function(){m.remove()};
+  document.body.appendChild(m);
+}
+function applyNonExpense(){
+  var hits=_scanNonExpense(),picked=[];
+  document.querySelectorAll('#nonexp-modal .nex-ck').forEach(function(c){if(c.checked)picked.push(hits[+c.getAttribute('data-i')])});
+  if(!picked.length){alert('沒有勾選任何一筆。');return}
+  pushHistory();
+  var n=0;
+  picked.forEach(function(x){
+    var row=null;
+    (DATA[x.store]||[]).forEach(function(r){if(r.sec===x.sec&&r.name===x.name)row=r});
+    if(row){row.noSum=true;n++}
+  });
+  document.getElementById('nonexp-modal').remove();
+  ['jd','ts','hq'].forEach(function(k){buildTable(k);recalc(k)});
+  showSt(CUR);
+  if(typeof _reRenderFinPane==='function')_reRenderFinPane();
+  _warnNonExpense();
+  setSyncSt('warn','已標記 '+n+' 筆為排除加總，請按 💾 儲存');
+  alert('✅ 已把 '+n+' 筆標為「排除加總（僅紀錄）」。\n\n記得按上方的 💾 儲存，這個變更才會存下來。');
+}
+/* ═══ build#76 新增：科目名稱唯一性檢查（邏輯集中，勿在各處各寫一份）═══
+   為什麼重要：雲端合併 _mergeRows / _loadStoreRows 是以「類別＋名稱」當主鍵配對的。
+   同一類別下若有兩列同名，跨裝置存檔時金額會被塞進錯的那一列，另一列的資料則消失。
+   這正是「資料莫名跑掉」的根因，所以在「建立」的當下就擋住，而不是事後去修合併演算法。 */
+function _dupRow(sn,sec,name,exceptRow){
+  var rows=DATA[sn]||[];var nm=String(name).trim();
+  for(var i=0;i<rows.length;i++){
+    if(rows[i]===exceptRow)continue;
+    if(rows[i].sec===sec&&String(rows[i].name).trim()===nm)return rows[i];
+  }
+  return null;
+}
+function _scanDupRows(){
+  var found=[];
+  Object.values(SMAP).forEach(function(sn){
+    var seen={};(DATA[sn]||[]).forEach(function(r){
+      var k=r.sec+'\u0000'+String(r.name).trim();
+      if(seen[k])found.push({store:sn,sec:r.sec,name:r.name});else seen[k]=1;
+    });
+  });
+  return found;
+}
+function _warnDupRows(){
+  var d=_scanDupRows();if(!d.length)return;
+  console.warn('⚠️ 偵測到同名科目',d);
+  var el=$('save-st');
+  try{
+    var bar=document.getElementById('dup-warn-bar');
+    if(!bar){bar=document.createElement('div');bar.id='dup-warn-bar';
+      bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99990;background:#7f1d1d;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 -4px 16px rgba(0,0,0,.3)';
+      document.body.appendChild(bar);}
+    bar.innerHTML='⚠️ 偵測到 '+d.length+' 組同名科目，跨裝置存檔時金額可能跑到錯的列：'
+      +d.slice(0,4).map(function(x){return x.store+'／'+x.sec+'／'+x.name}).join('　·　')
+      +(d.length>4?' …等':'')
+      +' <span style="margin-left:auto;background:#fff;color:#7f1d1d;padding:4px 10px;border-radius:6px;cursor:pointer" onclick="this.parentElement.remove()">知道了</span>'
+      +' <span style="font-weight:400;opacity:.85">請用「✏️ 改名」把其中一列改成不同名稱</span>';
+  }catch(e){}
+}
+function addRow(){const sec=$('add-sec').value,nm=$('add-nm').value.trim();if(!nm){$('add-nm').focus();return}
+  if(_dupRow(SMAP[CUR],sec,nm)){alert('「'+sec+'」底下已經有「'+nm+'」這個科目了。\n\n同一類別不可以有兩個同名科目 —— 跨裝置存檔時金額會跑到錯的列。\n\n請直接用既有那一列，或改一個不同的名稱（例如加上括號註記）。');$('add-nm').select();return}
+  pushHistory();_tombRemove(SMAP[CUR],sec,nm);DATA[SMAP[CUR]].push({sec,name:nm,daily:{},monthly:0});_bumpSrev(SMAP[CUR]);$('add-nm').value='';buildTable(CUR);showSt(CUR);const b=$('l-body');if(b)b.scrollTop=b.scrollHeight;schedAutoSave()}
+function batchAdd(){const lines=$('batch-inp').value.split('\n').map(s=>s.trim()).filter(Boolean);const sec=$('batch-sec').value;if(!lines.length)return;
+  const sn=SMAP[CUR],skipped=[],added=[];const seen={};
+  lines.forEach(nm=>{if(!nm)return;const k=nm.trim();if(seen[k]||_dupRow(sn,sec,k)){skipped.push(k);return}seen[k]=1;added.push(k)});
+  if(!added.length){alert('這些科目在「'+sec+'」底下都已經存在了，沒有新增任何一列：\n\n'+skipped.join('、'));return}
+  pushHistory();added.forEach(nm=>{_tombRemove(sn,sec,nm);DATA[sn].push({sec,name:nm,daily:{},monthly:0})});_bumpSrev(sn);
+  $('batch-inp').value='';toggleAddPan();buildTable(CUR);showSt(CUR);schedAutoSave();
+  if(skipped.length)alert('已新增 '+added.length+' 列。\n\n以下 '+skipped.length+' 個名稱因為重複而略過：\n'+skipped.join('、'));}
 function toggleAddPan(){const p=$('add-pan');p.classList.toggle('show');if(p.classList.contains('show'))$('batch-inp').focus()}
 function clearStoreData(){const sn=SMAP[CUR];if(!confirm('⚠ 確定要清除「'+sn+'」所有數據？\n\n此操作會清空所有日期金額（廠商/科目名稱保留）。\n建議先按 💾 儲存備份。'))return;if(!confirm('🔴 二次確認：「'+sn+'」全部金額將歸零\n\n按「確定」執行清除'))return;pushHistory();for(const row of DATA[sn]){for(const k in row.daily)row.daily[k]=0;row.monthly=0}buildTable(CUR);showSt(CUR);recalc(CUR);setSyncSt('warn','已清除，請儲存')}
 
@@ -1900,7 +2110,12 @@ function _erpDoImport(){
 
 function doSave(){
   var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
-  try{_lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));localStorage.setItem('fin_v3_last',mk)}catch(e){}
+  /* build#77：原本忽略 _lsSafeSet 的回傳值 —— 本機寫入失敗（配額爆掉）時，
+     若雲端也失敗，狀態列仍會顯示「已存本機」，使用者安心關掉分頁 → 資料兩邊都沒有。
+     這裡把成敗記下來，下面所有狀態訊息都據實回報。 */
+  var _lsOK=false;
+  try{_lsOK=_lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));if(_lsOK)localStorage.setItem('fin_v3_last',mk)}catch(e){_lsOK=false}
+  window._lastLocalSaveOK=_lsOK;
   if(typeof db!=='undefined'&&db){
     setSyncSt('sync','同步中…');
     // 讀-合併-寫：先抓雲端最新，把雲端有而本分頁沒有的非空格合併進來，再寫回 → 杜絕舊分頁覆蓋新資料
@@ -1913,15 +2128,29 @@ function doSave(){
       }
       var batch=db.batch();
       Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),srev:_getSrev(mk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
-      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步'));_markLocalSaved(mk);_dailySnapshot()}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
+      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步')+(_lsOK?'':'（本機快取空間不足，僅存雲端）'));_markLocalSaved(mk);_dailySnapshot()}).catch(function(){_saveFailMsg(_lsOK)});
     }).catch(function(){
       // 讀取失敗（離線等）：本機已存，直接寫回避免卡住
       var batch=db.batch();
       Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),srev:_getSrev(mk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
-      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步');_markLocalSaved(mk);_dailySnapshot()}).catch(function(){setSyncSt('err','⚠️ 雲端失敗，已存本機')});
+      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步'+(_lsOK?'':'（本機快取空間不足，僅存雲端）'));_markLocalSaved(mk);_dailySnapshot()}).catch(function(){_saveFailMsg(_lsOK)});
     });
   } else {
-    var t=new Date();setSyncSt('off','✓ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 本機');
+    var t=new Date();
+    if(_lsOK)setSyncSt('off','✓ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 本機');
+    else _saveFailMsg(false);
+  }
+}
+/* build#77：兩邊都沒存成功時，必須講清楚 —— 這是唯一不能含糊的一則訊息 */
+function _saveFailMsg(lsOK){
+  if(lsOK){setSyncSt('err','⚠️ 雲端失敗，已存本機（請恢復網路後再存一次）');return}
+  setSyncSt('err','🔴 儲存失敗：雲端與本機都沒存進去！請勿關閉分頁');
+  if(!window._saveFailAlerted){
+    window._saveFailAlerted=1;
+    setTimeout(function(){
+      alert('🔴 這次儲存兩邊都失敗了\n\n雲端連不上，本機儲存空間也不足 —— 你剛剛輸入的資料目前只存在這個畫面上。\n\n請不要關閉這個分頁，先做以下其中一件事：\n\n1. 按「↓ 本機備份」把資料存成檔案\n2. 或按「CSV」匯出這一頁\n\n處理完再重新整理。');
+      window._saveFailAlerted=0;
+    },100);
   }
 }
 function setSyncSt(status,msg){
@@ -2118,6 +2347,8 @@ async function initData(){
   // Step 2: 立即建表（不等雲端）
   ['jd','ts','hq'].forEach(k=>buildTable(k));
   recalc('jd');recalc('ts');recalc('hq');
+  _warnDupRows(); // build#76：既有資料若已存在同名科目，開檔就警示
+  _warnNonExpense(); // build#78：還款／繳稅誤入費用偵測
   document.getElementById('hdr-ver').textContent=VER.full();
   document.getElementById('nb-cl').textContent=VER.str();
   // Step 3: 背景嘗試 Firestore 同步
@@ -2139,7 +2370,18 @@ async function initData(){
         setSyncSt('ok','☁️ 雲端已連線');
         ['jd','ts','hq'].forEach(k=>buildTable(k));
         recalc('jd');recalc('ts');recalc('hq');
+        _warnDupRows(); // build#76：雲端合併後再掃一次
+        _warnNonExpense();
+        /* build#78：把資產負債表存量／現金流量估算／損益表調整／發票／營業稅設定從雲端取回，
+           讓這些資料不再只活在單一台電腦上 */
+        _pullSettings(function(adopted){
+          if(adopted&&adopted.length){
+            if(typeof _reRenderFinPane==='function')_reRenderFinPane();
+            setSyncSt('ok','☁️ 已連線（另取回 '+adopted.length+' 項設定）');
+          }
+        });
       } else {
+        _pullSettings(function(adopted){if(adopted&&adopted.length&&typeof _reRenderFinPane==='function')_reRenderFinPane()});
         setSyncSt('ok','☁️ 已連線（無雲端資料）');
       }
     }catch(e){
@@ -2210,6 +2452,21 @@ function exportBackup(){
       try{backup.allMonths[k.replace('fin_v3_','')]=JSON.parse(localStorage.getItem(k))}catch(e){}
     }
   }
+  /* ═══ build#77：把「只存在本機、雲端沒有」的設定一併備份 ═══
+     資產負債表存量、現金流量估算、損益表手動調整、發票紀錄、營業稅設定、
+     商場對帳、排序與收合狀態 —— 這些全部只活在這台電腦的 localStorage 裡，
+     Firestore 沒有、Google Drive 全系統備份也讀不到（那支只讀 Firestore）。
+     原本的備份檔完全沒包含它們 → 清一次瀏覽器快取，資產負債表和發票紀錄就永久消失。 */
+  backup.settings={};
+  var _SETTING_PREFIX=['fin_bs_stock_','fin_cf_estimate_','fin_pl_adj_','fin_invoices_','fin_vat_','fin_mall_recon','fin_collapse','fin_v3_navorder','fin_tomb_'];
+  for(var j=0;j<localStorage.length;j++){
+    var k2=localStorage.key(j);
+    if(!k2)continue;
+    for(var q=0;q<_SETTING_PREFIX.length;q++){
+      if(k2.indexOf(_SETTING_PREFIX[q])===0){ backup.settings[k2]=localStorage.getItem(k2); break }
+    }
+  }
+  backup.settingsCount=Object.keys(backup.settings).length;
   var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');
@@ -2272,17 +2529,92 @@ function importBackup(){
             try{localStorage.setItem('fin_v3_'+e[0],JSON.stringify(e[1]))}catch(ex){}
           });
         }
+        /* build#77：還原本機設定（資產負債表存量／現金流量估算／損益表調整／發票／營業稅設定…）*/
+        var _sn2=0;
+        if(backup.settings){
+          Object.keys(backup.settings).forEach(function(k){
+            try{localStorage.setItem(k,backup.settings[k]);_sn2++}catch(ex){}
+          });
+          try{_tombLoad(YEAR+'-'+String(MONTH).padStart(2,'0'))}catch(ex){}
+        }
         ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);
         doSave();
-        alert('✅ 備份已匯入');
+        alert('✅ 備份已匯入'+(_sn2?'\n\n同時還原了 '+_sn2+' 項本機設定（資產負債表存量／現金流量估算／損益表調整／發票紀錄／營業稅設定）。':'\n\n⚠ 這份備份檔是舊格式，不含資產負債表存量、發票紀錄等本機設定 —— 那些沒有被還原。'));
       }catch(ex){alert('匯入失敗：'+ex.message)}
     };reader.readAsText(file);
   };input.click();
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+ * build#78：本機設定的雲端同步
+ *
+ * 問題：資產負債表存量、現金流量估算、損益表手動調整、發票紀錄、
+ *       營業稅設定，全部只活在這台電腦的 localStorage。
+ *       換一台電腦開系統 → 資產負債表是空的；清快取 → 永久消失。
+ *
+ * 做法：每一項設定各自帶一個「最後修改時間」，同步到 finance/_settings。
+ *       載入時逐項比對時間，只有雲端比本機新才覆蓋 —— 逐項比對而不是整包
+ *       覆蓋，是為了避免 A 電腦改資產負債表、B 電腦改發票時互相蓋掉。
+ *
+ * 刻意不做的事：不做即時雙向同步。這些是低頻、單人編輯的設定，
+ *       「後改的贏」已經足夠，加上鎖與衝突解決只會製造新的錯誤。
+ * ═══════════════════════════════════════════════════════════ */
+var _SETTING_RE=/^(fin_bs_stock_|fin_cf_estimate_|fin_pl_adj_|fin_invoices_|fin_vat_)/;
+function _setMeta(){try{return JSON.parse(localStorage.getItem('fin_setmeta'))||{}}catch(e){return{}}}
+function _setMetaSave(m){try{localStorage.setItem('fin_setmeta',JSON.stringify(m))}catch(e){}}
+var _setPushTimer=null;
+function _settingChanged(key){
+  if(!key||!_SETTING_RE.test(key))return;
+  var m=_setMeta();m[key]=Date.now();_setMetaSave(m);
+  if(_setPushTimer)clearTimeout(_setPushTimer);
+  _setPushTimer=setTimeout(_pushSettings,1500); // 併批，避免連續編輯狂寫雲端
+}
+function _collectSettings(){
+  var o={};
+  try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
+    if(k&&_SETTING_RE.test(k))o[k]=localStorage.getItem(k)}}catch(e){}
+  return o;
+}
+function _pushSettings(cb){
+  if(typeof db==='undefined'||!db){cb&&cb(new Error('雲端未連線'));return}
+  var local=_collectSettings(),meta=_setMeta(),items={};
+  Object.keys(local).forEach(function(k){items[k]={v:local[k],t:meta[k]||0}});
+  db.collection('finance').doc('_settings').set({items:items,updatedAt:Date.now()},{merge:true})
+    .then(function(){console.log('☁️ 設定已同步 ('+Object.keys(items).length+' 項)');cb&&cb(null)})
+    .catch(function(e){console.warn('設定同步失敗:',e);_reportErr('settings',String(e.code||e.message||e),'_pushSettings');cb&&cb(e)});
+}
+function _pullSettings(cb){
+  if(typeof db==='undefined'||!db){cb&&cb();return}
+  db.collection('finance').doc('_settings').get({source:'server'}).then(function(d){
+    if(!d.exists){cb&&cb();return}
+    var items=(d.data()||{}).items||{},meta=_setMeta(),adopted=[],pushBack=false;
+    Object.keys(items).forEach(function(k){
+      if(!_SETTING_RE.test(k))return;              // 只認得的鍵才處理
+      var c=items[k];if(!c||typeof c.v!=='string')return;
+      var lt=meta[k]||0,ct=c.t||0;
+      var haveLocal=localStorage.getItem(k)!==null;
+      if(!haveLocal||ct>lt){
+        try{localStorage.setItem(k,c.v);meta[k]=ct;adopted.push(k)}catch(e){}
+      }else if(lt>ct){pushBack=true}
+    });
+    if(adopted.length){_setMetaSave(meta);console.log('☁️ 從雲端取回 '+adopted.length+' 項設定:',adopted)}
+    if(pushBack)_pushSettings();                   // 本機較新 → 補推回雲端
+    cb&&cb(adopted);
+  }).catch(function(e){console.warn('設定讀取失敗:',e);cb&&cb()});
+}
+
 /* ═══ Tax Center — 稅務中心 ═══ */
 function getVatConfig(){try{return JSON.parse(localStorage.getItem('fin_vat_config'))||{}}catch(e){return{}}}
-function saveVatConfig(cfg){try{localStorage.setItem('fin_vat_config',JSON.stringify(cfg))}catch(e){}}
+function saveVatConfig(cfg){try{localStorage.setItem('fin_vat_config',JSON.stringify(cfg));_settingChanged('fin_vat_config')}catch(e){}}
+/* build#78：切換「流水帳金額是含稅還是未稅」。影響營業稅試算，故明確確認一次。 */
+function setVatIncTax(inc){
+  var cfg=getVatConfig();
+  if(((cfg._incTax===undefined)?true:!!cfg._incTax)===!!inc)return;
+  if(!confirm('要把換算方式改成「'+(inc?'流水帳金額是含稅（實收）':'流水帳金額是未稅')+'」嗎？\n\n這會直接改變營業稅試算金額，請確認與記帳士的認定一致。'))
+    {renderTaxCenter();return}
+  cfg._incTax=!!inc;saveVatConfig(cfg);renderTaxCenter();
+}
 
 function toggleVat(storeKey,sec,ri,type){
   var cfg=getVatConfig();
@@ -2301,7 +2633,7 @@ function editFiling(period){
   var paid=prompt(''+period+' 實際繳納稅額：',existing?existing.paid:'');if(paid===null)return;
   if(existing){existing.salesTax=+salesTax;existing.inputTax=+inputTax;existing.paid=+paid;existing.date=new Date().toISOString().substring(0,10)}
   else{filings.push({year:YEAR,period:period,salesTax:+salesTax,inputTax:+inputTax,paid:+paid,date:new Date().toISOString().substring(0,10)})}
-  localStorage.setItem('fin_vat_filings',JSON.stringify(filings));
+  localStorage.setItem('fin_vat_filings',JSON.stringify(filings));_settingChanged('fin_vat_filings');
   renderTaxCenter();
 }
 
@@ -2310,9 +2642,14 @@ function addInvoice(){
   var number=prompt('發票號碼：');if(!number)return;
   var vendor=prompt('廠商名稱：');if(!vendor)return;
   var amount=prompt('發票金額（未稅）：');if(!amount)return;
+  /* build#77：原本直接 +amount。使用者若打「12,000」或「12000元」會變成 NaN，
+     存進 JSON 後成為 null，發票金額整筆消失且畫面看不出來。 */
+  var amtNum=Number(String(amount).replace(/[,，\s$元]/g,''));
+  if(!isFinite(amtNum)||amtNum<=0){alert('金額格式看不懂：「'+amount+'」\n\n請只輸入數字，例如 12000（不要加逗號或「元」）。');return}
   var invoices=[];try{invoices=JSON.parse(localStorage.getItem('fin_invoices_'+YEAR))||[]}catch(e){}
-  invoices.push({month:MONTH,date:date,number:number,vendor:vendor,amount:+amount});
+  invoices.push({month:MONTH,date:date,number:number,vendor:vendor,amount:amtNum});
   localStorage.setItem('fin_invoices_'+YEAR,JSON.stringify(invoices));
+  _settingChanged('fin_invoices_'+YEAR);
   renderTaxCenter();
 }
 
@@ -2323,6 +2660,7 @@ function delInvoice(idx){
   var target=monthInv[idx];if(!target)return;
   var gi=invoices.indexOf(target);if(gi>=0)invoices.splice(gi,1);
   localStorage.setItem('fin_invoices_'+YEAR,JSON.stringify(invoices));
+  _settingChanged('fin_invoices_'+YEAR);
   renderTaxCenter();
 }
 
@@ -2508,9 +2846,20 @@ function renderTaxCenter(){
     });
   });
 
-  var salesTax=Math.round(totalSales*0.05);
-  var purchaseTax=Math.round(totalPurchase*0.05);
+  /* ═══ build#78：營業稅換算方式 ═══
+     台灣加值型營業稅率 5%，統一發票金額為「含稅」總額。
+       未稅銷售額 = 含稅金額 ÷ 1.05
+       營業稅額   = 含稅金額 − 未稅銷售額 ＝ 含稅金額 × 5% ÷ 1.05（約 4.7619%）
+     舊版一律用「金額 × 5%」，若流水帳記的是實收（含稅）金額就會高估約 4.76%。
+     餐飲店 POS 的實收金額是含稅的，所以預設為「含稅」；
+     但這是報稅數字，設成可切換，並把公式直接印在畫面上供記帳士核對。 */
+  var _vatIncTax=(cfg._incTax===undefined)?true:!!cfg._incTax;
+  function _salesTaxOf(amt){return _vatIncTax?Math.round(amt/1.05*0.05):Math.round(amt*0.05)}
+  var salesTax=_salesTaxOf(totalSales);
+  var purchaseTax=_salesTaxOf(totalPurchase);
   var vatDue=salesTax-purchaseTax;
+  var _vatNetSales=_vatIncTax?Math.round(totalSales/1.05):totalSales;
+  var _vatNetPurch=_vatIncTax?Math.round(totalPurchase/1.05):totalPurchase;
 
   // Determine which stores have checked sales items
   var salesStores={};
@@ -2522,10 +2871,10 @@ function renderTaxCenter(){
   for(var m=1;m<=12;m++){
     var amk=YEAR+'-'+String(m).padStart(2,'0');
     if(m===MONTH){
-      Object.entries(SMAP).forEach(function(e){var sk=e[0],sn=e[1];if(!salesStores[sk])return;var rows=DATA[sn];var inc2=0,exp2=0;rows.forEach(function(r){var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc2+=sum;else exp2+=sum});annualNI+=inc2-exp2});
+      Object.entries(SMAP).forEach(function(e){var sk=e[0],sn=e[1];if(!salesStores[sk])return;var b=_calcStoreBreakdown(DATA,sn);annualNI+=b.inc-b.cogs-b.rent-b.util-b.misc-b.hr});/* build#76：改用與損益表同一套 _calcStoreBreakdown，統一排除員工餐與 noSum */
       monthsLoaded++;
     }else{
-      try{var s=localStorage.getItem('fin_v3_'+amk);if(s){var md=JSON.parse(s);Object.entries(SMAP).forEach(function(e){var sk=e[0],sn=e[1];if(!salesStores[sk])return;if(!md[sn])return;var inc2=0,exp2=0;md[sn].forEach(function(r){var sum=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc2+=sum;else exp2+=sum});annualNI+=inc2-exp2});monthsLoaded++}}catch(e){}
+      try{var s=localStorage.getItem('fin_v3_'+amk);if(s){var md=JSON.parse(s);Object.entries(SMAP).forEach(function(e){var sk=e[0],sn=e[1];if(!salesStores[sk])return;if(!md[sn])return;var b=_calcStoreBreakdown(md,sn);annualNI+=b.inc-b.cogs-b.rent-b.util-b.misc-b.hr});monthsLoaded++}}catch(e){}
     }
   }
   var citProjected=monthsLoaded>0?Math.round((annualNI/monthsLoaded)*12):0;
@@ -2557,6 +2906,24 @@ function renderTaxCenter(){
   h+='<div style="background:#fee2e2;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#991b1b">銷項稅額</div><div style="font-size:24px;font-weight:800;color:#dc2626;font-family:var(--f-num)">$'+NF(salesTax)+'</div><div style="font-size:10px;color:#999">勾選銷項 $'+NFL(totalSales)+' × 5%</div></div>';
   h+='<div style="background:#dcfce7;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#166534">進項稅額</div><div style="font-size:24px;font-weight:800;color:#16a34a;font-family:var(--f-num)">$'+NF(purchaseTax)+'</div><div style="font-size:10px;color:#999">勾選進項 $'+NFL(totalPurchase)+' × 5%</div></div>';
   h+='<div style="background:'+(vatDue>0?'#fef3c7':'#dbeafe')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(vatDue>0?'#92400e':'#1e40af')+'">'+(vatDue>0?'應繳營業稅':'留抵稅額')+'</div><div style="font-size:24px;font-weight:800;color:'+(vatDue>0?'#dc2626':'#2563eb')+';font-family:var(--f-num)">$'+NF(Math.abs(vatDue))+'</div><div style="font-size:10px;color:#999">銷項 - 進項</div></div>';
+  h+='</div>';
+  /* build#78：把換算方式與公式直接印在畫面上 —— 這是報稅數字，必須讓記帳士一眼看得出怎麼算的 */
+  h+='<div style="background:'+(_vatIncTax?'#f0fdf4':'#fffbeb')+';border:1.5px solid '+(_vatIncTax?'#86efac':'#fde68a')+';border-radius:10px;padding:12px 14px;margin-bottom:18px">';
+  h+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
+  h+='<span style="font-size:13px;font-weight:800;color:#0f172a">換算方式：</span>';
+  h+='<label style="display:inline-flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;font-weight:700;color:'+(_vatIncTax?'#15803d':'#64748b')+'"><input type="radio" name="vat-inc" '+(_vatIncTax?'checked':'')+' onclick="setVatIncTax(true)"> 流水帳金額是<b>含稅</b>（實收）</label>';
+  h+='<label style="display:inline-flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;font-weight:700;color:'+(!_vatIncTax?'#b45309':'#64748b')+'"><input type="radio" name="vat-inc" '+(!_vatIncTax?'checked':'')+' onclick="setVatIncTax(false)"> 是<b>未稅</b>金額</label>';
+  h+='</div>';
+  h+='<div style="font-size:12px;color:#475569;margin-top:8px;line-height:1.8;font-family:var(--f-num)">';
+  if(_vatIncTax){
+    h+='銷項：含稅 $'+NFL(totalSales)+' ÷ 1.05 ＝ 未稅 $'+NFL(_vatNetSales)+'　×5% ＝ <b style="color:#dc2626">$'+NFL(salesTax)+'</b><br>';
+    h+='進項：含稅 $'+NFL(totalPurchase)+' ÷ 1.05 ＝ 未稅 $'+NFL(_vatNetPurch)+'　×5% ＝ <b style="color:#16a34a">$'+NFL(purchaseTax)+'</b>';
+  }else{
+    h+='銷項：未稅 $'+NFL(totalSales)+' × 5% ＝ <b style="color:#dc2626">$'+NFL(salesTax)+'</b><br>';
+    h+='進項：未稅 $'+NFL(totalPurchase)+' × 5% ＝ <b style="color:#16a34a">$'+NFL(purchaseTax)+'</b>';
+  }
+  h+='</div>';
+  h+='<div style="font-size:11px;color:#64748b;margin-top:8px;line-height:1.7">📌 統一發票開立金額為含稅總額；未稅銷售額＝含稅 ÷ 1.05，營業稅額＝含稅 × 5% ÷ 1.05（約 4.76%）。<br>餐飲店 POS 的實收金額通常是含稅的，故預設「含稅」。<b>此設定會直接影響申報金額，請與記帳士確認後再定案。</b></div>';
   h+='</div>';
 
   // Sales items checkboxes
@@ -3146,6 +3513,7 @@ function _calcStoreBreakdown(mData,sn){
   if(!mData||!mData[sn])return r;
   mData[sn].forEach(function(row){
     if(isStaffMeal(row))return; // 員工餐僅記錄，不入財報
+    if(row.noSum)return; // 已標記「排除加總（僅紀錄）」的列 → 財報也一併排除（build#76 修正：原本流水帳排除、損益表卻仍計入）
     var v=Object.values(row.daily).reduce(function(a,b){return a+b},0);
     var cls=_classifySec(row.sec);
     if(cls==='rev')r.inc+=v;
@@ -3163,7 +3531,7 @@ function _calcStoreBreakdown(mData,sn){
 // ─────────────────────────────────────────
 
 function getPLAdj(y,m){try{return JSON.parse(localStorage.getItem('fin_pl_adj_'+_mk(y,m)))||{}}catch(e){return{}}}
-function setPLAdj(y,m,adj){try{localStorage.setItem('fin_pl_adj_'+_mk(y,m),JSON.stringify(adj))}catch(e){}}
+function setPLAdj(y,m,adj){try{localStorage.setItem('fin_pl_adj_'+_mk(y,m),JSON.stringify(adj));_settingChanged('fin_pl_adj_'+_mk(y,m))}catch(e){}}
 
 function renderPL(){
   var ps=$('pl-static'),pd=$('pl-dynamic');
@@ -3329,17 +3697,31 @@ var BS_FIELDS=[
   ['priorEarnings','前期累積盈餘','equity']
 ];
 
+/* build#76：舊月份或舊版本存下的存量資料若缺欄位，NFL(undefined) 會印出「非數值」，
+   而且會一路傳染到合計與「借貸是否平衡」的檢查 —— 表面上看起來只是顯示怪，
+   實際上是平衡檢查靜默失效。這裡統一補 0，並記下缺了哪些欄位供提示。 */
+function _bsNormalize(d){
+  if(!d)return d;
+  var miss=[];
+  BS_FIELDS.forEach(function(f){
+    var k=f[0],v=d[k];
+    if(v===undefined||v===null||v===''||!isFinite(Number(v))){d[k]=0;miss.push(f[1])}
+    else d[k]=Number(v);
+  });
+  if(miss.length)d._missing=miss;
+  return d;
+}
 function getBSStock(y,m){
   // 找當月，找不到往前找最近一期（最多 24 個月）
   for(var i=0;i<24;i++){
     var ty=y,tm=m-i;while(tm<1){tm+=12;ty--}
-    try{var s=localStorage.getItem('fin_bs_stock_'+_mk(ty,tm));if(s){var d=JSON.parse(s);d._sourceMonth=_mk(ty,tm);return d}}catch(e){}
+    try{var s=localStorage.getItem('fin_bs_stock_'+_mk(ty,tm));if(s){var d=JSON.parse(s);d._sourceMonth=_mk(ty,tm);return _bsNormalize(d)}}catch(e){}
   }
   return null;
 }
 function setBSStock(y,m,stock){
   var clean={};Object.keys(stock).forEach(function(k){if(k.charAt(0)!=='_')clean[k]=stock[k]});
-  try{localStorage.setItem('fin_bs_stock_'+_mk(y,m),JSON.stringify(clean))}catch(e){}
+  try{localStorage.setItem('fin_bs_stock_'+_mk(y,m),JSON.stringify(clean));_settingChanged('fin_bs_stock_'+_mk(y,m))}catch(e){}
 }
 
 function renderBS(){
@@ -3511,18 +3893,26 @@ function copyBSFromPrev(){
 // 【CF 現金流量表】
 // ─────────────────────────────────────────
 
+function _cfNormalize(d){
+  if(!d)return d;
+  Object.keys(d).forEach(function(k){
+    if(k.charAt(0)==='_')return;
+    if(d[k]===undefined||d[k]===null||d[k]===''||!isFinite(Number(d[k])))d[k]=0;else d[k]=Number(d[k]);
+  });
+  return d;
+}
 function getCFEstimate(y,m){
-  try{var s=localStorage.getItem('fin_cf_estimate_'+_mk(y,m));if(s){var d=JSON.parse(s);d._sourceMonth=_mk(y,m);return d}}catch(e){}
+  try{var s=localStorage.getItem('fin_cf_estimate_'+_mk(y,m));if(s){var d=JSON.parse(s);d._sourceMonth=_mk(y,m);return _cfNormalize(d)}}catch(e){}
   // 找最近一期作為預設
   for(var i=1;i<24;i++){
     var ty=y,tm=m-i;while(tm<1){tm+=12;ty--}
-    try{var s2=localStorage.getItem('fin_cf_estimate_'+_mk(ty,tm));if(s2){var d2=JSON.parse(s2);d2._sourceMonth=_mk(ty,tm);return d2}}catch(e){}
+    try{var s2=localStorage.getItem('fin_cf_estimate_'+_mk(ty,tm));if(s2){var d2=JSON.parse(s2);d2._sourceMonth=_mk(ty,tm);return _cfNormalize(d2)}}catch(e){}
   }
   return null;
 }
 function setCFEstimate(y,m,est){
   var clean={};Object.keys(est).forEach(function(k){if(k.charAt(0)!=='_')clean[k]=est[k]});
-  try{localStorage.setItem('fin_cf_estimate_'+_mk(y,m),JSON.stringify(clean))}catch(e){}
+  try{localStorage.setItem('fin_cf_estimate_'+_mk(y,m),JSON.stringify(clean));_settingChanged('fin_cf_estimate_'+_mk(y,m))}catch(e){}
 }
 
 function renderCF(){
@@ -4111,7 +4501,14 @@ W.fbBackupPanel=function(){
     scrapBad: 0.15      // 報廢率嚴重
   };
 
-  var n = function (v) { return (typeof v === 'number' && isFinite(v)) ? v : 0; };
+  /* build#76：原本只認 typeof 'number'，字串型數量（跨系統呼叫／舊資料）會被靜默算成 0，
+     導致理論營收、成本、短少全部歸零而畫面無任何錯誤提示 —— 這是最危險的「靜默算錯」。
+     改為容許可轉成有限數字的字串；其餘（null/undefined/NaN/物件）仍回 0。 */
+  var n = function (v) {
+    if (typeof v === 'number') return isFinite(v) ? v : 0;
+    if (typeof v === 'string' && v.trim() !== '') { var f = Number(v); return isFinite(f) ? f : 0; }
+    return 0;
+  };
 
   /* ─────────────────────────────────────────────────────────
    * priceOf — 依通路取售價
@@ -4192,7 +4589,7 @@ W.fbBackupPanel=function(){
       var cRec = costs[it.sku];
       var cost = cRec ? n(cRec.cost) : null;
       if (cRec && n(cRec.costRev) > costRevUsed) costRevUsed = n(cRec.costRev);
-      if (cost === null) missingCost.push(it.sku);
+      if (cost === null && missingCost.indexOf(it.sku) < 0) missingCost.push(it.sku); /* build#76：去重，避免「缺成本 2 項」實為 1 項 */
 
       var sold = n(it.sold), scrap = n(it.scrap), staff = n(it.staff), pick = n(it.pick);
       var short = rule.hasPick ? Math.max(0, pick - sold - scrap - staff) : 0;
@@ -4511,19 +4908,42 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
   }
 
   /* ═══ 資料載入 ═══════════════════════════════════════════ */
+  /* build#77：品項與成本主檔是「成本系統」寫的，不是這支寫的。
+     原本寫死當成陣列（cl.forEach），對方若改成 {sku:{...}} 的物件格式，
+     整個數量錄入頁會直接掛掉，畫面只寫「載入失敗：cl.forEach is not a function」——
+     老闆看到這行完全不知道發生什麼事。改為兩種格式都吃，並給看得懂的訊息。 */
+  function _asSkuList(v) {
+    if (!v) return [];
+    if (Object.prototype.toString.call(v) === '[object Array]') return v;
+    if (typeof v === 'object') {
+      return Object.keys(v).map(function (k) {
+        var o = v[k];
+        if (o && typeof o === 'object') { if (!o.sku) o.sku = k; return o; }
+        return { sku: k, cost: o };
+      });
+    }
+    return [];
+  }
   function loadCatalog(cb) {
     if (S.loaded) { cb(); return; }
     if (!DB()) { cb(new Error('雲端未連線')); return; }
     DB().collection('catalog').doc('products').get().then(function (d) {
-      var list = (d.exists && d.data().items) || [];
-      list.forEach(function (p) { S.products[p.sku] = p; });
+      var list = _asSkuList(d.exists && d.data().items);
+      if (d.exists && !list.length) { cb(new Error('品項主檔讀得到，但裡面沒有任何品項 —— 請先到「⚙️ 品項管理」建立品項')); return; }
+      list.forEach(function (p) { if (p && p.sku) S.products[p.sku] = p; });
       if (!hasCost()) { S.loaded = true; cb(); return; }   // 無成本權限就不撈成本
       return DB().collection('catalog').doc('costs').get().then(function (c) {
-        var cl = (c.exists && c.data().items) || [];
-        cl.forEach(function (x) { S.costs[x.sku] = x; });
+        var cl = _asSkuList(c.exists && c.data().items);
+        cl.forEach(function (x) { if (x && x.sku) S.costs[x.sku] = x; });
+        S.loaded = true; cb();
+      }).catch(function (e2) {
+        /* 成本讀不到不該讓整頁死掉 —— 數量還是要能錄，只是成本欄會標「缺成本」 */
+        console.warn('成本主檔讀取失敗，改以無成本模式繼續：', e2);
         S.loaded = true; cb();
       });
-    }).catch(function (e) { cb(e); });
+    }).catch(function (e) {
+      cb(new Error('品項主檔載入失敗：' + (e && (e.code || e.message) || e)));
+    });
   }
 
   function qtyRef() {
