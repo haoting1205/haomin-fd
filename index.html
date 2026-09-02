@@ -808,11 +808,17 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:17,patch:0,build:78,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:18,patch:0,build:79,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
 const CHANGELOG=[
+{build:79,version:'4.18.0',date:'2026-09-02',author:'Claude + Tim',summary:'第四輪：專攻「數字算對了沒」—— 修 3 項，其中一項是 build#76 只修了一半',changes:[
+{cat:'FIX',module:'DATA',desc:'★經營儀表板未排除「排除加總」的科目 —— build#76 修了損益表的 _calcStoreBreakdown，卻漏了儀表板自己另寫一套的 calcMS/calcSS。同一條規則寫在兩個地方，只改一邊就是這種結果。若把那 5 筆貸款/稅款標為排除加總，損益表會少 105,041 而儀表板不會，兩張表對不起來'},
+{cat:'FIX',module:'DATA',desc:'★複製月份與匯入備份沒有遞增結構版本號 srev。這兩個動作都會整批換掉「哪些科目存在、什麼順序」，屬結構性變更；不遞增的話，另一台 srev 較高的裝置下次同步就會把複製/還原的結果整批打回原狀，而畫面上完全看不出來，只會覺得「怎麼又跑掉了」'},
+{cat:'FIX',module:'TAX',desc:'申報提醒在截止日當天顯示「剩 0 天」，改為「今天截止」'},
+{cat:'DOC',module:'SYSTEM',desc:'第四輪 28 項測試：商場對帳十個欄位逐項手算比對、儀表板與損益表一致性、員工餐與 noSum 排除、三店淨利兩套演算法交叉驗證、申報提醒日期邊界、localStorage 舊月清理與墓碑保護、內建自我檢測、複製月份兩種模式（含付款註記不帶入）、每日快照。累計 165 項'}
+]},
 {build:78,version:'4.17.0',date:'2026-09-01',author:'Claude + Tim',summary:'第三輪：營業稅換算、還款誤入費用偵測、設定上雲端；另已收斂 Firestore 安全規則',changes:[
 {cat:'FIX',module:'TAX',desc:'★營業稅換算：舊版一律「金額 × 5%」。統一發票金額是含稅的，未稅銷售額應為 含稅 ÷ 1.05，稅額 ＝ 含稅 × 5% ÷ 1.05（約 4.76%）。以台積電 605,819 為例，舊算法 30,291、正確 28,848，每月差約 1,400。新增「含稅／未稅」切換（預設含稅，餐飲店 POS 實收即為含稅），並把完整算式直接印在畫面上供記帳士核對'},
 {cat:'NEW',module:'PL',desc:'★還款／繳稅誤入費用偵測：總公司「其他費用」裡掛著兆豐貸款、台灣企銀貸款、彥頡借款、營所稅暫收款、勞健退欠費分期，合計 105,041。還本金是減少負債、繳稅是清償負債，都不是當期費用（只有利息才是），放在費用裡會讓淨利被低估同樣金額而報表上看不出來。系統會列出明細並提供一鍵標為「排除加總」；本金與利息混在一起的那幾筆會特別提醒要先問記帳士'},
@@ -1703,6 +1709,10 @@ function doApplyCopy(prevData,prevLabel,curLabel){
     DATA[sn]=JSON.parse(JSON.stringify(prevData[sn]));
     DATA[sn].forEach(function(r){delete r.pay}); // 付款/對帳/發票註記屬「來源月」的付款事實，不隨複製帶入本月（防誤判已匯款）
   }
+  /* build#79：複製月份是「哪些列存在、什麼順序」的結構性變更。
+     原本沒有遞增結構版本號 srev，另一台裝置若 srev 較高，下次同步會把
+     複製進來的科目整批打回原狀 —— 而且畫面上看不出來，只會覺得「怎麼又跑掉了」。 */
+  _bumpSrev(sn);
   buildTable(CUR);showSt(CUR);recalc(CUR);schedAutoSave();
   alert('✅ 已複製「'+prevLabel+'」→「'+curLabel+'」\n\n模式：'+(mode==='1'?'架構（金額清零）':'完整複製'));
 }
@@ -2522,7 +2532,7 @@ function importBackup(){
           '月份：'+(backup.year-1911)+'年'+backup.month+'月\n\n'+
           '⚠ 將覆蓋目前「'+(YEAR-1911)+'年'+MONTH+'月」的資料'))return;
         pushHistory();
-        Object.entries(backup.stores).forEach(function(e){if(DATA[e[0]])DATA[e[0]]=e[1]});_tomb={};_tombPersist(); /* 還原備份=權威資料，清墓碑防 sweep 誤刪還原列 */
+        Object.entries(backup.stores).forEach(function(e){if(DATA[e[0]]){DATA[e[0]]=e[1];_bumpSrev(e[0])}});_tomb={};_tombPersist(); /* 還原備份=權威資料，清墓碑防 sweep 誤刪還原列；build#79：一併遞增 srev，否則其他裝置會把還原的結構打回去 */
         // Also restore all months if available
         if(backup.allMonths){
           Object.entries(backup.allMonths).forEach(function(e){
@@ -3124,8 +3134,8 @@ function renderTaxCenter(){
 
 /* ═══ Business Analysis — 營業分析 ═══ */
 function loadMonthData(y,m){var mk=y+'-'+String(m).padStart(2,'0');if(y===YEAR&&m===MONTH){var r={};Object.entries(SMAP).forEach(function(e){r[e[1]]=DATA[e[1]]});return r}try{var s=localStorage.getItem('fin_v3_'+mk);if(s)return JSON.parse(s)}catch(e){}return null}
-function calcMS(mData){if(!mData)return null;var inc=0,exp=0,cogs=0,labor=0;Object.values(SMAP).forEach(function(sn){if(!mData[sn])return;mData[sn].forEach(function(r){if(isStaffMeal(r))return;var s=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc+=s;else if(r.sec.indexOf('食材')>=0||r.sec.indexOf('食/包材')>=0)cogs+=s;else{exp+=s;if(r.sec.indexOf('人事')>=0)labor+=s}})});exp+=cogs;return{inc:inc,exp:exp,cogs:cogs,labor:labor,opex:exp-cogs,gp:inc-cogs,ni:inc-exp,gpR:inc>0?((inc-cogs)/inc*100):0}}
-function calcSS(mData,sn){if(!mData||!mData[sn])return{inc:0,cogs:0,gp:0,ni:0,gpR:0,labor:0};var inc=0,exp=0,cogs=0,labor=0;mData[sn].forEach(function(r){if(isStaffMeal(r))return;var s=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc+=s;else if(r.sec.indexOf('食材')>=0||r.sec.indexOf('食/包材')>=0)cogs+=s;else{exp+=s;if(r.sec.indexOf('人事')>=0)labor+=s}});exp+=cogs;return{inc:inc,cogs:cogs,labor:labor,gp:inc-cogs,ni:inc-exp,gpR:inc>0?((inc-cogs)/inc*100):0}}
+function calcMS(mData){if(!mData)return null;var inc=0,exp=0,cogs=0,labor=0;Object.values(SMAP).forEach(function(sn){if(!mData[sn])return;mData[sn].forEach(function(r){if(isStaffMeal(r))return;if(r.noSum)return;/* build#79：與損益表同一套排除規則 */var s=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc+=s;else if(r.sec.indexOf('食材')>=0||r.sec.indexOf('食/包材')>=0)cogs+=s;else{exp+=s;if(r.sec.indexOf('人事')>=0)labor+=s}})});exp+=cogs;return{inc:inc,exp:exp,cogs:cogs,labor:labor,opex:exp-cogs,gp:inc-cogs,ni:inc-exp,gpR:inc>0?((inc-cogs)/inc*100):0}}
+function calcSS(mData,sn){if(!mData||!mData[sn])return{inc:0,cogs:0,gp:0,ni:0,gpR:0,labor:0};var inc=0,exp=0,cogs=0,labor=0;mData[sn].forEach(function(r){if(isStaffMeal(r))return;if(r.noSum)return;/* build#79：與損益表同一套排除規則 */var s=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc+=s;else if(r.sec.indexOf('食材')>=0||r.sec.indexOf('食/包材')>=0)cogs+=s;else{exp+=s;if(r.sec.indexOf('人事')>=0)labor+=s}});exp+=cogs;return{inc:inc,cogs:cogs,labor:labor,gp:inc-cogs,ni:inc-exp,gpR:inc>0?((inc-cogs)/inc*100):0}}
 function renderAnalysis(){
 var el=$('analysis-content');if(!el)return;var rY=YEAR-1911,cur=calcMS(loadMonthData(YEAR,MONTH));
 var pm=MONTH-1,py=YEAR;if(pm<1){pm=12;py--}var prev=calcMS(loadMonthData(py,pm));
@@ -3341,7 +3351,8 @@ function checkTaxReminder(){
   // 營業稅 filing months: 1,3,5,7,9,11 before 15th
   if([1,3,5,7,9,11].indexOf(m)>=0&&d<=15){
     var daysLeft=15-d;
-    reminders.push('營業稅申報截止剩 '+daysLeft+' 天（'+m+'/15）');
+    /* build#79：截止日當天顯示「剩 0 天」會讓人以為還有時間 */
+    reminders.push(daysLeft===0?('營業稅申報今天截止（'+m+'/15）'):('營業稅申報截止剩 '+daysLeft+' 天（'+m+'/15）'));
   }
   // 營所稅 May
   if(m===5&&d<=31){reminders.push('營利事業所得稅申報截止 5/31')}
