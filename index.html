@@ -808,11 +808,21 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:19,patch:1,build:81,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:19,patch:2,build:82,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
 const CHANGELOG=[
+{build:82,version:'4.19.2',date:'2026-09-03',author:'Claude + Tim',summary:'第六輪：把上一輪沒測到的互動功能全部實測一遍（流水帳操作／報表編輯／稅務／商場對帳／數量錄入／備份還原／ERP匯入），修 6 項',changes:[
+{cat:'FIX',module:'CORE',desc:'★勾稽分析的「財會實收」只讀 Firestore —— 老闆在流水帳 key 完但還沒按「儲存」時，雲端還是舊的，勾稽頁就顯示「財會實收 $0、帳務差距 −100%」，看起來像出了大事，其實只是還沒存。同月份改為直接用畫面上的記憶體資料（新增 _finRowsOf 存取器讓子模組取得主程式的 DATA）'},
+{cat:'FIX',module:'CORE',desc:'★同上：雲端讀取失敗（離線／權限不足）原本一律當成空物件 → 靜默變成「實收 0」。這是最危險的一種錯：看起來是個數字，其實是「不知道」。現在會回報讀取失敗，畫面明講「不是真的 0，是沒有資料」並說明可能原因'},
+{cat:'FIX',module:'TAX',desc:'稅務中心三張稅額卡片改用 NFL —— NF(0) 會回傳空字串，進項沒勾選時那張卡片只顯示一個「$」，看起來像壞掉。稅額是報稅數字，0 就要明明白白寫 0'},
+{cat:'FIX',module:'TAX',desc:'稅額卡片的小標公式跟著換算方式走：含稅模式實際算的是「÷1.05 × 5%」（約 4.76%），原本一律寫「× 5%」，記帳士照著核會核不出數字'},
+{cat:'FIX',module:'DATA',desc:'localStorage 舊月清理漏掉 build#80 新增的比對基準線 fin_base_，會隨月份無限累積佔用共用配額。已納入清理；墓碑仍永不清除（刪除保護）'},
+{cat:'FIX',module:'BS',desc:'一鍵結轉差額改為取整。淨利帶有角分（交大通路手續費算到分），不取整會把前期累積盈餘存成 -603,457.7 這種數字 —— 畫面四捨五入看不出來但會一直累積'},
+{cat:'FIX',module:'SYSTEM',desc:'版本檢查在 fetch 不存在的環境會丟出未捕捉例外（在 setInterval 裡，每 10 分鐘噴一次）。版本檢查只是便利功能，失敗一律安靜略過。付款註記視窗的 remove() 也加上存在檢查，避免白畫面'},
+{cat:'DOC',module:'SYSTEM',desc:'第六輪新增 6 組測試腳本共 80 項：流水帳 20 項（新增/批次/改名/分期/備註/稅別循環/付款註記/類別移動/刪除+墓碑防復活/復原重做/清除）、報表編輯 14 項、稅務與商場對帳 20 項、數量錄入與勾稽 17 項（含分通路覆核鎖、權限、讀不到資料的警示）、月份切換與備份還原 18 項（含跨年閏月、備份→破壞→還原真實演練）、ERP匯入與配額防護 15 項。全數通過'}
+]},
 {build:81,version:'4.19.1',date:'2026-09-02',author:'Claude + Tim',summary:'依 Tim 拍板收掉商場費用兩題：場租基數確認不含夜早現金；電支手續費補進費用科目',changes:[
 {cat:'NEW',module:'LEDGER',desc:'★台積電新增「商場電子支付手續費」科目（其他費用）—— 商場每月收 1.5% 電子支付手續費，build#80 之前流水帳完全沒有對應科目，這筆錢每月憑空消失，費用低估、淨利虛胖，畫面上看不出任何異狀。公式：電子支付收入 × 1.5%（未稅，四捨五入）× 1.05（含稅）。115/3 為 $267。標為 autoFee 可手動覆寫 —— 商場對帳單才是最終權威，月底調尾差時要能改'},
 {cat:'DOC',module:'LEDGER',desc:'場租 7% 的計算基數確認為 6 個科目（電子支付／夜早金額／自費早餐／紙本補單／臨辦現金／臨辦刷餐），Tim 2026-09-02 拍板「夜早現金不算」。已在程式碼寫明，避免下次體檢又把它當成漏掉的科目「修」回去'},
@@ -1542,7 +1552,7 @@ function savePay(sec,ri){
     p.pda=(row.pay&&row.pay.pd&&row.pay.pda!==undefined)?row.pay.pda:_rowSum(row)}
   var note=document.getElementById('pay-note').value.trim();if(note)p.note=note;
   if(p.ck||p.pd||p.inv||p.note)row.pay=p;else delete row.pay;
-  document.getElementById('pay-modal').remove();
+  var _pm=document.getElementById('pay-modal');if(_pm)_pm.remove(); /* build#82：視窗已關閉時不要丟錯變白畫面 */
   _refreshPayCell(sec,ri,row);
   schedAutoSave();
 }
@@ -1550,7 +1560,7 @@ function clearPay(sec,ri){
   var sn=SMAP[CUR],match=DATA[sn].filter(function(r){return r.sec===sec});
   if(ri>=match.length)return;
   delete match[ri].pay;
-  document.getElementById('pay-modal').remove();
+  var _pm=document.getElementById('pay-modal');if(_pm)_pm.remove(); /* build#82：視窗已關閉時不要丟錯變白畫面 */
   _refreshPayCell(sec,ri,match[ri]);
   schedAutoSave();
 }
@@ -1958,7 +1968,9 @@ function _lsPruneMonths(keep){
   // 只清「舊月份的本機快取」：雲端 finance/{月} 與每日快照仍完整保有，切到該月會自動從雲端載回
   var months=_lsMonths(),drop=months.slice(keep),freed=0,dropped=[];
   drop.forEach(function(mk){
-    var keys=['fin_v3_'+mk,'fin_savedAt_'+mk];
+    /* build#82：把 build#80 新增的「多裝置比對基準線」一併納入清理。
+       基準線是跟著月份走的，舊月份的留著只會佔配額；下次切回該月從雲端載入時會重建。 */
+    var keys=['fin_v3_'+mk,'fin_savedAt_'+mk,'fin_base_'+mk];
     try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('fin_srev_'+mk+'_')===0)keys.push(k)}}catch(e){}
     keys.forEach(function(k){var v=localStorage.getItem(k);if(v!==null){freed+=(k.length+v.length)*2;localStorage.removeItem(k)}});
     dropped.push(mk); // 註：墓碑(fin_tomb_)極小且為刪除保護，永不清除
@@ -2488,6 +2500,11 @@ window.addEventListener('unhandledrejection',function(e){_reportErr('promise',(e
 
 // ═══ 品質機制 2：新版本檢查 — 每 10 分鐘比對 GitHub，有新版顯示橫幅（終結「部署了沒生效」）═══
 function _checkNewVer(){
+  /* build#82：fetch 不存在（舊瀏覽器／離線環境）時，同步呼叫會直接丟錯，
+     而且是在 setInterval 裡 → 變成未捕捉例外、每 10 分鐘噴一次錯誤紀錄。
+     版本檢查只是便利功能，失敗一律安靜略過，絕不能影響主系統。 */
+  if(typeof fetch!=='function')return;
+  try{
   fetch('https://raw.githubusercontent.com/haoting1205/haomin-fd/main/index.html',{cache:'no-store'})
   .then(function(r){return r.text()}).then(function(t){
     var m=t.match(/major:(\d+),minor:(\d+),patch:(\d+),build:(\d+)/);
@@ -2504,6 +2521,7 @@ function _checkNewVer(){
       b.textContent='🔄 新版本 v'+m[1]+'.'+m[2]+'.'+m[3]+'（build#'+remoteBuild+'）已發布 — 點此重新整理更新';
     }
   }).catch(function(){});
+  }catch(e){}
 }
 setTimeout(_checkNewVer,5000);setInterval(_checkNewVer,600000);
 
@@ -3204,9 +3222,15 @@ function renderTaxCenter(){
   h+='<div style="background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">';
   h+='<div style="font-size:16px;font-weight:800;color:#dc2626;margin-bottom:14px">📋 營業稅試算（'+MONTH+'月）</div>';
   h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">';
-  h+='<div style="background:#fee2e2;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#991b1b">銷項稅額</div><div style="font-size:24px;font-weight:800;color:#dc2626;font-family:var(--f-num)">$'+NF(salesTax)+'</div><div style="font-size:10px;color:#999">勾選銷項 $'+NFL(totalSales)+' × 5%</div></div>';
-  h+='<div style="background:#dcfce7;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#166534">進項稅額</div><div style="font-size:24px;font-weight:800;color:#16a34a;font-family:var(--f-num)">$'+NF(purchaseTax)+'</div><div style="font-size:10px;color:#999">勾選進項 $'+NFL(totalPurchase)+' × 5%</div></div>';
-  h+='<div style="background:'+(vatDue>0?'#fef3c7':'#dbeafe')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(vatDue>0?'#92400e':'#1e40af')+'">'+(vatDue>0?'應繳營業稅':'留抵稅額')+'</div><div style="font-size:24px;font-weight:800;color:'+(vatDue>0?'#dc2626':'#2563eb')+';font-family:var(--f-num)">$'+NF(Math.abs(vatDue))+'</div><div style="font-size:10px;color:#999">銷項 - 進項</div></div>';
+  /* build#82 兩件事：
+     ① 金額一律用 NFL —— NF(0) 會回傳空字串，進項沒勾選時這張卡片只顯示一個「$」，
+        看起來像壞掉。稅額是報稅數字，0 就要明明白白寫 0。
+     ② 小標的公式跟著換算方式走 —— 含稅模式實際算的是「÷1.05 × 5%」（約 4.76%），
+        寫成「× 5%」會讓記帳士核不出數字。 */
+  var _vatFml=_vatIncTax?' ÷ 1.05 × 5%':' × 5%';
+  h+='<div style="background:#fee2e2;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#991b1b">銷項稅額</div><div style="font-size:24px;font-weight:800;color:#dc2626;font-family:var(--f-num)">$'+NFL(salesTax)+'</div><div style="font-size:10px;color:#999">勾選銷項 $'+NFL(totalSales)+_vatFml+'</div></div>';
+  h+='<div style="background:#dcfce7;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#166534">進項稅額</div><div style="font-size:24px;font-weight:800;color:#16a34a;font-family:var(--f-num)">$'+NFL(purchaseTax)+'</div><div style="font-size:10px;color:#999">勾選進項 $'+NFL(totalPurchase)+_vatFml+'</div></div>';
+  h+='<div style="background:'+(vatDue>0?'#fef3c7':'#dbeafe')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(vatDue>0?'#92400e':'#1e40af')+'">'+(vatDue>0?'應繳營業稅':'留抵稅額')+'</div><div style="font-size:24px;font-weight:800;color:'+(vatDue>0?'#dc2626':'#2563eb')+';font-family:var(--f-num)">$'+NFL(Math.abs(vatDue))+'</div><div style="font-size:10px;color:#999">銷項 − 進項</div></div>';
   h+='</div>';
   /* build#78：把換算方式與公式直接印在畫面上 —— 這是報稅數字，必須讓記帳士一眼看得出怎麼算的 */
   h+='<div style="background:'+(_vatIncTax?'#f0fdf4':'#fffbeb')+';border:1.5px solid '+(_vatIncTax?'#86efac':'#fde68a')+';border-radius:10px;padding:12px 14px;margin-bottom:18px">';
@@ -3428,6 +3452,14 @@ function renderTaxCenter(){
 }
 
 /* ═══ Business Analysis — 營業分析 ═══ */
+/* build#82：讓「數量錄入／勾稽」模組取得目前開著的月份財會列。
+   主程式的 DATA / YEAR / MONTH 是 const/let，不會掛到 window，
+   其他 IIFE 模組拿不到 —— 以前只好一律回頭讀雲端，結果就是
+   「老闆剛 key 完還沒按儲存，勾稽頁的財會實收就是 0」。 */
+function _finRowsOf(mk,sn){
+  try{ if(mk===_curMk()&&DATA[sn])return DATA[sn] }catch(e){}
+  return null;
+}
 function loadMonthData(y,m){var mk=y+'-'+String(m).padStart(2,'0');if(y===YEAR&&m===MONTH){var r={};Object.entries(SMAP).forEach(function(e){r[e[1]]=DATA[e[1]]});return r}try{var s=localStorage.getItem('fin_v3_'+mk);if(s)return JSON.parse(s)}catch(e){}return null}
 function calcMS(mData){if(!mData)return null;var inc=0,exp=0,cogs=0,labor=0;Object.values(SMAP).forEach(function(sn){if(!mData[sn])return;mData[sn].forEach(function(r){if(isStaffMeal(r))return;if(r.noSum)return;/* build#79：與損益表同一套排除規則 */var s=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc+=s;else if(r.sec.indexOf('食材')>=0||r.sec.indexOf('食/包材')>=0)cogs+=s;else{exp+=s;if(r.sec.indexOf('人事')>=0)labor+=s}})});exp+=cogs;return{inc:inc,exp:exp,cogs:cogs,labor:labor,opex:exp-cogs,gp:inc-cogs,ni:inc-exp,gpR:inc>0?((inc-cogs)/inc*100):0}}
 function calcSS(mData,sn){if(!mData||!mData[sn])return{inc:0,cogs:0,gp:0,ni:0,gpR:0,labor:0};var inc=0,exp=0,cogs=0,labor=0;mData[sn].forEach(function(r){if(isStaffMeal(r))return;if(r.noSum)return;/* build#79：與損益表同一套排除規則 */var s=Object.values(r.daily).reduce(function(a,b){return a+b},0);if(r.sec==='收入')inc+=s;else if(r.sec.indexOf('食材')>=0||r.sec.indexOf('食/包材')>=0)cogs+=s;else{exp+=s;if(r.sec.indexOf('人事')>=0)labor+=s}});exp+=cogs;return{inc:inc,cogs:cogs,labor:labor,gp:inc-cogs,ni:inc-exp,gpR:inc>0?((inc-cogs)/inc*100):0}}
@@ -4200,7 +4232,10 @@ function balanceBSPrior(){
   var equity=s.capital+s.priorEarnings+curNI;
   var diff=totalA-(totalL+equity);
   if(Math.abs(diff)<=1){alert('目前已經平衡，不需要調整。');return}
-  var nv=s.priorEarnings+diff;
+  /* build#82：取整。淨利帶有角分（交大通路手續費算到分），不取整會讓資產負債表的
+     「前期累積盈餘」存成 -603,457.7 這種數字 —— 畫面上四捨五入看不出來，但會一直累積下去。
+     取整後殘差最多 0.5 元，遠低於 1 元的不平衡判定門檻。 */
+  var nv=Math.round(s.priorEarnings+diff);
   if(!confirm('把 '+(YEAR-1911)+'年'+MONTH+'月 的差額結轉進「前期累積盈餘」\n\n'
     +'差額（資產 − 負債 − 權益）：'+NFL(diff)+'\n'
     +'前期累積盈餘：'+NFL(s.priorEarnings)+'　→　'+NFL(nv)+'\n\n'
@@ -5673,28 +5708,39 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     loadCatalog(function (err) {
       if (err) { host.innerHTML = '<div style="padding:20px;color:#dc2626">' + esc(err.message) + '</div>'; return; }
       loadQty(function () {
-        loadIncome(function (income) { paintDash(income); });
+        loadIncome(function (income, ok) { paintDash(income, ok); });
       });
     });
   }
 
-  /* 由財會月份文件取當日各收入科目金額 */
+  /* 由財會取當日各收入科目金額。
+     build#82 修正兩件事：
+     ① 原本只讀 Firestore —— 老闆在流水帳 key 完但還沒按「儲存」時，雲端還是舊的／空的，
+        勾稽頁就顯示「財會實收 $0、帳務差距 −100%」，看起來像出了大事，其實只是還沒存。
+        同月份改為直接用畫面上的記憶體資料（最新）。
+     ② 原本讀取失敗（離線、權限不足）也一律 cb({}) —— 靜默變成 0，這是最危險的一種錯：
+        看起來是個數字，其實是「不知道」。現在會回報 ok=false，畫面明講讀不到。 */
+  function rowsToInc(rows, day) {
+    var inc = {};
+    (rows || []).forEach(function (r) {
+      if (r && r.sec === '收入' && r.daily) inc[r.name] = Number(r.daily[day] || 0);
+    });
+    return inc;
+  }
   function loadIncome(cb) {
-    if (!DB()) { cb({}); return; }
     var day = String(Number(S.date.slice(8, 10)));
-    DB().collection('finance').doc(ymOf(S.date)).collection('stores').doc(S.store).get()
+    var ym = ymOf(S.date);
+    var local = (typeof W._finRowsOf === 'function') ? W._finRowsOf(ym, S.store) : null;
+    if (local) { cb(rowsToInc(local, day), true); return; }
+    if (!DB()) { cb({}, false); return; }
+    DB().collection('finance').doc(ym).collection('stores').doc(S.store).get()
       .then(function (d) {
-        var inc = {};
-        if (d.exists) {
-          (d.data().rows || []).forEach(function (r) {
-            if (r && r.sec === '收入' && r.daily) inc[r.name] = Number(r.daily[day] || 0);
-          });
-        }
-        cb(inc);
-      }).catch(function () { cb({}); });
+        if (!d.exists) { cb({}, false); return; }
+        cb(rowsToInc(d.data().rows, day), true);
+      }).catch(function () { cb({}, false); });
   }
 
-  function paintDash(income) {
+  function paintDash(income, incomeOK) {
     var items = Object.keys(S.qty).map(function (k) { return S.qty[k]; });
     var res;
     try {
@@ -5717,6 +5763,12 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     var diffC = Math.abs(T.diff) < 1 ? '#059669' : (T.diff < 0 ? '#dc2626' : '#d97706');
 
     var h = '<div style="padding:14px 16px;max-width:1200px;margin:0 auto">';
+    /* build#82：取不到財會收入時要講清楚，不要讓人把「不知道」誤讀成「實收 0」 */
+    if (incomeOK === false) {
+      h += '<div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:11px 14px;margin-bottom:12px;color:#92400e;font-size:13px">'
+        + '<b>⚠️ 讀不到這一天的財會收入</b>　下方「財會實收」與「帳務差距」不是真的 0，是<b>沒有資料</b>。<br>'
+        + '<span style="font-size:12px">可能原因：這個月的流水帳還沒按「💾 儲存」同步到雲端、或目前離線。請先回財會頁存檔再回來看。</span></div>';
+    }
     h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">'
       + '<b style="font-size:18px">🔍 勾稽分析</b>'
       + '<input type="date" id="rd-date" value="' + S.date + '" style="padding:8px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:15px">'
