@@ -551,7 +551,7 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
     <a class="hdr-hub" href="https://haoting1205.github.io/haomin-hr" target="_blank">🏠 中控中心</a>
     <button class="hdr-btn print" onclick="doPrint()">🖨️ 列印</button>
     <button class="hdr-btn" onclick="doExport()">⬇ CSV</button>
-    <button class="hdr-btn save" onclick="doSave()">💾 儲存</button>
+    <button class="hdr-btn save" id="save-btn" onclick="doSave()">💾 儲存</button>
     <button class="hdr-btn" onclick="openErpImport()" title="\u5f9e\u751f\u7ba1\u7cfb\u7d71\u532f\u5165\u9032\u8ca8\u5206\u9304" style="font-size:12px">📥 匯入生管進貨</button>
     <button class="hdr-btn" id="gdrive-btn" onclick="manualGDriveBackup()" title="Google Drive 雲端備份" style="font-size:12px">📥 雲端備份</button>
     <button class="hdr-btn" onclick="exportBackup()" title="下載 JSON 備份檔" style="font-size:12px">⬇ 本機備份</button>
@@ -808,11 +808,35 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:18,patch:0,build:79,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:19,patch:1,build:81,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
 const CHANGELOG=[
+{build:81,version:'4.19.1',date:'2026-09-02',author:'Claude + Tim',summary:'依 Tim 拍板收掉商場費用兩題：場租基數確認不含夜早現金；電支手續費補進費用科目',changes:[
+{cat:'NEW',module:'LEDGER',desc:'★台積電新增「商場電子支付手續費」科目（其他費用）—— 商場每月收 1.5% 電子支付手續費，build#80 之前流水帳完全沒有對應科目，這筆錢每月憑空消失，費用低估、淨利虛胖，畫面上看不出任何異狀。公式：電子支付收入 × 1.5%（未稅，四捨五入）× 1.05（含稅）。115/3 為 $267。標為 autoFee 可手動覆寫 —— 商場對帳單才是最終權威，月底調尾差時要能改'},
+{cat:'DOC',module:'LEDGER',desc:'場租 7% 的計算基數確認為 6 個科目（電子支付／夜早金額／自費早餐／紙本補單／臨辦現金／臨辦刷餐），Tim 2026-09-02 拍板「夜早現金不算」。已在程式碼寫明，避免下次體檢又把它當成漏掉的科目「修」回去'},
+{cat:'REFACT',module:'CORE',desc:'商場費率與公式集中成 MALL_FEE_RATE／MALL_EPAY_FEE_RATE 與 mallRentInc()／mallEpayFeeInc()，流水帳自動計算與商場對帳試算改吃同一份。原本 7% 寫在兩個地方（MALL_FEE_RATE 與 _mallCalc 內的 0.07）、1.5% 只寫在 _mallCalc —— 典型的「同一條規則寫兩份、改一邊就對不起來」'},
+{cat:'MOD',module:'LEDGER',desc:'商場抽成列由唯讀（auto）改為可覆寫（autoFee）。原本自動算完就鎖死，商場對帳單若與系統試算有尾差，老闆完全無法調整；改為沿用交大通路手續費既有的覆寫機制，手動改過的格子不再被自動蓋掉'},
+{cat:'FIX',module:'BS',desc:'資產負債表出廠預設值隨新增費用同步修正（前期累積盈餘 −699,650 → −699,383），確保新裝置開檔即平衡'},
+{cat:'DOC',module:'SYSTEM',desc:'黃金測試套件新增 tmall.js（商場費用兩題的手算驗證），獨立手算引擎 golden.js 同步加入 R8 電支手續費規則。全套 16 組測試全綠'}
+]},
+{build:80,version:'4.19.0',date:'2026-09-02',author:'Claude + Tim',summary:'第五輪：全功能實測體檢 —— 17 項發現，修 12 項。重點是多裝置互蓋與營所稅公式',changes:[
+{cat:'FIX',module:'DATA',desc:'★★多裝置編輯會互蓋（A級）。舊合併規則是「本機優先、雲端只補本機沒填過的格」，且完全不看時間。實測：你存 11111 → 店長存 22222 → 你那個沒重新整理的分頁再按一次儲存，雲端就變回 11111，兩邊都沒提示。改用三方比對：記下「上次與雲端對齊時每格是多少」當基準線，雲端≠基準＝別人動過、本機≠基準＝我動過；兩者同時成立才算衝突，跳視窗逐格列出「我的值 vs 雲端值」讓老闆自己選（保留我的／採用雲端／先不要存），絕不替他決定。只有對方動過的格子直接採用對方的 —— 這是舊版最大的缺口：本機只要填過就永遠贏'},
+{cat:'FIX',module:'TAX',desc:'★★營所稅預估公式違反所得稅法§5（A級）。舊算法一律 (所得−12萬)×20%，只要所得超過 20 萬就固定少算 24,000。法規是「超過 12 萬者就其全部課稅所得課 20%，但稅額不得超過超過 12 萬部分之半數」→ 改為三段式：≦12萬免稅／12–20萬 (X−12萬)×50%／>20萬 X×20%。以目前畫面的年度推估 1,708,476 為例：317,695 → 341,695。畫面說明文字一併更正'},
+{cat:'FIX',module:'DATA',desc:'★數量錄入分通路會互蓋。舊做法是「我開頁時載入的另一通路資料＋我這通路的新資料整包寫回」，臨辦與櫃位同時開頁時後存的會蓋掉先存的。改為寫入前重讀雲端，另一通路一律以雲端當下為準；並偵測「我這通路已被別人覆核鎖定」時停下來不覆蓋'},
+{cat:'FIX',module:'DATA',desc:'★複製月份選「115年3月」永遠複製到出廠內建範本 RAW，完全不看實際存檔 —— 改過的金額、加過的廠商、刪掉的科目全部不算數，而且畫面上看不出來。改為一律先讀存檔，真的沒有才退回範本並明確告知'},
+{cat:'FIX',module:'UI',desc:'★科目名稱／備註／廠商名沒有做 HTML 跳脫。實測新增一個含 <img onerror> 的廠商名，畫面真的長出該節點，該列提示文字也被引號截斷。新增 ESC() 並套用於流水帳、稅務中心勾選清單、經營儀表板排行、警示條、廠商下拉選單'},
+{cat:'FIX',module:'DATA',desc:'儲存按鈕沒有防連點：實測連按 3 次產生 12 次雲端寫入，三組「讀-合併-寫」同時交錯。加入儲存中鎖並在所有結束路徑釋放'},
+{cat:'FIX',module:'BS',desc:'資產負債表出廠預設值與現行損益差 199,634，一開檔就是紅色「不平衡」。預設的前期累積盈餘是從舊靜態快照抄來的（當時淨利 −99,985，現在 +99,649）。修正出廠值為 −699,650（只影響新裝置），並在不平衡警示上新增「⚖️ 結轉差額進前期累積盈餘」按鈕 —— 按下前先顯示會從多少變成多少，只動這一個欄位'},
+{cat:'NEW',module:'CF',desc:'現金流量表新增與資產負債表的交叉勾稽：期末現金與資產負債表的現金是同一筆錢，差額超過 1 元就提示（只提示不自動改）。原本兩張表可以差 59 萬而完全沒人發現'},
+{cat:'FIX',module:'SYSTEM',desc:'全系統自動備份漏抓 finance/_settings —— 資產負債表存量、現金流量估算、損益表手動調整、發票紀錄、營業稅設定這一整類全部沒被備份。那正是 build#77/#78 花力氣搬上雲端的東西。一併補上 _erp_ledger'},
+{cat:'FIX',module:'DATA',desc:'批次匯入寫雲端沒帶 srev（build#79 只修了複製月份），而且 set 會把雲端既有的 srev 抹掉 → 另一台裝置下次同步把匯入的結構整批打回，畫面上看不出來。新增 _bumpSrevFor(mk,sn) 支援指定月份遞增'},
+{cat:'FIX',module:'PRINT',desc:'CSV 匯出沒處理欄位內的雙引號，廠商名叫 大"發"食品 就會把整份 CSV 欄位切錯位。新增 CSVQ() 依 RFC4180 加倍引號並移除換行'},
+{cat:'NEW',module:'LEDGER',desc:'金額上限防呆：實測輸入 1e21 會原封不動存進去，之後所有報表數字全部爆掉且完全靜默。單格超過一億時要求確認一次（不直接擋，沖銷／期初結轉可能真的很大）'},
+{cat:'REFACT',module:'BS',desc:'本期淨利連動邏輯抽成 _bsCurNI()，資產負債表與平衡結轉共用同一份 —— 避免同一條規則寫兩個地方（這正是 build#76/#79 連兩輪踩到的坑）'},
+{cat:'DOC',module:'SYSTEM',desc:'本輪建立可重複執行的黃金測試套件（harness 把整份 HTML 用 jsdom 當真網頁跑起來＋獨立手算引擎交叉比對＋14 組測試腳本），涵蓋三店損益手算比對、自動規則逐分驗證、商場對帳 12 欄、勾稽引擎 6 案例、模組7 五項實測、營所稅級距、複製月份來源。已驗證這套測試在舊版會紅、新版全綠。累計 165+43 項'}
+]},
 {build:79,version:'4.18.0',date:'2026-09-02',author:'Claude + Tim',summary:'第四輪：專攻「數字算對了沒」—— 修 3 項，其中一項是 build#76 只修了一半',changes:[
 {cat:'FIX',module:'DATA',desc:'★經營儀表板未排除「排除加總」的科目 —— build#76 修了損益表的 _calcStoreBreakdown，卻漏了儀表板自己另寫一套的 calcMS/calcSS。同一條規則寫在兩個地方，只改一邊就是這種結果。若把那 5 筆貸款/稅款標為排除加總，損益表會少 105,041 而儀表板不會，兩張表對不起來'},
 {cat:'FIX',module:'DATA',desc:'★複製月份與匯入備份沒有遞增結構版本號 srev。這兩個動作都會整批換掉「哪些科目存在、什麼順序」，屬結構性變更；不遞增的話，另一台 srev 較高的裝置下次同步就會把複製/還原的結果整批打回原狀，而畫面上完全看不出來，只會覺得「怎麼又跑掉了」'},
@@ -962,6 +986,21 @@ const SL={'收入':'▶ 收　入','支出食材(月結)':'▶ 食材成本（�
 function cfg(s){return SC[s]||{bg:'#334155',row:'#f8fafc',sub:'#e2e8f0',exp:true}}
 function mkDays(y,m){const d=[],dt=new Date(y,m-1,1);while(dt.getMonth()===m-1){const key=y+'-'+String(m).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');const hol=HOLIDAYS[key]||'';d.push({d:dt.getDate(),w:dt.getDay(),hol:hol});dt.setDate(dt.getDate()+1)}return d}
 const NF=v=>v?Number(v).toLocaleString('zh-TW',{maximumFractionDigits:0}):'';const NFL=v=>Number(v).toLocaleString('zh-TW',{maximumFractionDigits:0});const PCT=(v,b)=>b?(v/b*100).toFixed(1)+'%':'—';const EID=s=>s.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,'_');
+/* ═══ build#80：HTML 跳脫 ═══
+   科目名稱、備註、廠商名都是自由輸入，而全系統是用字串拼 innerHTML 產生表格。
+   實測：新增一個叫 王"記<img src=x onerror="1">食材 的廠商，畫面上真的長出一個 <img> 節點，
+   該列的滑鼠提示也被引號截斷成只剩「王」。實務上更常遇到的是名稱裡有雙引號（大"發"食品）
+   → 版面錯位、提示消失。而且科目名稱會同步到雲端：一台裝置打錯，每台都中。
+   ESC 同時處理內文與屬性值兩種位置（& < > " ' 全跳），因此只需要這一個函式。 */
+function ESC(v){
+  if(v===undefined||v===null)return '';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+/* 要塞進 onclick="fn('...')" 這種行內事件參數時用：先跳脫 JS 字串再跳脫 HTML 屬性 */
+function ESCJ(v){
+  return ESC(String(v===undefined||v===null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+}
 function $(id){return document.getElementById(id)}function setTxt(id,v,c){const e=$(id);if(e){e.textContent=v;if(c)e.style.color=c}}
 
 // ═══ NAV ═══
@@ -982,7 +1021,7 @@ function chPeriod(){
   if(typeof db!=='undefined'&&db){try{var _fSnap=JSON.parse(JSON.stringify(DATA));var _fb=db.batch();Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(oldMk).collection('stores').doc(sn);_fb.set(ref,{rows:_fSnap[sn],tombstones:_tombOfStore(sn),srev:_getSrev(oldMk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});_fb.commit().catch(function(err){console.warn('切月 flush 失敗:',err);_reportErr('flush',oldMk+' '+(err.code||err.message||err),'chPeriod');setSyncSt('err','⚠️ '+oldMk+' 雲端同步失敗（本機已存）')});}catch(e){_reportErr('flush',String(e),'chPeriod')}}
 
   // Step 2: Switch to new month
-  YEAR=+$('yr').value;MONTH=+$('mo').value;DAYS=mkDays(YEAR,MONTH);_tombLoad(YEAR+'-'+String(MONTH).padStart(2,'0'));
+  YEAR=+$('yr').value;MONTH=+$('mo').value;DAYS=mkDays(YEAR,MONTH);_tombLoad(YEAR+'-'+String(MONTH).padStart(2,'0'));_baseLoad(YEAR+'-'+String(MONTH).padStart(2,'0'));
   $('chip').textContent=`${YEAR-1911}年 ${MONTH}月`;
   var newMk=YEAR+'-'+String(MONTH).padStart(2,'0');
 
@@ -1014,20 +1053,23 @@ function chPeriod(){
       clearTimeout(timeout);
       if(!snap.empty){
         // 本機優先：以本機（含使用者最新修改/刪除，已存 localStorage）為基底，雲端僅補本機完全缺漏的列/格 → 修改與刪除一律保留，杜絕「改了又變回雲端舊值」
-        var _cin2=_cloudNewerThanLocal(newMk,snap);snap.forEach(function(doc){var sn=doc.id;_tombMergeCloud(sn,doc.data().tombstones);_loadStoreRows(sn,doc.data().rows,_cin2,doc.data().srev,newMk)});_tombSweep();
+        var _cin2=_cloudNewerThanLocal(newMk,snap);snap.forEach(function(doc){var sn=doc.id;_tombMergeCloud(sn,doc.data().tombstones);_loadStoreRows(sn,doc.data().rows,_cin2,doc.data().srev,newMk)});_tombSweep();_baseFromSnap(snap,newMk);
         setSyncSt('ok','☁️ 已載入');
         ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);
         _reRenderFinPane();
       } else {
+        _baseFromLocal(newMk); // build#80：新月份／雲端無資料 → 以本機為共同起點
         setSyncSt('ok',localLoaded?'本機資料':'新月份');
         _reRenderFinPane();
       }
     }).catch(function(){
       clearTimeout(timeout);
+      if(!_baseHas())_baseFromLocal(newMk);
       setSyncSt(localLoaded?'ok':'err',localLoaded?'使用本機資料':'⚠️ 雲端失敗');
       _reRenderFinPane();
     });
   } else {
+    if(!_baseHas())_baseFromLocal(newMk);
     setSyncSt(localLoaded?'ok':'off',localLoaded?'本機資料':'離線');
   }
   _reRenderFinPane();
@@ -1056,11 +1098,19 @@ function buildTable(sk){const sn=SMAP[sk],rows=DATA[sn],cont=$('st-'+sk);if(!con
 var monthLabel=(YEAR-1911)+'年'+MONTH+'月';
 let h=`<div style="padding:8px 16px;background:linear-gradient(90deg,var(--navy-700),var(--navy-800));color:#fff;font-size:14px;font-weight:800;display:flex;align-items:center;gap:10px;border-radius:8px 8px 0 0;margin-bottom:-1px"><span style="font-size:18px">📅</span><span>${sn}</span><span style="background:rgba(255,255,255,.15);padding:2px 12px;border-radius:12px;font-family:var(--f-num)">${monthLabel}</span><span style="font-size:11px;color:rgba(255,255,255,.5);margin-left:auto">共 ${rows.length} 項</span></div>`;
 h+=`<table class="lt"><colgroup><col style="width:6px"><col style="width:195px">`;for(const d of DAYS){h+=`<col style="width:54px">`}h+='<col style="width:96px"><col style="width:68px"></colgroup>';h+=`<thead><tr class="lh-dt"><th class="cn" colspan="2">日期</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th data-day="${d.d}"${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.d}</th>`}h+='<th class="toth">月合計</th><th class="pcth">佔收入</th></tr>';h+=`<tr class="lh-wd"><th class="cn" colspan="2">廠商 / 科目</th>`;for(const d of DAYS){const isH=(d.w===0||d.w===6)||d.hol;h+=`<th data-day="${d.d}"${isH?' class="wk"':''}${d.hol?' title="'+d.hol+'"':''}>${d.hol?'★':WD[d.w]}</th>`}h+='<th colspan="2" style="background:var(--navy-900);text-align:center;color:var(--slate-400);font-size:10px">合計</th></tr></thead><tbody>';for(const sec of so){const c=cfg(sec),sr=secs[sec];const _clp=isSecCollapsed(sk,sec);
-h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}"><span style="position:sticky;left:10px;display:inline-flex;align-items:center;gap:10px"><span onclick="toggleSec('${sec}')" style="cursor:pointer;user-select:none" title="${_clp?'展開科目明細':'收合科目明細（保留小計）'}">${(SL[sec]||sec).replace('▶',_clp?'▷':'▼')}${_clp?' <span style=\"font-size:10px;opacity:.75\">('+sr.length+'個科目已收合)</span>':''}</span><span style="display:inline-flex;gap:4px"><button onclick="event.stopPropagation();moveSec('${sec}',-1)" title="類別整塊上移" style="background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:4px;width:24px;height:19px;font-size:10px;cursor:pointer;line-height:1">▲</button><button onclick="event.stopPropagation();moveSec('${sec}',1)" title="類別整塊下移" style="background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:4px;width:24px;height:19px;font-size:10px;cursor:pointer;line-height:1">▼</button></span></span></td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg='#fafbfc'; /* 空格全表統一一色（Tim 2026-07-17：一種顏色，輸入數字變另一種）*/h+=`<tr style="background:${bg}${_clp?';display:none':''}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:#fff;position:sticky;left:6px;z-index:9" title="${row.name}${row.noSum?' (不加總)':''}${row.memo?'\n📝 '+row.memo:''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':row.tax==='R'?'收據：無統一發票，不可扣抵進項':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':row.tax==='R'?'據':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:56px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${row.name}${isStaffMeal(row)?'<span style=\"font-size:9px;background:#f1f5f9;color:#64748b;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700\" title=\"員工餐僅記錄，不計入小計/損益表\">僅記錄</span>':''}${row.autoFee?'<span style=\"font-size:9px;background:#eff6ff;color:#1d4ed8;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700\" title=\"自動計算 '+row.autoFee+'（輸入可覆寫該格，覆寫後不再自動變動）\">⚙'+row.autoFee+'</span>':''}${row.term?'<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();editTerm(\''+sec+'\','+ri+')">'+row.term.cur+'/'+row.term.total+'</span>':''}${row.memo?'<span style="font-size:9px;color:#f59e0b;margin-left:3px" title="'+row.memo.replace(/"/g,'&#34;')+'">📝</span>':''}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=(d.w===0||d.w===6)||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+row.notes[String(d.d)].replace(/"/g,'&#34;')+'"':'';h+=`<td class="lc${hv}${xp}${nt}" style="background:${bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"${row.auto?' readonly title="'+(row.auto==='xfer'?'自動連動：'+(row.xferFrom||'')+'（請於門市帳輸入）':'自動計算：6項收入×7%')+'" style="background:#e0f2fe;color:#0369a1;font-weight:700;cursor:not-allowed"':''}></td>`}h+=`<td class="ltot${c.exp?' payable'+payCls(row):''}" id="rt-${rid}"${c.exp?` onclick="payDialog('${sec}',${ri})" title="${payTitle(row).replace(/"/g,'&#34;')}"`:''} style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
+h+=`<tr class="lsec" style="background:${c.bg}"><td colspan="${2+DAYS.length+2}" style="background:${c.bg}"><span style="position:sticky;left:10px;display:inline-flex;align-items:center;gap:10px"><span onclick="toggleSec('${sec}')" style="cursor:pointer;user-select:none" title="${_clp?'展開科目明細':'收合科目明細（保留小計）'}">${(SL[sec]||sec).replace('▶',_clp?'▷':'▼')}${_clp?' <span style=\"font-size:10px;opacity:.75\">('+sr.length+'個科目已收合)</span>':''}</span><span style="display:inline-flex;gap:4px"><button onclick="event.stopPropagation();moveSec('${sec}',-1)" title="類別整塊上移" style="background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:4px;width:24px;height:19px;font-size:10px;cursor:pointer;line-height:1">▲</button><button onclick="event.stopPropagation();moveSec('${sec}',1)" title="類別整塊下移" style="background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:4px;width:24px;height:19px;font-size:10px;cursor:pointer;line-height:1">▼</button></span></span></td></tr>`;for(let ri=0;ri<sr.length;ri++){const row=sr[ri],rid=`${sk}__${EID(sec)}__${ri}`,bg='#fafbfc'; /* 空格全表統一一色（Tim 2026-07-17：一種顏色，輸入數字變另一種）*/h+=`<tr style="background:${bg}${_clp?';display:none':''}" draggable="true" ondragstart="startDrag(event,'${sec}',${ri})" ondragover="overDrag(event,'${sec}',${ri})" ondragleave="leaveDrag(event)" ondrop="dropDrag(event,'${sec}',${ri})" ondragend="endDrag(event)"><td class="lbar" style="background:${c.bg}"></td><td class="lnm" style="background:#fff;position:sticky;left:6px;z-index:9" title="${ESC(row.name)}${row.noSum?' (不加總)':''}${row.memo?'\n📝 '+ESC(row.memo):''}"><span class="tax-badge tax-${row.tax||'N'}" onclick="toggleTax('${sec}',${ri})" title="${row.tax==='T'?'月結加稅：月底總額×5%':row.tax==='F'?'免稅：不含稅金':row.tax==='I'?'逐筆含稅：每筆金額已含5%稅':row.tax==='R'?'收據：無統一發票，不可扣抵進項':'點擊設定稅別'}">${row.tax==='T'?'月':row.tax==='F'?'免':row.tax==='I'?'含':row.tax==='R'?'據':'?'}</span><span ondblclick="editName('${sec}',${ri})" style="overflow:hidden;text-overflow:ellipsis;display:block;padding-left:26px;padding-right:56px;cursor:text${row.noSum?';text-decoration:line-through;opacity:.5':''}">${ESC(row.name)}${isStaffMeal(row)?'<span style=\"font-size:9px;background:#f1f5f9;color:#64748b;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700\" title=\"員工餐僅記錄，不計入小計/損益表\">僅記錄</span>':''}${row.autoFee?'<span style=\"font-size:9px;background:#eff6ff;color:#1d4ed8;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700\" title=\"自動計算 '+row.autoFee+'（輸入可覆寫該格，覆寫後不再自動變動）\">⚙'+row.autoFee+'</span>':''}${row.term?'<span style="font-size:9px;background:#dbeafe;color:#1e40af;padding:1px 5px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" onclick="event.stopPropagation();editTerm(\''+sec+'\','+ri+')">'+row.term.cur+'/'+row.term.total+'</span>':''}${row.memo?'<span style="font-size:9px;color:#f59e0b;margin-left:3px" title="'+ESC(row.memo)+'">📝</span>':''}</span><span class="drag-h" title="拖曳排序">⠿</span><button class="del-btn" onclick="rowMenu('${sec}',${ri})" title="更多操作" style="right:24px">⋯</button><button class="del-btn" onclick="delRow('${sec}',${ri})" title="刪除此列">✕</button></td>`;for(const d of DAYS){const v=row.daily[String(d.d)]||'',isH=(d.w===0||d.w===6)||d.hol,wk=isH?' wk':'',hv=v?' hv':'',xp=c.exp?' exp':' inc',nt=row.notes&&row.notes[String(d.d)]?' has-note':'',ntTitle=row.notes&&row.notes[String(d.d)]?' title="📝 '+ESC(row.notes[String(d.d)])+'"':'';h+=`<td class="lc${hv}${xp}${nt}" style="background:${bg};position:relative"${ntTitle}><input type="number" value="${v}" data-s="${sk}" data-sec="${sec}" data-ri="${ri}" data-day="${d.d}" onclick="this.select()" onchange="onCell(this)" onkeydown="kd(event,this)" oncontextmenu="cellNote(event,this)"${row.auto?' readonly title="'+(row.auto==='xfer'?'自動連動：'+(row.xferFrom||'')+'（請於門市帳輸入）':'自動計算：6項收入×7%')+'" style="background:#e0f2fe;color:#0369a1;font-weight:700;cursor:not-allowed"':''}></td>`}h+=`<td class="ltot${c.exp?' payable'+payCls(row):''}" id="rt-${rid}"${c.exp?` onclick="payDialog('${sec}',${ri})" title="${payTitle(row).replace(/"/g,'&#34;')}"`:''} style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lpct" id="rp-${rid}">—</td></tr>`}const sid=`${sk}__${EID(sec)}`;h+=`<tr class="lsub" style="background:${c.sub}"><td style="background:${c.bg}"></td><td class="lnm" style="background:${c.sub};text-align:right;font-weight:900;font-size:13px">小　計</td>`;for(const d of DAYS)h+=`<td class="lsdc" id="sd-${sid}__${d.d}" style="background:${c.sub};color:${c.exp?'var(--neg)':'var(--pos)'}"></td>`;h+=`<td class="lstot" id="ss-${sid}" style="color:${c.exp?'var(--neg)':'var(--pos)'}">—</td><td class="lspct" id="sp-${sid}">—</td></tr>`}h+=`<tr class="lday"><td class="ldlbl">日計</td><td class="ldlbl" style="left:6px">每日收入合計</td>`;for(const d of DAYS)h+=`<td class="ldval" id="dv-${sk}__${d.d}"></td>`;h+=`<td class="ldtot" id="dg-${sk}">—</td><td></td></tr>`;h+=`<tr class="lni"><td colspan="${2+DAYS.length}" class="lnilbl">▌ 稅前淨利（損）</td><td class="lnival" id="ni-${sk}">—</td><td class="lnipct" id="nip-${sk}">—</td></tr><tr><td colspan="${2+DAYS.length+2}" style="padding:8px 14px;background:#f8fafc;font-size:12px;font-family:var(--f-num);border-top:1px solid #e2e8f0"><span style="font-weight:700;color:var(--navy-700);margin-right:8px">📊 稅務摘要</span><span id="tax-summary-${sk}" style="color:#666">計算中…</span></td></tr></tbody></table>`;cont.innerHTML=h;updVendor(sk);recalc(sk)}
 
 // ═══ CELL ═══
 function _paintNeg(){try{document.querySelectorAll('.lt input[type=number]').forEach(function(i){var v=parseFloat(i.value);i.parentElement.classList.toggle('negv',!isNaN(v)&&v<0)})}catch(e){}}
-function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)DATA[sn][idx].daily[day]=0;else DATA[sn][idx].daily[day]=v;if(DATA[sn][idx].autoFee){if(!DATA[sn][idx].ovr)DATA[sn][idx].ovr={};if(v===0){delete DATA[sn][idx].ovr[day];delete DATA[sn][idx].daily[day]}else DATA[sn][idx].ovr[day]=1}inp.parentElement.classList.toggle('hv',v!==0);inp.parentElement.classList.toggle('negv',v<0);/* build#76：負數不阻擋（沖銷/退款可能需要），但標紅提示，避免打錯字沒人發現 */recalc(s);if((s==='jd'||s==='ts')&&DATA[SMAP[s]][idx]&&DATA[SMAP[s]][idx].name.indexOf('央廚')===0){recalc('hq');buildTable('hq');showSt('hq')}schedAutoSave()}
+function onCell(inp){const s=inp.dataset.s,sec=inp.dataset.sec,ri=+inp.dataset.ri,day=String(inp.dataset.day),v=parseFloat(inp.value)||0,sn=SMAP[s],idx=gIdx(sn,sec,ri);if(idx<0)return;
+  /* build#80：金額上限防呆。實測輸入 1e21 會原封不動存進去，之後所有報表數字全部爆掉，
+     而且是靜默的。日常單格金額不可能到一億 —— 超過就是手滑（多按幾個 0、或貼到科學記號）。
+     不直接擋（沖銷、期初結轉可能真的很大），但要求確認一次。 */
+  if(Math.abs(v)>=100000000){
+    if(!confirm('⚠️ 這格金額是 '+v.toLocaleString()+'\n\n單格金額超過一億，通常是多打了幾個 0 或貼到科學記號。\n\n確定要輸入這個數字嗎？')){
+      inp.value=(DATA[sn][idx].daily[day]||'');inp.focus();return;
+    }
+  }const oldV=DATA[sn][idx].daily[day]||0;if(v===oldV)return;pushHistory();if(v===0)DATA[sn][idx].daily[day]=0;else DATA[sn][idx].daily[day]=v;if(DATA[sn][idx].autoFee){if(!DATA[sn][idx].ovr)DATA[sn][idx].ovr={};if(v===0){delete DATA[sn][idx].ovr[day];delete DATA[sn][idx].daily[day]}else DATA[sn][idx].ovr[day]=1}inp.parentElement.classList.toggle('hv',v!==0);inp.parentElement.classList.toggle('negv',v<0);/* build#76：負數不阻擋（沖銷/退款可能需要），但標紅提示，避免打錯字沒人發現 */recalc(s);if((s==='jd'||s==='ts')&&DATA[SMAP[s]][idx]&&DATA[SMAP[s]][idx].name.indexOf('央廚')===0){recalc('hq');buildTable('hq');showSt('hq')}schedAutoSave()}
 function kd(e,inp){if(e.key==='Enter'){e.preventDefault();onCell(inp);inp.select();return}if(e.key==='Tab'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+(e.shiftKey?-1:1)];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowRight'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i+1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowLeft'){e.preventDefault();onCell(inp);const inputs=[...inp.closest('tr').querySelectorAll('input[type="number"]')];const i=inputs.indexOf(inp),nx=inputs[i-1];if(nx){nx.focus();nx.select()}return}if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();onCell(inp);
   // 根治游標錯位：不再用 DOM 欄序（跨列結構不同會偏移），改以 data-day 直接對位 — 上下移動永遠停在「同一天」的欄位
   const day=inp.dataset.day,tbl=inp.closest('table');
@@ -1283,19 +1333,55 @@ function gIdx(sn,sec,ri){let c=0;for(let i=0;i<DATA[sn].length;i++){if(DATA[sn][
 
 // ═══ RECALC ═══
 /* ═══ 台積電商場抽成自動計算：6項收入 × 7% ═══ */
-var MALL_FEE_BASE=['電子支付','夜早金額','自費早餐','紙本補單','臨辦現金','臨辦刷餐'];
-var MALL_FEE_RATE=0.07;
+/* ═══ 台積電商場費用：兩筆，共用同一組公式 ═══
+   Tim 2026-09-02 拍板兩件事：
+   ① 場租 7% 的計算基數「不含夜早現金」—— 就是下面這 6 個科目，不要再加第 7 個。
+      （台積電收入共 7 個科目，「夜早現金」刻意排除；這行註解是給未來的自己看的，
+        不然下次體檢又會把它當成漏掉的 bug 給「修」回去。）
+   ② 商場的電子支付手續費（1.5%）屬於「費用」，要進流水帳 —— build#80 之前完全沒有
+      對應科目，這筆錢每個月憑空消失，費用低估、淨利虛胖，而畫面上看不出任何異狀。
+
+   build#81：把費率與公式集中成常數與函式，讓「流水帳自動計算」與「商場對帳試算」
+   吃同一份 —— 原本 7% 寫在兩個地方（MALL_FEE_RATE 與 _mallCalc 內的 0.07），
+   1.5% 只寫在 _mallCalc，這正是「同一條規則寫兩份、改一邊就對不起來」的典型。 */
+var MALL_FEE_BASE=['電子支付','夜早金額','自費早餐','紙本補單','臨辦現金','臨辦刷餐']; // 不含「夜早現金」
+var MALL_FEE_RATE=0.07;          // 場租（含稅）＝商場認定營收 × 7%
+var MALL_EPAY_FEE_RATE=0.015;    // 電子支付手續費（未稅）＝電子支付 × 1.5%，開票時再加 5% 營業稅
+var MALL_EPAY_SRC='電子支付';    // 手續費基數科目
+var MALL_EPAY_ROW='商場電子支付手續費';
+function mallRentInc(gross){return Math.round((+gross||0)*MALL_FEE_RATE)}
+function mallEpayFeeNet(epay){return Math.round((+epay||0)*MALL_EPAY_FEE_RATE)}
+function mallEpayFeeInc(epay){return Math.round(mallEpayFeeNet(epay)*1.05)}
+
+/* 寫入一列「月結自動計算」費用：金額掛在 1 日。
+   標成 autoFee（不是 auto）→ 畫面上可以直接改：商場對帳單才是最終權威，
+   月底依實際帳單調尾差時要能覆寫，覆寫後就不再被自動蓋掉（沿用既有的 ovr 機制）。 */
+function _setMallAutoRow(sn,sec,name,amt,label){
+  var row=null,ri=-1,cnt=0;
+  for(var i=0;i<DATA[sn].length;i++){
+    var r=DATA[sn][i];
+    if(r.sec===sec){ if(r.name===name){row=r;ri=cnt} cnt++; }
+  }
+  if(!row){row={sec:sec,name:name,daily:{},monthly:0};DATA[sn].push(row);ri=cnt}
+  row.autoFee=label;
+  delete row.auto;                                  // 由唯讀改為可覆寫
+  if(!row.ovr)row.ovr={};
+  if(!row.ovr['1'])row.daily={'1':amt};             // 沒被手動覆寫過才自動帶
+  var inp=document.querySelector('input[data-s="ts"][data-sec="'+sec+'"][data-ri="'+ri+'"][data-day="1"]');
+  if(inp&&document.activeElement!==inp)inp.value=row.daily['1']||'';
+  return row;
+}
 function _autoMallFee(){
   var sn='台積電';if(!DATA[sn])return;
-  var base=0;
-  DATA[sn].forEach(function(r){if(r.sec==='收入'&&MALL_FEE_BASE.indexOf(r.name)>=0){for(var k in r.daily)base+=(+r.daily[k]||0)}});
-  var fee=Math.round(base*MALL_FEE_RATE);
-  var feeRow=null;for(var i=0;i<DATA[sn].length;i++){if(DATA[sn][i].sec==='商場抽成'){feeRow=DATA[sn][i];break}}
-  if(!feeRow){feeRow={sec:'商場抽成',name:'商場抽成(含場租)',daily:{},monthly:0};DATA[sn].push(feeRow)}
-  feeRow.auto=true;
-  feeRow.daily={'1':fee};
-  var inp=document.querySelector('input[data-s="ts"][data-sec="商場抽成"][data-day="1"]');
-  if(inp&&document.activeElement!==inp)inp.value=fee||'';
+  var base=0,epay=0;
+  DATA[sn].forEach(function(r){
+    if(r.sec!=='收入')return;
+    var sum=0;for(var k in r.daily)sum+=(+r.daily[k]||0);
+    if(MALL_FEE_BASE.indexOf(r.name)>=0)base+=sum;
+    if(r.name===MALL_EPAY_SRC)epay+=sum;
+  });
+  _setMallAutoRow(sn,'商場抽成','商場抽成(含場租)',mallRentInc(base),'6項收入×7%');
+  _setMallAutoRow(sn,'其他費用',MALL_EPAY_ROW,mallEpayFeeInc(epay),'電子支付×1.5%+5%稅');
 }
 
 /* ═══ 通路手續費自動計算（逐日）：收入 × 各通路費率 → 其他費用手續費列 ═══
@@ -1422,7 +1508,7 @@ function payDialog(sec,ri){
   m.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9999;display:flex;align-items:center;justify-content:center';
   m.innerHTML='<div style="background:#fff;border-radius:14px;padding:26px 24px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.35)" onclick="event.stopPropagation()">'
     +'<div style="font-size:16px;font-weight:900;color:#0f172a;margin-bottom:2px">💰 對帳 / 匯款註記</div>'
-    +'<div style="font-size:13px;color:#475569;margin-bottom:16px">'+row.name+'　<b style="color:#0f172a">本月合計 '+rsDisp+'</b></div>'
+    +'<div style="font-size:13px;color:#475569;margin-bottom:16px">'+ESC(row.name)+'　<b style="color:#0f172a">本月合計 '+rsDisp+'</b></div>'
     +'<label style="display:flex;align-items:center;gap:8px;padding:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;margin-bottom:8px;cursor:pointer">'
     +'<input type="checkbox" id="pay-ck" '+(p.ck?'checked':'')+' style="width:17px;height:17px"><span style="font-size:13.5px;font-weight:700;color:#92400e;flex:1">已與廠商核對金額</span>'
     +'<input id="pay-ckd" value="'+(p.ckd||_todayMD())+'" placeholder="月/日" style="width:56px;padding:5px;border:1px solid #fde68a;border-radius:6px;font-size:12px;text-align:center"></label>'
@@ -1545,7 +1631,7 @@ function showNonExpense(){
     rows+='<tr style="border-bottom:1px solid #e2e8f0">'
       +'<td style="padding:8px 6px"><input type="checkbox" class="nex-ck" data-i="'+i+'" checked style="width:16px;height:16px"></td>'
       +'<td style="padding:8px 6px;font-size:12px;color:#64748b">'+x.store+'</td>'
-      +'<td style="padding:8px 6px;font-weight:700">'+x.name+'</td>'
+      +'<td style="padding:8px 6px;font-weight:700">'+ESC(x.name)+'</td>'
       +'<td style="padding:8px 6px;text-align:right;font-family:var(--f-num);font-weight:700">$'+NFL(x.amt)+'</td>'
       +'<td style="padding:8px 6px;font-size:11px;color:#64748b;max-width:220px">'+x.why+'</td></tr>';
   });
@@ -1619,7 +1705,7 @@ function _warnDupRows(){
       bar.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99990;background:#7f1d1d;color:#fff;padding:10px 16px;font-size:13px;font-weight:700;display:flex;gap:12px;align-items:center;box-shadow:0 -4px 16px rgba(0,0,0,.3)';
       document.body.appendChild(bar);}
     bar.innerHTML='⚠️ 偵測到 '+d.length+' 組同名科目，跨裝置存檔時金額可能跑到錯的列：'
-      +d.slice(0,4).map(function(x){return x.store+'／'+x.sec+'／'+x.name}).join('　·　')
+      +d.slice(0,4).map(function(x){return ESC(x.store+'／'+x.sec+'／'+x.name)}).join('　·　')
       +(d.length>4?' …等':'')
       +' <span style="margin-left:auto;background:#fff;color:#7f1d1d;padding:4px 10px;border-radius:6px;cursor:pointer" onclick="this.parentElement.remove()">知道了</span>'
       +' <span style="font-weight:400;opacity:.85">請用「✏️ 改名」把其中一列改成不同名稱</span>';
@@ -1674,9 +1760,14 @@ function copyFromMonth(){
   var srcLabel=(+srcParts[0]-1911)+'年'+(+srcParts[1])+'月';
 
   // Load source data
-  var srcData=null;
-  if(srcMk==='2026-03'){srcData=JSON.parse(JSON.stringify(RAW))}
-  else{try{var s=localStorage.getItem('fin_v3_'+srcMk);if(s)srcData=JSON.parse(s)}catch(e){}}
+  /* build#80：原本寫死「來源是 2026-03 就直接用內建範本 RAW」，
+     完全不看 Tim 實際存過的 3 月資料 —— 改過的金額、加過的廠商、刪掉的科目全部不算數，
+     而且畫面上看不出來（複製完只會覺得「怎麼跟我印象中不一樣」）。
+     改成：一律先讀實際存檔，真的沒有存檔時才退回內建範本，並在提示裡講清楚用的是哪一種。 */
+  var srcData=null,srcIsTemplate=false;
+  try{var s=localStorage.getItem('fin_v3_'+srcMk);if(s)srcData=JSON.parse(s)}catch(e){}
+  if(!srcData&&srcMk==='2026-03'){srcData=JSON.parse(JSON.stringify(RAW));srcIsTemplate=true}
+  if(srcIsTemplate&&!confirm('「'+srcLabel+'」在這台電腦沒有存檔紀錄，\n將改用系統內建的 115年3月 範本（出廠預設值）。\n\n如果你在別台電腦編輯過這個月份，請先切到該月份讓它同步下來，再回來複製。\n\n仍要用內建範本嗎？'))return;
 
   if(!srcData){
     // Try Firestore
@@ -1839,7 +1930,7 @@ function schedAutoSave(){
   },8000)
 }
 
-function updVendor(sk){const dl=$('vend-dl');if(!dl)return;dl.innerHTML=[...new Set(DATA[SMAP[sk]].map(r=>r.name))].map(n=>`<option value="${n}"></option>`).join('')}
+function updVendor(sk){const dl=$('vend-dl');if(!dl)return;dl.innerHTML=[...new Set(DATA[SMAP[sk]].map(r=>r.name))].map(n=>`<option value="${ESC(n)}"></option>`).join('')}
 // 合併 source 的非空日期格進 target（target 優先，source 僅補 target 的空格）。回傳是否有變動。
 // ═══ 墓碑系統（tombstone）：刪除標記持久化＋跨裝置同步，根治「刪除復活」═══
 // 結構 _tomb={'sn||sec||name':刪除時間戳}；存 localStorage fin_tomb_{月} + 隨每店雲端 doc 的 tombstones 欄位同步
@@ -1896,7 +1987,9 @@ function _srevKey(mk,sn){return 'fin_srev_'+mk+'_'+sn}
 function _getSrev(mk,sn){try{return +localStorage.getItem(_srevKey(mk,sn))||0}catch(e){return 0}}
 function _setSrev(mk,sn,v){try{localStorage.setItem(_srevKey(mk,sn),String(v))}catch(e){}}
 function _curMk(){return YEAR+'-'+String(MONTH).padStart(2,'0')}
-function _bumpSrev(sn){var mk=_curMk();var v=_getSrev(mk,sn)+1;_setSrev(mk,sn,v);return v}
+function _bumpSrev(sn){return _bumpSrevFor(_curMk(),sn)}
+/* build#80：批次匯入是針對「別的月份」動結構，需要能指定月份遞增 */
+function _bumpSrevFor(mk,sn){var v=_getSrev(mk,sn)+1;_setSrev(mk,sn,v);return v}
 function _tombSweep(){var swept=false;Object.values(SMAP).forEach(function(sn){if(!DATA[sn])return;for(var i=DATA[sn].length-1;i>=0;i--){var r=DATA[sn][i];if(_tombHas(sn,r.sec,r.name)){DATA[sn].splice(i,1);swept=true}}});return swept}
 // ═══ 時間戳仲裁：防「陳舊裝置」以本機優先把舊資料倒退回雲端 ═══
 function _markLocalSaved(mk){try{localStorage.setItem('fin_savedAt_'+mk,String(Date.now()))}catch(e){}}
@@ -2118,7 +2211,163 @@ function _erpDoImport(){
   alert('✅ 已匯入 '+added+' 筆，合計 $'+NF(tot)+(skip?'\n（'+skip+' 筆門市對不到已跳過）':''));
 }
 
+/* ═══ build#80：基準線（三方比對用）═══
+   要分辨「這格是我改的」還是「別人改的」，光比對本機與雲端不夠 ——
+   兩邊不一樣，可能是我剛改（正常），也可能是別人改了（危險），數字上長得一模一樣。
+   所以記下「上一次跟雲端對齊時，每一格是多少」當作基準線，改用三方比對：
+     雲端≠基準 → 別人動過      本機≠基準 → 我動過
+     兩者同時成立且數字不同 → 真衝突，停下來問人
+     只有別人動過 → 採用他的（本機沒碰，不該擋人家）
+     只有我動過   → 寫我的（原本就對）
+   基準線跟著月份存本機；沒有基準線時（第一次用這版／清過快取）退回舊的時間戳判斷。 */
+var _base={};
+function _baseKey(mk){return 'fin_base_'+mk}
+function _baseLoad(mk){try{_base=JSON.parse(localStorage.getItem(_baseKey(mk)))||{}}catch(e){_base={}}}
+function _basePersist(mk){try{localStorage.setItem(_baseKey(mk),JSON.stringify(_base))}catch(e){}}
+function _baseHas(){return _base&&Object.keys(_base).length>0}
+function _baseSetStore(sn,rows){
+  var m={};
+  (rows||[]).forEach(function(r){
+    if(r.auto||r.autoFee)return;              // 自動計算列不納入基準線
+    var d={};Object.keys(r.daily||{}).forEach(function(x){d[x]=+r.daily[x]||0});
+    m[r.sec+' '+r.name]=d;
+  });
+  _base[sn]=m;
+}
+function _baseGet(sn,sec,name,day){
+  var m=_base[sn];if(!m)return undefined;
+  var d=m[sec+' '+name];if(!d)return undefined;
+  return Object.prototype.hasOwnProperty.call(d,day)?d[day]:undefined;
+}
+/* 把雲端快照收成基準線（讀到雲端的當下，兩邊就是對齊的） */
+function _baseFromSnap(snap,mk){
+  try{snap.forEach(function(doc){if(doc.data().rows)_baseSetStore(doc.id,doc.data().rows)});_basePersist(mk)}catch(e){}
+}
+/* 寫回成功後，我寫上去的就是新的共同起點 */
+function _baseFromLocal(mk){
+  try{Object.values(SMAP).forEach(function(sn){if(DATA[sn])_baseSetStore(sn,DATA[sn])});_basePersist(mk)}catch(e){}
+}
+
+/* ═══ build#80：多裝置衝突偵測 ═══
+   自動計算列（通路手續費／商場抽成／央廚調撥）跳過 —— 它們是從別的格子推導出來的，
+   每台裝置各自重算本來就會不同，列進來只會變成雜訊，掩蓋真正該看的那幾格。
+   回傳 {list:[…衝突格], theirs:[…只有別人改的格，應直接採用]} */
+function _scanConflicts(snap){
+  var out=[],theirs=[],noBase=!_baseHas();
+  snap.forEach(function(doc){
+    var sn=doc.id,cloudRows=doc.data().rows;
+    if(!cloudRows||!DATA[sn])return;
+    cloudRows.forEach(function(cr){
+      if(_tombHas(sn,cr.sec,cr.name))return;
+      if(cr.auto||cr.autoFee)return;
+      var lr=null;
+      for(var i=0;i<DATA[sn].length;i++){if(DATA[sn][i].sec===cr.sec&&DATA[sn][i].name===cr.name){lr=DATA[sn][i];break}}
+      if(!lr||lr.auto||lr.autoFee||!cr.daily||!lr.daily)return;
+      Object.keys(cr.daily).forEach(function(d){
+        if(!Object.prototype.hasOwnProperty.call(lr.daily,d))return; // 本機沒填過 → 交給既有合併補進來
+        var cv=+cr.daily[d]||0,lv=+lr.daily[d]||0;
+        if(Math.abs(cv-lv)<=0.005)return;
+        var item={store:sn,sec:cr.sec,name:cr.name,day:d,mine:lv,cloud:cv};
+        if(noBase){out.push(item);return}                     // 沒基準線 → 保守當成衝突
+        var bv=_baseGet(sn,cr.sec,cr.name,d);
+        if(bv===undefined){out.push(item);return}             // 這格沒基準 → 保守當成衝突
+        var theyChanged=Math.abs(cv-bv)>0.005, iChanged=Math.abs(lv-bv)>0.005;
+        if(theyChanged&&iChanged)out.push(item);
+        else if(theyChanged)theirs.push(item);                // 只有別人改 → 直接採用他的
+      });
+    });
+  });
+  return {list:out,theirs:theirs,noBase:noBase};
+}
+/* 只有對方改動的格子，直接吸收進本機 —— 這是舊版最大的缺口：
+   本機只要「填過」這格就永遠贏，別人正常的修改會被無聲吃掉。 */
+function _adoptTheirs(theirs){
+  theirs.forEach(function(c){
+    var rows=DATA[c.store];if(!rows)return;
+    for(var i=0;i<rows.length;i++){
+      if(rows[i].sec===c.sec&&rows[i].name===c.name){rows[i].daily[c.day]=c.cloud;break}
+    }
+  });
+  return theirs.length>0;
+}
+/* 衝突視窗：攤開每一格的「我的值 vs 雲端值」，三個明確的出口，沒有預設選項。
+   在做出選擇之前不寫雲端，也不解開儲存鎖 —— 避免自動存檔在背後偷偷把事情做掉。 */
+function _showConflictDialog(cf,snap,mk,lsOK){
+  setSyncSt('warn','⚠️ 偵測到衝突，等待你決定');
+  var ov=document.createElement('div');ov.id='conflict-ov';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:99997;display:flex;align-items:center;justify-content:center;padding:20px';
+  var rows=cf.slice(0,40).map(function(c){
+    return '<tr style="border-bottom:1px solid #f1f5f9">'
+      +'<td style="padding:6px 8px">'+ESC(c.store)+'</td>'
+      +'<td style="padding:6px 8px">'+ESC(c.name)+'</td>'
+      +'<td style="padding:6px 8px;text-align:center">'+ESC(c.day)+'日</td>'
+      +'<td style="padding:6px 8px;text-align:right;font-family:var(--f-num);font-weight:800;color:#1d4ed8">'+NFL(c.mine)+'</td>'
+      +'<td style="padding:6px 8px;text-align:right;font-family:var(--f-num);font-weight:800;color:#b45309">'+NFL(c.cloud)+'</td></tr>';
+  }).join('');
+  ov.innerHTML='<div style="background:#fff;border-radius:14px;padding:24px;max-width:760px;width:100%;max-height:86vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)">'
+    +'<div style="font-size:19px;font-weight:900;color:#991b1b;margin-bottom:6px">⚠️ 有人在你之後改過同一個月份</div>'
+    +'<div style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:14px">'
+    +'以下 <b>'+cf.length+'</b> 個格子，你的畫面和雲端的數字不一樣。<br>'
+    +'如果直接存下去，其中一邊的修改會不見 —— 所以先停下來讓你看清楚。'
+    +(cf.length>40?'<br><span style="color:#b45309">（清單只列前 40 筆）</span>':'')+'</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px">'
+    +'<thead><tr style="background:#f8fafc;font-size:12px;color:#475569">'
+    +'<th style="padding:7px 8px;text-align:left">門市</th><th style="padding:7px 8px;text-align:left">科目</th>'
+    +'<th style="padding:7px 8px">日期</th><th style="padding:7px 8px;text-align:right;color:#1d4ed8">我的畫面</th>'
+    +'<th style="padding:7px 8px;text-align:right;color:#b45309">雲端（別人存的）</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<button id="cf-mine" style="flex:1;min-width:190px;padding:13px;background:#1d4ed8;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:800;cursor:pointer">保留我的，覆蓋雲端</button>'
+    +'<button id="cf-cloud" style="flex:1;min-width:190px;padding:13px;background:#b45309;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:800;cursor:pointer">採用雲端，放棄我的修改</button>'
+    +'<button id="cf-cancel" style="flex:1;min-width:150px;padding:13px;background:#fff;color:#334155;border:1.5px solid #cbd5e1;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer">先不要存，我再看看</button>'
+    +'</div>'
+    +'<div style="font-size:11px;color:#94a3b8;margin-top:10px;line-height:1.7">'
+    +'「先不要存」＝雲端維持別人的版本，你的修改仍留在這個畫面上（也已存在本機）。<br>'
+    +'不確定的時候選這個最安全，可以先按「↓ 本機備份」或「CSV」把你的版本留一份再決定。</div></div>';
+  document.body.appendChild(ov);
+  function close(){if(ov.parentNode)ov.parentNode.removeChild(ov)}
+  document.getElementById('cf-mine').onclick=function(){
+    close();
+    /* 以我的為準：照原本的合併規則（本機優先）寫回，並更新本機存檔時間，
+       這樣同一輪工作不會每存一次就再問一次 —— 除非對方又動了。 */
+    snap.forEach(function(doc){var sn=doc.id;_tombMergeCloud(sn,doc.data().tombstones);if(DATA[sn]&&doc.data().rows){_mergeRows(DATA[sn],doc.data().rows,sn)}});
+    _tombSweep();
+    ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);_reRenderFinPane();
+    _lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));
+    var batch=db.batch();
+    Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),srev:_getSrev(mk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
+    batch.commit().then(function(){setSyncSt('ok','☁️ 已用你的版本覆蓋雲端');_markLocalSaved(mk);_baseFromLocal(mk);_dailySnapshot();_saveDone()})
+                  .catch(function(){_saveFailMsg(lsOK);_saveDone()});
+  };
+  document.getElementById('cf-cloud').onclick=function(){
+    if(!confirm('採用雲端版本，你這次在畫面上做的修改會被覆蓋掉。\n\n確定？')){return}
+    close();
+    /* 採用雲端：直接以雲端列取代（濾墓碑），不寫回，讓畫面回到跟別人一致的狀態 */
+    snap.forEach(function(doc){
+      var sn=doc.id,cr=doc.data().rows;
+      if(!cr||!DATA[sn])return;
+      _tombMergeCloud(sn,doc.data().tombstones);
+      DATA[sn]=JSON.parse(JSON.stringify(cr)).filter(function(r){return !_tombHas(sn,r.sec,r.name)});
+      if(doc.data().srev)_setSrev(mk,sn,doc.data().srev);
+    });
+    _tombSweep();
+    ['jd','ts','hq'].forEach(function(k){buildTable(k)});showSt(CUR);recalc(CUR);_reRenderFinPane();
+    _lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));_markLocalSaved(mk);_baseFromLocal(mk);
+    setSyncSt('ok','☁️ 已改用雲端版本');
+    _saveDone();
+  };
+  document.getElementById('cf-cancel').onclick=function(){
+    close();setSyncSt('warn','未儲存到雲端（你的修改仍在本機）');_saveDone();
+  };
+}
+/* build#80：儲存中鎖 —— 實測連按 3 次 💾 會產生 12 次雲端寫入，
+   而且三組「讀－合併－寫」同時在跑、彼此交錯，可能寫進中途狀態。
+   這裡加一道旗標：儲存進行中就不再開新的，並回報「儲存中…」。 */
+var _saveInFlight=false;
+function _saveDone(){_saveInFlight=false;var b=$('save-btn');if(b){b.disabled=false;b.style.opacity=''}}
 function doSave(){
+  if(_saveInFlight){setSyncSt('sync','儲存中…（請稍候，不用重複按）');return}
+  _saveInFlight=true;
+  var _b=$('save-btn');if(_b){_b.disabled=true;_b.style.opacity='.55'}
   var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
   /* build#77：原本忽略 _lsSafeSet 的回傳值 —— 本機寫入失敗（配額爆掉）時，
      若雲端也失敗，狀態列仍會顯示「已存本機」，使用者安心關掉分頁 → 資料兩邊都沒有。
@@ -2130,7 +2379,20 @@ function doSave(){
     setSyncSt('sync','同步中…');
     // 讀-合併-寫：先抓雲端最新，把雲端有而本分頁沒有的非空格合併進來，再寫回 → 杜絕舊分頁覆蓋新資料
     db.collection('finance').doc(mk).collection('stores').get({source:'server'}).then(function(snap){
+      /* ═══ build#80：多裝置衝突偵測（A1）═══
+         舊行為：合併規則是「本機優先，雲端只補本機從沒填過的格」，而且完全不看時間戳。
+         實測後果 —— 你存 11111 → 店長存 22222 → 你那個沒重新整理的分頁再按一次儲存，
+         雲端就變回 11111，店長的修改無聲消失，兩邊都沒有提示。
+         現在：寫回之前先確認雲端是不是在你之後被別人動過；若有，逐格找出「雙方都有值且不同」
+         的衝突，攤開來讓老闆自己決定，絕不替他選。沒有衝突就照舊合併（那條規則本身是對的）。 */
       var merged=false;
+      if(!snap.empty){
+        var _sc=_scanConflicts(snap);
+        /* 沒有基準線時（第一次用這版）維持舊的時間戳判斷，避免整批誤報 */
+        var _gate=_sc.noBase?_cloudNewerThanLocal(mk,snap):true;
+        if(_gate&&_sc.list.length){ _showConflictDialog(_sc.list,snap,mk,_lsOK); return; }
+        if(_adoptTheirs(_sc.theirs))merged=true;
+      }
       if(!snap.empty){snap.forEach(function(doc){var sn=doc.id;_tombMergeCloud(sn,doc.data().tombstones);if(DATA[sn]&&doc.data().rows){if(_mergeRows(DATA[sn],doc.data().rows,sn))merged=true}})}if(_tombSweep())merged=true;
       if(merged){
         _lsSafeSet('fin_v3_'+mk,JSON.stringify(DATA));
@@ -2138,17 +2400,18 @@ function doSave(){
       }
       var batch=db.batch();
       Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),srev:_getSrev(mk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
-      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步')+(_lsOK?'':'（本機快取空間不足，僅存雲端）'));_markLocalSaved(mk);_dailySnapshot()}).catch(function(){_saveFailMsg(_lsOK)});
+      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+(merged?' 已同步(已合併雲端)':' 已同步')+(_lsOK?'':'（本機快取空間不足，僅存雲端）'));_markLocalSaved(mk);_baseFromLocal(mk);_dailySnapshot();_saveDone()}).catch(function(){_saveFailMsg(_lsOK);_saveDone()});
     }).catch(function(){
       // 讀取失敗（離線等）：本機已存，直接寫回避免卡住
       var batch=db.batch();
       Object.entries(SMAP).forEach(function(e){var sn=e[1];var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:DATA[sn],tombstones:_tombOfStore(sn),srev:_getSrev(mk,sn),savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})});
-      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步'+(_lsOK?'':'（本機快取空間不足，僅存雲端）'));_markLocalSaved(mk);_dailySnapshot()}).catch(function(){_saveFailMsg(_lsOK)});
+      batch.commit().then(function(){var t=new Date();setSyncSt('ok','☁️ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 已同步'+(_lsOK?'':'（本機快取空間不足，僅存雲端）'));_markLocalSaved(mk);_baseFromLocal(mk);_dailySnapshot();_saveDone()}).catch(function(){_saveFailMsg(_lsOK);_saveDone()});
     });
   } else {
     var t=new Date();
     if(_lsOK)setSyncSt('off','✓ '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0')+' 本機');
     else _saveFailMsg(false);
+    _saveDone();
   }
 }
 /* build#77：兩邊都沒存成功時，必須講清楚 —— 這是唯一不能含糊的一則訊息 */
@@ -2169,7 +2432,10 @@ function setSyncSt(status,msg){
   if(el){el.innerHTML=`<span class="sync-dot ${status}" id="sync-dot"></span>${msg}`}
   if(status==='ok')setTimeout(()=>{if($('sync-dot'))$('sync-dot').className='sync-dot ok'},100);
 }
-function doExport(){const sn=SMAP[CUR];let csv='\uFEFF類別,廠商/科目,'+DAYS.map(d=>d.d+'日').join(',')+',月合計\n';for(const r of DATA[sn]){const v=DAYS.map(d=>r.daily[String(d.d)]||0);csv+=`"${r.sec}","${r.name}",${v.join(',')},${v.reduce((a,b)=>a+b,0)}\n`}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`${YEAR-1911}年${MONTH}月_${sn}_流水帳.csv`;a.click()}
+/* build#80：CSV 欄位內若含雙引號要加倍（RFC4180），否則廠商名叫 大"發"食品 就會把整份 CSV 的欄位切錯位。
+   順便擋掉換行，避免名稱裡的斷行把一列拆成兩列。 */
+function CSVQ(v){return String(v===undefined||v===null?'':v).replace(/"/g,'""').replace(/[\r\n]+/g,' ')}
+function doExport(){const sn=SMAP[CUR];let csv='\uFEFF類別,廠商/科目,'+DAYS.map(d=>d.d+'日').join(',')+',月合計\n';for(const r of DATA[sn]){const v=DAYS.map(d=>r.daily[String(d.d)]||0);csv+=`"${CSVQ(r.sec)}","${CSVQ(r.name)}",${v.join(',')},${v.reduce((a,b)=>a+b,0)}\n`}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`${YEAR-1911}年${MONTH}月_${sn}_流水帳.csv`;a.click()}
 function doPrint(){document.querySelectorAll('.print-hdr').forEach(h=>h.style.display='block');window.print();setTimeout(()=>document.querySelectorAll('.print-hdr').forEach(h=>h.style.display='none'),500)}
 
 // ═══ FIREBASE INIT ═══
@@ -2348,6 +2614,7 @@ async function initData(){
   // Step 1: 載入「目標月份」本機資料（通用鍵 fin_v3 僅在確認為同月時使用，防跨月污染）
   var mk=YEAR+'-'+String(MONTH).padStart(2,'0');
   _tombLoad(mk); // 載入本月墓碑（刪除標記持久化）
+  _baseLoad(mk); // build#80：載入本月的雲端基準線（三方比對用）
   try{
     var s=localStorage.getItem('fin_v3_'+mk);
     if(!s&&localStorage.getItem('fin_v3_last')===mk)s=localStorage.getItem('fin_v3');
@@ -2377,6 +2644,7 @@ async function initData(){
           _loadStoreRows(sn,doc.data().rows,_cin,doc.data().srev,key); // 仲裁：結構用srev、金額用時間戳
         });
         _tombSweep();
+        _baseFromSnap(snap,key); // build#80：讀到雲端＝兩邊對齊，收成新的基準線
         setSyncSt('ok','☁️ 雲端已連線');
         ['jd','ts','hq'].forEach(k=>buildTable(k));
         recalc('jd');recalc('ts');recalc('hq');
@@ -2391,15 +2659,18 @@ async function initData(){
           }
         });
       } else {
+        _baseFromLocal(key); // build#80：雲端還沒有這個月 → 以本機為共同起點，避免第一次存檔誤判成整批衝突
         _pullSettings(function(adopted){if(adopted&&adopted.length&&typeof _reRenderFinPane==='function')_reRenderFinPane()});
         setSyncSt('ok','☁️ 已連線（無雲端資料）');
       }
     }catch(e){
       clearTimeout(timeout);
       console.warn('Firestore load failed:',e);
+      if(!_baseHas())_baseFromLocal(YEAR+'-'+String(MONTH).padStart(2,'0'));
       setSyncSt('err','⚠️ 雲端失敗，使用本機');
     }
   } else {
+    if(!_baseHas())_baseFromLocal(YEAR+'-'+String(MONTH).padStart(2,'0'));
     setSyncSt('off','離線模式');
   }
 }
@@ -2468,7 +2739,7 @@ function exportBackup(){
      Firestore 沒有、Google Drive 全系統備份也讀不到（那支只讀 Firestore）。
      原本的備份檔完全沒包含它們 → 清一次瀏覽器快取，資產負債表和發票紀錄就永久消失。 */
   backup.settings={};
-  var _SETTING_PREFIX=['fin_bs_stock_','fin_cf_estimate_','fin_pl_adj_','fin_invoices_','fin_vat_','fin_mall_recon','fin_collapse','fin_v3_navorder','fin_tomb_'];
+  var _SETTING_PREFIX=['fin_bs_stock_','fin_cf_estimate_','fin_pl_adj_','fin_invoices_','fin_vat_','fin_mall_recon','fin_collapse','fin_v3_navorder','fin_tomb_','fin_base_'];
   for(var j=0;j<localStorage.length;j++){
     var k2=localStorage.key(j);
     if(!k2)continue;
@@ -2510,7 +2781,11 @@ function _doBatchImport(months,mks,idx,okCount){
   try{localStorage.setItem('fin_v3_'+mk,JSON.stringify(md))}catch(e){}
   if(typeof db!=='undefined'&&db){
     var batch=db.batch();
-    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];if(md[sn]){var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);batch.set(ref,{rows:md[sn],tombstones:{},savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})}});
+    Object.keys(SMAP).forEach(function(sk){var sn=SMAP[sk];if(md[sn]){var ref=db.collection('finance').doc(mk).collection('stores').doc(sn);/* build#80：批次匯入同樣是「哪些科目存在、什麼順序」的結構性變更，
+       原本沒帶 srev（而且 set 會把雲端既有的 srev 欄位整個抹掉）→
+       另一台裝置 srev 較高時，下次同步就把匯入的結構整批打回去，畫面上看不出來。 */
+      var _nsrev=_bumpSrevFor(mk,sn);
+      batch.set(ref,{rows:md[sn],tombstones:{},srev:_nsrev,savedAtClient:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()})}});
     batch.commit().then(function(){console.log('✅ '+mk+' 已匯入（本機+雲端）');_doBatchImport(months,mks,idx+1,okCount+1)}).catch(function(err){
       if(confirm('⚠ '+mk+' 雲端寫入失敗：'+(err&&err.message||err)+'\n（本機已存）\n\n要繼續匯入下一個月嗎？')) _doBatchImport(months,mks,idx+1,okCount);
       else _doBatchImport(months,mks,mks.length,okCount);
@@ -2679,10 +2954,12 @@ function delInvoice(idx){
 var MALL_CARD_FEE=3150; // 三卡含稅固定（3000未稅）
 function _mallCalc(r){
   var gross=Math.round(+r.grossInc||0),epay=Math.round(+r.epay||0),repair=Math.round(+r.repair||0),other=Math.round(+r.other||0);
-  var rentInc=Math.round(gross*0.07);        // 租金含稅 = 營收×7%
+  /* build#81：改吃與流水帳自動計算同一組公式（mallRentInc / mallEpayFee*），
+     原本 0.07 與 0.015 在這裡各寫一份，跟 MALL_FEE_RATE 是兩套 —— 改一邊就對不起來 */
+  var rentInc=mallRentInc(gross);             // 租金含稅 = 營收×7%
   var rentNet=Math.round(rentInc/1.05);
-  var feeNet=Math.round(epay*0.015);          // 手續費未稅 = 電子支付×1.5%
-  var feeInc=Math.round(feeNet*1.05);
+  var feeNet=mallEpayFeeNet(epay);            // 手續費未稅 = 電子支付×1.5%
+  var feeInc=mallEpayFeeInc(epay);
   var totalFee=rentInc+feeInc+MALL_CARD_FEE+repair+other; // 費用合計(含稅)
   var payable=gross-totalFee;                 // 應付/應開票(含稅)
   var invNet=Math.round(payable/1.05);        // 開票未稅
@@ -2888,7 +3165,21 @@ function renderTaxCenter(){
     }
   }
   var citProjected=monthsLoaded>0?Math.round((annualNI/monthsLoaded)*12):0;
-  var citTax=Math.round(Math.max(0,citProjected-120000)*0.20);
+  /* ═══ build#80：營所稅稅額改依所得稅法第5條三段式 ═══
+     舊版一律算 (所得−12萬)×20%，只要所得超過 20 萬就固定少算 24,000。
+     法規原文：「全年課稅所得額超過 12 萬元者，就其【全部】課稅所得額課徵 20%，
+     但應納稅額不得超過課稅所得額超過 12 萬元部分之半數。」
+       所得 ≤ 12萬        → 0
+       12萬 < 所得 ≤ 20萬 → (所得−12萬) × 50%   （半數上限先觸頂）
+       所得 > 20萬        → 所得 × 20%           （全額課徵）
+     這是報稅數字，故把公式與級距一併印在畫面上供記帳士核對。 */
+  function _citTaxOf(x){
+    x=Math.round(+x||0);
+    if(x<=120000)return 0;
+    return Math.round(Math.min(x*0.20,(x-120000)*0.5));
+  }
+  var citTax=_citTaxOf(citProjected);
+  var citBand=citProjected<=120000?'免稅':(citProjected<=200000?'半數上限級距':'全額 20% 級距');
 
   // Filing deadlines
   var now=new Date();
@@ -2946,7 +3237,7 @@ function renderTaxCenter(){
   salesItems.forEach(function(it){
     if(it.store!==lastStore){lastStore=it.store;h+='<div style="font-size:11px;font-weight:700;color:#666;margin:8px 0 4px;padding:4px 8px;background:#f8fafc;border-radius:4px">'+it.store+'</div>'}
     var chk=it.isSales?'checked':'';
-    h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;transition:background .1s'+(it.isSales?';background:#fee2e2':'')+'" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\''+(it.isSales?'#fee2e2':'')+'\'"><input type="checkbox" '+chk+' onchange="toggleVat(\''+it.storeKey+'\',\''+it.sec+'\','+it.ri+',\'sales\')" style="width:16px;height:16px;accent-color:#dc2626"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.name+'</span><span style="font-family:var(--f-num);font-weight:700;color:'+(it.isSales?'#dc2626':'#999')+'">'+NFL(it.amount)+'</span></label>';
+    h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;transition:background .1s'+(it.isSales?';background:#fee2e2':'')+'" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\''+(it.isSales?'#fee2e2':'')+'\'"><input type="checkbox" '+chk+' onchange="toggleVat(\''+it.storeKey+'\',\''+it.sec+'\','+it.ri+',\'sales\')" style="width:16px;height:16px;accent-color:#dc2626"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+ESC(it.name)+'</span><span style="font-family:var(--f-num);font-weight:700;color:'+(it.isSales?'#dc2626':'#999')+'">'+NFL(it.amount)+'</span></label>';
   });
   if(salesItems.length===0)h+='<div style="padding:12px;color:#999;font-size:12px;text-align:center">本月無收入資料</div>';
   h+='</div>';
@@ -2958,7 +3249,7 @@ function renderTaxCenter(){
   purchaseItems.forEach(function(it){
     if(it.store!==lastStore){lastStore=it.store;h+='<div style="font-size:11px;font-weight:700;color:#666;margin:8px 0 4px;padding:4px 8px;background:#f8fafc;border-radius:4px">'+it.store+'</div>'}
     var chk=it.isPurchase?'checked':'';
-    if(it.locked){h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;font-size:13px;opacity:.55;cursor:not-allowed;background:#fffbeb" title="收據類（無統一發票）依法不可扣抵進項，已自動鎖定防誤勾"><input type="checkbox" disabled style="width:16px;height:16px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.name+' <span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:700">據·鎖定</span></span><span style="font-family:var(--f-num);font-weight:700;color:#999">'+NFL(it.amount)+'</span></label>';}else{h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;transition:background .1s'+(it.isPurchase?';background:#dcfce7':'')+'" onmouseover="this.style.background=\'#f0fdf4\'" onmouseout="this.style.background=\''+(it.isPurchase?'#dcfce7':'')+'\'"><input type="checkbox" '+chk+' onchange="toggleVat(\''+it.storeKey+'\',\''+it.sec+'\','+it.ri+',\'purchase\')" style="width:16px;height:16px;accent-color:#16a34a"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.name+'</span><span style="font-family:var(--f-num);font-weight:700;color:'+(it.isPurchase?'#16a34a':'#999')+'">'+NFL(it.amount)+'</span></label>';}
+    if(it.locked){h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;font-size:13px;opacity:.55;cursor:not-allowed;background:#fffbeb" title="收據類（無統一發票）依法不可扣抵進項，已自動鎖定防誤勾"><input type="checkbox" disabled style="width:16px;height:16px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+ESC(it.name)+' <span style="font-size:10px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:3px;font-weight:700">據·鎖定</span></span><span style="font-family:var(--f-num);font-weight:700;color:#999">'+NFL(it.amount)+'</span></label>';}else{h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:13px;transition:background .1s'+(it.isPurchase?';background:#dcfce7':'')+'" onmouseover="this.style.background=\'#f0fdf4\'" onmouseout="this.style.background=\''+(it.isPurchase?'#dcfce7':'')+'\'"><input type="checkbox" '+chk+' onchange="toggleVat(\''+it.storeKey+'\',\''+it.sec+'\','+it.ri+',\'purchase\')" style="width:16px;height:16px;accent-color:#16a34a"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+ESC(it.name)+'</span><span style="font-family:var(--f-num);font-weight:700;color:'+(it.isPurchase?'#16a34a':'#999')+'">'+NFL(it.amount)+'</span></label>';}
   });
   h+='</div></div></div>';
 
@@ -2970,7 +3261,7 @@ function renderTaxCenter(){
   h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">已累計淨利</div><div style="font-size:20px;font-weight:800;color:'+(annualNI>=0?'var(--pos)':'var(--neg)')+';font-family:var(--f-num)">$'+NFL(annualNI)+'</div><div style="font-size:10px;color:#999">'+monthsLoaded+'個月</div></div>';
   h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">全年推估</div><div style="font-size:20px;font-weight:800;font-family:var(--f-num)">$'+NFL(citProjected)+'</div><div style="font-size:10px;color:#999">÷'+monthsLoaded+' ×12</div></div>';
   h+='<div style="background:#f5f3ff;padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:#6d28d9">免稅額</div><div style="font-size:20px;font-weight:800;color:#16a34a;font-family:var(--f-num)">$120,000</div></div>';
-  h+='<div style="background:'+(citTax>0?'#fee2e2':'#dcfce7')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(citTax>0?'#991b1b':'#166534')+'">預估稅額(20%)</div><div style="font-size:20px;font-weight:800;color:'+(citTax>0?'#dc2626':'#16a34a')+';font-family:var(--f-num)">$'+NF(citTax)+'</div><div style="font-size:10px;color:#999">'+(citTax>0?'明年5月繳':'暫無應稅')+'</div></div>';
+  h+='<div style="background:'+(citTax>0?'#fee2e2':'#dcfce7')+';padding:14px;border-radius:10px;text-align:center"><div style="font-size:11px;color:'+(citTax>0?'#991b1b':'#166534')+'">預估稅額</div><div style="font-size:20px;font-weight:800;color:'+(citTax>0?'#dc2626':'#16a34a')+';font-family:var(--f-num)">$'+NF(citTax)+'</div><div style="font-size:10px;color:#999">'+(citTax>0?citBand+'·明年5月繳':'暫無應稅')+'</div></div>';
   h+='</div></div>';
 
   // Tax Calendar
@@ -3056,7 +3347,11 @@ function renderTaxCenter(){
   h+='<b>免稅額</b>：全年課稅所得 ≤ 12 萬元免稅<br>';
   h+='<b>計算公式</b>：<br>';
   h+='　課稅所得 = 營業收入淨額 - 營業成本 - 營業費用 + 非營業收益 - 非營業損失<br>';
-  h+='　應納稅額 = (課稅所得 - 12萬) × 20%<br>';
+  h+='　應納稅額（所得稅法§5 三段式）：<br>';
+  h+='　　課稅所得 ≦ 12萬　　　　→ 免稅<br>';
+  h+='　　12萬 &lt; 所得 ≦ 20萬　　→ (所得 − 12萬) × 50%<br>';
+  h+='　　所得 &gt; 20萬　　　　　　→ 全部所得 × 20%<br>';
+  h+='　<span style="color:#991b1b">※ 超過 12 萬是「就全部所得課 20%」，不是只課超過的部分；但稅額不得超過超過 12 萬部分之半數。</span><br>';
   h+='<b>申報期間</b>：每年 5/1 ~ 5/31<br>';
   h+='<b>暫繳</b>：9 月暫繳（去年稅額 ½），次年 5 月結算<br><br>';
 
@@ -3303,7 +3598,7 @@ var payTotal=payMethods.reduce(function(a,b){return a+b.amount},0);
 if(payMethods.length>0){
 h+='<div style="margin-bottom:12px">';
 payMethods.forEach(function(p){var pct=payTotal>0?(p.amount/payTotal*100):0;var barW=Math.max(2,pct);
-h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">'+p.name+'</span><div style="flex:1;height:18px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="width:'+barW+'%;height:100%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);border-radius:4px"></div></div><span style="min-width:70px;text-align:right;font-family:var(--f-num);font-weight:700">'+NFL(p.amount)+'</span><span style="min-width:45px;text-align:right;color:#666">'+pct.toFixed(1)+'%</span></div>'});
+h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">'+ESC(p.name)+'</span><div style="flex:1;height:18px;background:#f1f5f9;border-radius:4px;overflow:hidden"><div style="width:'+barW+'%;height:100%;background:linear-gradient(90deg,#8b5cf6,#a78bfa);border-radius:4px"></div></div><span style="min-width:70px;text-align:right;font-family:var(--f-num);font-weight:700">'+NFL(p.amount)+'</span><span style="min-width:45px;text-align:right;color:#666">'+pct.toFixed(1)+'%</span></div>'});
 h+='</div>'}else h+='<div style="color:#999;text-align:center;padding:16px">無資料</div>';
 h+='</div>';
 
@@ -3316,7 +3611,7 @@ vendors.sort(function(a,b){return b.amount-a.amount});
 var topV=vendors.slice(0,15);var vendorTotal=vendors.reduce(function(a,b){return a+b.amount},0);
 if(topV.length>0){
 h+='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#fee2e2"><th style="padding:6px">#</th><th style="padding:6px;text-align:left">廠商</th><th style="padding:6px;text-align:left">門市</th><th style="padding:6px;text-align:left">類別</th><th style="padding:6px;text-align:right">金額</th><th style="padding:6px;text-align:right">佔比</th></tr>';
-topV.forEach(function(v,i){h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:6px;font-weight:700;color:#dc2626">'+(i+1)+'</td><td style="padding:6px;font-weight:600">'+v.name+'</td><td style="padding:6px;font-size:11px;color:#666">'+v.store+'</td><td style="padding:6px;font-size:11px;color:#666">'+v.sec+'</td><td style="padding:6px;text-align:right;font-family:var(--f-num);font-weight:700;color:var(--neg)">'+NFL(v.amount)+'</td><td style="padding:6px;text-align:right;color:#666">'+(vendorTotal>0?(v.amount/vendorTotal*100).toFixed(1):'0')+'%</td></tr>'});
+topV.forEach(function(v,i){h+='<tr style="border-bottom:1px solid #e5e7eb"><td style="padding:6px;font-weight:700;color:#dc2626">'+(i+1)+'</td><td style="padding:6px;font-weight:600">'+ESC(v.name)+'</td><td style="padding:6px;font-size:11px;color:#666">'+ESC(v.store)+'</td><td style="padding:6px;font-size:11px;color:#666">'+ESC(v.sec)+'</td><td style="padding:6px;text-align:right;font-family:var(--f-num);font-weight:700;color:var(--neg)">'+NFL(v.amount)+'</td><td style="padding:6px;text-align:right;color:#666">'+(vendorTotal>0?(v.amount/vendorTotal*100).toFixed(1):'0')+'%</td></tr>'});
 h+='</table>'}
 h+='</div>';
 
@@ -3747,19 +4042,8 @@ function renderBS(){
     return;
   }
 
-  // 本期淨利從 P&L 連動
-  var mData=loadMonthData(YEAR,MONTH);
-  var curNI=0;
-  if(mData){
-    var pl=calcMS(mData);
-    curNI=pl?pl.ni:0;
-    // 也套用 P&L 手動調整
-    var adj=getPLAdj(YEAR,MONTH);
-    Object.keys(adj).forEach(function(sk){
-      var a=adj[sk]||{};
-      curNI+=(a.revAdj||0)-(a.cogsAdj||0)-(a.rentAdj||0)-(a.utilAdj||0)-(a.miscAdj||0)-(a.hrAdj||0);
-    });
-  }
+  // 本期淨利從 P&L 連動（build#80：抽成 _bsCurNI()，資產負債表與平衡結轉共用同一份算法）
+  var curNI=_bsCurNI();
 
   var s=stock;
   var ca=s.cash+s.ar+s.inventory+s.prepaid+s.otherCA;
@@ -3782,7 +4066,14 @@ function renderBS(){
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:12px;color:#0369a1">📊 動態模式 · 存量按月份儲存</div><div style="display:flex;gap:6px"><button onclick="openBSEdit()" style="padding:6px 14px;background:#fff;border:1.5px solid #7dd3fc;border-radius:6px;color:#0369a1;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✏️ 編輯存量</button><button onclick="copyBSFromPrev()" style="padding:6px 14px;background:#fff;border:1.5px solid #c4b5fd;border-radius:6px;color:#7c3aed;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📋 複製上月</button></div></div>';
   // 不平衡警示
   if(Math.abs(diff)>1){
-    h+='<div style="padding:10px 14px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;margin-bottom:10px;color:#991b1b;font-size:13px"><b>⚠️ 不平衡！</b> 資產 - (負債+權益) = '+(diff>=0?'+':'')+NFL(diff)+'　請檢查存量資料是否完整（特別是業主往來、開辦費攤提等項目）</div>';
+    /* build#80：原本只丟一句「請檢查存量資料」，但實務上差額幾乎都是「前期累積盈餘」這個
+       結轉數字沒跟著更新（本期保留盈餘是自動連動損益表的，損益一變、平衡就會跑掉）。
+       這裡把差額具體算給老闆看，並提供一鍵把差額結轉進前期累積盈餘 —— 按下去之前先講清楚
+       會從多少變成多少，不會偷改。 */
+    h+='<div style="padding:10px 14px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;margin-bottom:10px;color:#991b1b;font-size:13px"><b>⚠️ 不平衡！</b> 資產 − (負債+權益) = '+(diff>=0?'+':'')+NFL(diff)+'<br>'
+      +'<span style="font-size:12px">最常見原因：「前期累積盈餘」還停在舊數字。本期保留盈餘會自動連動損益表，損益一變平衡就會跑掉。</span><br>'
+      +'<button onclick="balanceBSPrior()" style="margin-top:8px;padding:6px 12px;background:#991b1b;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">⚖️ 把差額結轉進前期累積盈餘（'+NFL(s.priorEarnings)+' → '+NFL(s.priorEarnings+diff)+'）</button>'
+      +' <span style="font-size:11px;opacity:.8">按下前會再確認一次；若差額另有原因（漏記負債、押金），請改用「✏️ 編輯存量」逐項修</span></div>';
   }
 
   h+='<div class="tbl-card"><div class="bs-grid">';
@@ -3883,6 +4174,42 @@ function clearBSStock(){
   if(!confirm('確定刪除 '+(YEAR-1911)+'年'+MONTH+'月的存量資料？\n刪除後將顯示「無存量資料」畫面。'))return;
   try{localStorage.removeItem('fin_bs_stock_'+_mk(YEAR,MONTH))}catch(e){}
   closeBSEdit();renderBS();
+}
+/* build#80：本期淨利連動邏輯抽成單一函式 —— 原本只寫在 renderBS 裡，
+   平衡結轉若自己再寫一份，兩邊哪天不一致就又是一個「改A壞B」。 */
+function _bsCurNI(){
+  var mData=loadMonthData(YEAR,MONTH);
+  if(!mData)return 0;
+  var pl=calcMS(mData);
+  var ni=pl?pl.ni:0;
+  var adj=getPLAdj(YEAR,MONTH);
+  Object.keys(adj).forEach(function(sk){
+    var a=adj[sk]||{};
+    ni+=(a.revAdj||0)-(a.cogsAdj||0)-(a.rentAdj||0)-(a.utilAdj||0)-(a.miscAdj||0)-(a.hrAdj||0);
+  });
+  return ni;
+}
+/* build#80：一鍵把資產負債表的差額結轉進「前期累積盈餘」。
+   刻意做成「先看到會變成多少、再按確定」，且只動這一個欄位 —— 不自動、不批次、不碰別的存量。 */
+function balanceBSPrior(){
+  var s=getBSStock(YEAR,MONTH);
+  if(!s){alert('本月沒有存量資料，請先按「✏️ 編輯存量」建立。');return}
+  var curNI=_bsCurNI();
+  var totalA=s.cash+s.ar+s.inventory+s.prepaid+s.otherCA+(s.equipment-s.accDep)+s.preopen+s.deposit;
+  var totalL=s.apMonthly+s.apTax+s.apLabor+s.loanCurrent+s.apOther+s.loanZhaofeng+s.loanQiye+s.loanYanjie;
+  var equity=s.capital+s.priorEarnings+curNI;
+  var diff=totalA-(totalL+equity);
+  if(Math.abs(diff)<=1){alert('目前已經平衡，不需要調整。');return}
+  var nv=s.priorEarnings+diff;
+  if(!confirm('把 '+(YEAR-1911)+'年'+MONTH+'月 的差額結轉進「前期累積盈餘」\n\n'
+    +'差額（資產 − 負債 − 權益）：'+NFL(diff)+'\n'
+    +'前期累積盈餘：'+NFL(s.priorEarnings)+'　→　'+NFL(nv)+'\n\n'
+    +'只會改動這一個欄位，其他存量不動。\n'
+    +'⚠️ 若你知道差額其實是漏記的負債或押金，請按取消，改用「✏️ 編輯存量」逐項修正。\n\n確定結轉？'))return;
+  s.priorEarnings=nv;
+  setBSStock(YEAR,MONTH,s);
+  renderBS();
+  alert('✅ 已結轉。前期累積盈餘 → '+NFL(nv)+'\n\n若這個月之後再修改流水帳，平衡可能會再跑掉，屆時再按一次即可。');
 }
 function copyBSFromPrev(){
   var prevM=MONTH-1,prevY=YEAR;if(prevM<1){prevM=12;prevY--}
@@ -4055,6 +4382,19 @@ function renderCF(){
   h+='<tr class="fnote"><td colspan="5">※ 本期淨利連動 P&L；折舊、營運資金變動、投資籌資為估算值。期初現金可從上月 BS 自動帶入。</td></tr>';
   if(beginNote)h+='<tr class="fnote"><td colspan="5">'+beginNote+'</td></tr>';
   h+='</tbody></table></div>';
+  /* build#80：現金流量表的「期末現金」與資產負債表的「現金及銀行存款」講的是同一筆錢，
+     兩張表擺在同一套系統裡卻可以差好幾十萬而沒人提醒 —— 這裡做交叉勾稽，只提示不自動改。 */
+  try{
+    var _bsNow=getBSStock(YEAR,MONTH);
+    if(_bsNow&&typeof _bsNow.cash==='number'){
+      var _cfDiff=endT-_bsNow.cash;
+      if(Math.abs(_cfDiff)>1){
+        h='<div style="padding:10px 14px;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;margin-bottom:10px;color:#92400e;font-size:13px">'
+          +'<b>⚠️ 與資產負債表對不起來</b>　現金流量表期末現金 '+NFL(endT)+'　vs　資產負債表現金 '+NFL(_bsNow.cash)+'　（差 '+(_cfDiff>=0?'+':'')+NFL(_cfDiff)+'）<br>'
+          +'<span style="font-size:12px">兩者是同一筆錢，正常應該相等。差額通常來自「折舊／營運資金變動／投資籌資」這些估算值還沒依實際情況調整 —— 請按「✏️ 編輯估算」修正，或更新資產負債表的現金存量。</span></div>'+h;
+      }
+    }
+  }catch(e){}
   pd.innerHTML=h;
 }
 
@@ -4156,7 +4496,12 @@ function bootstrapFinDefaults(){
     equipment:790000,accDep:180000,preopen:33332,deposit:207000,
     apMonthly:265292,apTax:28328,apLabor:20000,loanCurrent:72000,apOther:15000,
     loanZhaofeng:70000,loanQiye:323351,loanYanjie:180000,
-    capital:1163921,priorEarnings:-500016
+    /* build#80：前期累積盈餘由 -500,016 改為 -699,650。
+       原值是從舊的靜態快照抄來的，那份快照當時算出的淨利是 -99,985；
+       現在動態計算的淨利是 +99,649，兩者差 199,634 —— 開檔就會看到紅色「不平衡」警告。
+       這裡只改「出廠預設值」（新裝置／清快取後才會套用）；已經在用的機器上不覆蓋任何
+       既有數字，改用資產負債表上的「⚖️ 結轉差額」按鈕由老闆自己確認後調整。 */
+    capital:1163921,priorEarnings:-699383
   };
   try{if(!localStorage.getItem('fin_bs_stock_2026-03'))localStorage.setItem('fin_bs_stock_2026-03',JSON.stringify(bs2026_03))}catch(e){}
 
@@ -4266,6 +4611,12 @@ function collect(onStep,prevFin){
   chain=chain.then(function(){ onStep&&onStep('品項主檔');
     return Promise.all([DOC('catalog','products'),DOC('catalog','costs')]).then(function(a){bk.catalog={products:a[0],costs:a[1]}}) });
   chain=chain.then(function(){ return DOC('finance','_mall_recon').then(function(v){bk.finance_mall=v}) });
+  /* build#80：原本備份只抓 finance/{年月}/stores 與 _mall_recon，
+     漏掉 finance/_settings —— 也就是資產負債表存量、現金流量估算、損益表手動調整、
+     發票紀錄、營業稅設定這一整類。那正是 build#77/#78 花力氣搬上雲端的東西，備份卻沒跟上。
+     漏備份的東西，要等到真的需要還原時才會發現不見了。 */
+  chain=chain.then(function(){ return DOC('finance','_settings').then(function(v){bk.finance_settings=v}) });
+  chain=chain.then(function(){ return DOC('finance','_erp_ledger').then(function(v){bk.finance_erp=v}) });
   bk.finance={};
   YM.forEach(function(ym){
     chain=chain.then(function(){ onStep&&onStep('財會 '+ym);
@@ -4847,6 +5198,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
   };
   /* 分通路覆核：臨辦與櫃位由不同人、不同時間完成，需各自鎖定。
      相容舊資料：若文件只有 doc 層 lockedAt（舊版全域鎖），視為兩通路皆已鎖。 */
+  var _qtySaving = false;   // build#80：數量錄入的儲存中鎖
   function chLocked(ch) { return !!S.locks[ch || S.ch]; }
   function lockedAtOf(ch) { return S.locks[ch || S.ch] || ''; }
   function allLocked() {
@@ -5219,34 +5571,66 @@ if (typeof module !== 'undefined' && module.exports) module.exports = globalThis
     if (lock && !confirm('覆核「' + S.ch + '」後將鎖定，需取消覆核才能再修改。\n（另一通路不受影響）\n\n確定？')) return;
     if (!DB()) { alert('雲端未連線，無法儲存'); return; }
 
-    var items = collect();
-    /* 保留另一通路已存在的資料，只覆寫目前通路 */
-    Object.keys(S.qty).forEach(function (k) { if (k.indexOf(S.ch + '|') !== 0) items.push(S.qty[k]); });
+    /* ═══ build#80：分通路同時錄入互蓋（B7）═══
+       舊做法是「我開頁時載入的另一通路資料 ＋ 我這通路的新資料，整包寫回」。
+       臨辦的人和櫃位的人若同時開著頁面，後存的會把先存的另一通路資料蓋回舊值 ——
+       payload 裡雖然有 srev，但沒有任何地方讀它來仲裁，等於沒有。
+       改成：寫入前先重讀雲端，另一通路一律以雲端當下為準（我根本沒在編輯它），
+       覆核鎖也一併以雲端為準合併，避免把別人剛完成的覆核解掉。 */
+    if (_qtySaving) { alert('儲存中，請稍候（不用重複按）'); return; }
+    _qtySaving = true;
+    var myItems = collect();
+    qtyRef().get().then(function (snap) {
+      var cd = (snap && snap.exists) ? (snap.data() || {}) : {};
+      var cloudItems = cd.items || [];
+      var items = myItems.slice();
+      var mine = {};
+      myItems.forEach(function (it) { mine[it.ch + '|' + it.sku] = 1; });
+      /* 另一通路：用雲端當下的資料，不用我開頁時的舊快照 */
+      cloudItems.forEach(function (it) {
+        if (!it || it.ch === S.ch) return;
+        if (mine[it.ch + '|' + it.sku]) return;
+        items.push(it);
+      });
 
-    var now = new Date().toISOString();
-    var locks = {};
-    Object.keys(S.locks).forEach(function (c) { locks[c] = S.locks[c]; });
-    if (lock) locks[S.ch] = now;
+      var now = new Date().toISOString();
+      var locks = {};
+      Object.keys(cd.locks || {}).forEach(function (c) { locks[c] = cd.locks[c]; });   // 先吃雲端
+      Object.keys(S.locks).forEach(function (c) { if (!locks[c]) locks[c] = S.locks[c]; });
+      if (lock) locks[S.ch] = now;
 
-    var payload = {
-      store: S.store, date: S.date, items: items,
-      locks: locks, srev: Date.now(),
-      filledBy: (W._fdUser && W._fdUser.user) || '',
-      updatedAt: now
-    };
-    /* doc 層 lockedAt 僅在「所有通路都覆核」時設立 ——
-       Firestore Rules 以 lockedAt 判斷是否需 fdCost 權限才能改，
-       分通路階段仍允許另一通路繼續錄入。 */
-    var chs = Object.keys(W.HaomingRecon.CHANNEL_RULES[S.store] || {});
-    var full = chs.length > 0 && chs.every(function (c) { return !!locks[c]; });
-    payload.lockedAt = full ? now : null;
-    if (lock) payload.approvedBy = (W._fdUser && W._fdUser.user) || '';
+      /* 別人在我開頁之後把「我這一通路」鎖了 → 停下來，不要覆蓋別人的覆核 */
+      if (cd.locks && cd.locks[S.ch] && !S.locks[S.ch]) {
+        _qtySaving = false;
+        alert('⚠️ 「' + S.ch + '」已經被其他人覆核鎖定了（' + String(cd.locks[S.ch]).slice(0, 16).replace('T', ' ') + '）。\n\n畫面將重新載入雲端最新狀態，你剛剛輸入的內容請重新確認。');
+        renderEntry();
+        return;
+      }
 
-    qtyRef().set(payload, { merge: true }).then(function () {
-      audit(lock ? 'LOCK' : 'SAVE', items.length);
-      alert(lock ? '✅ 已覆核鎖定「' + S.ch + '」' + (full ? '\n\n兩個通路皆已完成覆核。' : '\n\n另一通路仍可繼續錄入。') : '✅ 已儲存');
-      renderEntry();
-    }).catch(function (e) { alert('儲存失敗：' + (e.code || e.message)); });
+      var payload = {
+        store: S.store, date: S.date, items: items,
+        locks: locks, srev: Date.now(),
+        filledBy: (W._fdUser && W._fdUser.user) || '',
+        updatedAt: now
+      };
+      /* doc 層 lockedAt 僅在「所有通路都覆核」時設立 ——
+         Firestore Rules 以 lockedAt 判斷是否需 fdCost 權限才能改，
+         分通路階段仍允許另一通路繼續錄入。 */
+      var chs = Object.keys(W.HaomingRecon.CHANNEL_RULES[S.store] || {});
+      var full = chs.length > 0 && chs.every(function (c) { return !!locks[c]; });
+      payload.lockedAt = full ? now : null;
+      if (lock) payload.approvedBy = (W._fdUser && W._fdUser.user) || '';
+
+      return qtyRef().set(payload, { merge: true }).then(function () {
+        _qtySaving = false;
+        audit(lock ? 'LOCK' : 'SAVE', items.length);
+        alert(lock ? '✅ 已覆核鎖定「' + S.ch + '」' + (full ? '\n\n兩個通路皆已完成覆核。' : '\n\n另一通路仍可繼續錄入。') : '✅ 已儲存');
+        renderEntry();
+      });
+    }).catch(function (e) {
+      _qtySaving = false;
+      alert('儲存失敗：' + (e.code || e.message || e) + '\n\n資料尚未寫入雲端，請確認網路後再存一次。');
+    });
   }
 
   /* 取消覆核：僅限具成本權限者（老闆／財會）—— 與 Firestore Rules 一致，
