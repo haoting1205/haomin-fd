@@ -808,11 +808,16 @@ tr.lni td.lnipct{text-align:right;font-size:var(--fs-sm);color:var(--txt-2);font
 <div id="pos-bar"></div>
 <script>
 // ═══ VERSION ═══
-const VER={major:4,minor:19,patch:2,build:82,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
+const VER={major:4,minor:20,patch:0,build:83,str(){return`v${this.major}.${this.minor}.${this.patch}`},full(){return`v${this.major}.${this.minor}.${this.patch}`}};
 try{document.title='好洺財會系統 '+VER.str();document.getElementById('hdr-ver').textContent=VER.full();document.getElementById('nb-cl').textContent=VER.str()}catch(e){}
 const CL_CATS={NEW:{label:'新增',icon:'✨',color:'#22c55e',bg:'#052e16'},MOD:{label:'修改',icon:'🔧',color:'#3b82f6',bg:'#0c1d3a'},FIX:{label:'修復',icon:'🐛',color:'#f59e0b',bg:'#2a1f04'},DEL:{label:'移除',icon:'🗑️',color:'#ef4444',bg:'#2a0808'},PERF:{label:'優化',icon:'⚡',color:'#a855f7',bg:'#1a0a2e'},STYLE:{label:'樣式',icon:'🎨',color:'#ec4899',bg:'#2a0a1e'},REFACT:{label:'重構',icon:'♻️',color:'#06b6d4',bg:'#042f3a'},DOC:{label:'文件',icon:'📝',color:'#64748b',bg:'#1a1e24'}};
 const CL_MODS={PL:{label:'損益表',color:'#22c55e'},BS:{label:'資產負債表',color:'#3b82f6'},CF:{label:'現金流量表',color:'#06b6d4'},LEDGER:{label:'門市流水帳',color:'#f59e0b'},CORE:{label:'核心引擎',color:'#ef4444'},UI:{label:'介面/導航',color:'#a855f7'},DATA:{label:'資料層',color:'#ec4899'},PRINT:{label:'列印/匯出',color:'#64748b'},SYSTEM:{label:'系統架構',color:'#f97316'},BP:{label:'系統藍圖',color:'#0ea5e9'},TAX:{label:'稅務中心',color:'#dc2626'}};
 const CHANGELOG=[
+{build:83,version:'4.20.0',date:'2026-09-03',author:'Claude + Tim',summary:'第七輪：補測登入權限、鍵盤拖曳、設定同步等最後未測區 —— 找到「導覽列排序只存不讀」與「離職者七天內照樣能用」',changes:[
+{cat:'FIX',module:'UI',desc:'★導覽列自訂順序只有「存」沒有「讀」。長按拖曳排好的順序確實寫進了 localStorage（連備份都忠實地帶走），但從來沒有任何程式把它讀回來套用 —— 排好 → 重新整理 → 又跑回原本順序，而且完全看不出原因。新增 _applyNavOrder()，並特別防呆：存檔之後才新增的頁籤一律補在最後，絕不能因為使用者排過一次序，日後新增的功能就永遠看不到；順序資料壞掉時退回預設，不影響使用'},
+{cat:'NEW',module:'SYSTEM',desc:'★session 背景複驗。登入一次 session 就有效 7 天，期間完全不再回頭問人資系統 —— 員工離職／被停權／成本權限被收回之後，他那個還開著的分頁最長七天照常用。現在開機後會背景重讀帳號主檔：確定該帳號已停用或已無財會權限 → 清 session 要求重新登入；成本權限與 session 不一致 → 以帳號主檔為準（權限被收回時若正停在成本頁會帶離）。刻意「讀不到就什麼都不做」—— 網路不好不該把人鎖在外面。⚠️ 這只是第一道，真正的防線仍是 Firestore 安全規則'},
+{cat:'DOC',module:'SYSTEM',desc:'第七輪新增 4 組測試腳本共 79 項，全部是前兩輪沒碰過的區域：登入與權限 30 項（密碼錯誤／帳號不存在／員工未開通／已停用帳號優先／成本權限分級／直接呼叫 sw() 仍擋得住／session 過期與毀損／背景複驗三情境）、鍵盤與拖曳 24 項（方向鍵 Tab Enter 移動與邊界、欄位高亮、列拖曳排序與 undo、rowMenu 五個選項、列印表頭、儲存格備註）、導覽列順序 9 項、設定同步與其餘模組 34 項（設定推送取回與逐項時間仲裁、還款誤入費用一鍵標記連動損益表、每日快照不重複、多分頁警示、儀表板五大指標與七個區塊、申報提醒、Google Drive 降級、錯誤上報節流）。三輪累計 25 組腳本、287 項，全數通過'}
+]},
 {build:82,version:'4.19.2',date:'2026-09-03',author:'Claude + Tim',summary:'第六輪：把上一輪沒測到的互動功能全部實測一遍（流水帳操作／報表編輯／稅務／商場對帳／數量錄入／備份還原／ERP匯入），修 6 項',changes:[
 {cat:'FIX',module:'CORE',desc:'★勾稽分析的「財會實收」只讀 Firestore —— 老闆在流水帳 key 完但還沒按「儲存」時，雲端還是舊的，勾稽頁就顯示「財會實收 $0、帳務差距 −100%」，看起來像出了大事，其實只是還沒存。同月份改為直接用畫面上的記憶體資料（新增 _finRowsOf 存取器讓子模組取得主程式的 DATA）'},
 {cat:'FIX',module:'CORE',desc:'★同上：雲端讀取失敗（離線／權限不足）原本一律當成空物件 → 靜默變成「實收 0」。這是最危險的一種錯：看起來是個數字，其實是「不知道」。現在會回報讀取失敗，畫面明講「不是真的 0，是沒有資料」並說明可能原因'},
@@ -1276,6 +1281,40 @@ document.querySelectorAll('.nav-tab').forEach(function(tab){
     try{localStorage.setItem('fin_v3_navorder',JSON.stringify(order))}catch(e){}
   });
 });
+
+/* ═══ build#83：把存下來的導覽列順序真的套用回去 ═══
+   舊版只有「存」沒有「讀」—— 長按拖曳排好的順序有寫進 localStorage，
+   甚至也被備份帶走了，但從來沒有任何地方把它讀回來套用。
+   結果就是：排好 → 重新整理 → 又跑回原本的順序，而且看不出原因。
+
+   ⚠️ 關鍵防呆：存檔之後才新增的頁籤不會出現在舊順序裡，
+   一律補到最後 —— 絕不能因為使用者排過一次序，日後新增的功能就永遠看不到。 */
+function _applyNavOrder(){
+  try{
+    var raw=localStorage.getItem('fin_v3_navorder'); if(!raw)return;
+    var order=JSON.parse(raw);
+    if(!Array.isArray(order)||!order.length)return;
+    var nav=document.querySelector('.nav'); if(!nav)return;
+    var byId={},seps=[];
+    [].slice.call(nav.children).forEach(function(el){
+      if(el.classList&&el.classList.contains('nav-sep')){seps.push(el);return}
+      var m=(el.getAttribute('onclick')||'').match(/sw\('(\w+)'/);
+      if(m)byId[m[1]]=el;
+    });
+    if(!Object.keys(byId).length)return;
+    var used={},frag=document.createDocumentFragment(),si=0;
+    order.forEach(function(k){
+      if(k==='|'){ if(seps[si])frag.appendChild(seps[si++]); return }
+      if(byId[k]&&!used[k]){ used[k]=1; frag.appendChild(byId[k]) }
+    });
+    var added=[];
+    Object.keys(byId).forEach(function(k){ if(!used[k]){ frag.appendChild(byId[k]); added.push(k) } });
+    while(si<seps.length)frag.appendChild(seps[si++]);
+    nav.appendChild(frag);
+    if(added.length)console.log('🔀 導覽列自訂順序已套用；新頁籤補在最後：'+added.join(', '));
+  }catch(e){ console.warn('導覽列順序套用失敗，使用預設順序：',e) }
+}
+_applyNavOrder();
 
 /* ─── Column Highlight + Position Indicator ─── */
 /* ─── Column Highlight on HOVER (not just focus) ─── */
@@ -2607,12 +2646,53 @@ function _fdShowLogin(){
   document.getElementById('fd-lg-p').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
   setTimeout(function(){document.getElementById('fd-lg-u').focus()},100);
 }
+/* ═══ build#83：session 背景複驗 ═══
+   session 一存就是 7 天，期間完全不再回頭問人資系統。實務上的問題是：
+   員工離職／被停權／成本權限被收回之後，他那個還開著的分頁仍然照常用，最長七天。
+   這裡在開機後背景重讀一次帳號主檔：
+     · 確定讀到，而且該帳號已停用／已無財會權限 → 清 session、請他重新登入
+     · 確定讀到，成本權限與 session 不一致       → 以帳號主檔為準（收回或補上）
+     · 讀不到（離線、逾時、權限不足）           → 什麼都不做，維持現狀
+   刻意「失敗就不動」—— 網路不好不該把人鎖在外面。
+   ⚠️ 這只是把離職者關在門外的第一道，真正的防線仍然是 Firestore 安全規則。 */
+function _fdRevalidate(sess){
+  try{
+    if(typeof db==='undefined'||!db||!sess||!sess.user)return;
+    db.collection('prod_hrdata').doc('accounts').get().then(function(d){
+      if(!d.exists)return;                      // 讀不到主檔 → 不動
+      var list=(d.data().userAccounts)||[];
+      if(!list.length)return;                   // 空的也不動，避免誤判
+      var a=list.find(function(x){return x.user&&String(x.user).toLowerCase()===String(sess.user).toLowerCase()});
+      if(!a||!_fdAccessOf(a)){
+        try{localStorage.removeItem('fd_session')}catch(e){}
+        alert('你的帳號權限已變更（停用或已取消財會權限），請重新登入。');
+        location.reload();
+        return;
+      }
+      var cost=(a.role==='老闆')||!!(a.access&&a.access.fdCost);
+      if(cost!==!!window._fdCost){
+        window._fdCost=cost;_fdApplyCostVis();
+        try{sess.fdCost=cost;sess.role=a.role;localStorage.setItem('fd_session',JSON.stringify(sess))}catch(e){}
+        console.log('🔄 成本權限已依帳號主檔更新為 '+cost);
+        /* 權限被收回時，若人正停在成本頁，要把他帶離開 */
+        if(!cost){
+          var ap=document.querySelector('.pane.active');
+          if(ap&&COST_PANES.indexOf(ap.id.replace('pane-',''))>=0){
+            alert('你的成本權限已被取消，將返回損益表。');
+            var tab=document.querySelector('.nav-tab');
+            if(tab)sw('pl',tab);
+          }
+        }
+      }
+    }).catch(function(){});   // 讀不到就維持現狀，不把人鎖在外面
+  }catch(e){}
+}
 function _fdApplyCostVis(){try{document.querySelectorAll('.cost-only').forEach(function(el){el.style.display=window._fdCost?'':'none'})}catch(e){}}
 function fdLogout(){try{localStorage.removeItem('fd_session')}catch(e){}location.reload()}
 // 啟動檢查：有效 session 直接放行；否則顯示登入
 (function(){
   var s=_fdSession();
-  if(s){_fdUser=s;window._fdCost=(s.role==='老闆')||!!s.fdCost;_fdApplyCostVis();console.log('🔓 Session: '+s.user+' 成本權限='+window._fdCost)}
+  if(s){_fdUser=s;window._fdCost=(s.role==='老闆')||!!s.fdCost;_fdApplyCostVis();console.log('🔓 Session: '+s.user+' 成本權限='+window._fdCost);_fdRevalidate(s)}
   else{
     // 等 DOM ready 後顯示登入遮罩
     if(document.body)_fdShowLogin();
